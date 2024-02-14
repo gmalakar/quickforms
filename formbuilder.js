@@ -14,11 +14,19 @@ class FormBuilderHelper {
 
     static isJson(str) {
         try {
-            JSON.parse(str);
+            this.json.parse(str);
         } catch (e) {
             return false;
         }
         return true;
+    }
+
+    static jsonToObject(json) {
+        try {
+            return this.json.parse(json);
+        } catch {
+            return null;
+        }
     }
     static isArray(obj) {
         if (
@@ -47,7 +55,7 @@ class FormBuilderHelper {
         return ret;
     }
     static isElement(obj) {
-        let ret = obj instanceof Element;
+        let ret = !FormBuilderHelper.isNullOrUndefined(obj) && obj instanceof Element;
         if (!ret && FormBuilderHelper.isString(obj)) {//check by id
             ret = FormBuilderHelper.isNullOrUndefined(document.getElementById(obj));
         }
@@ -55,7 +63,7 @@ class FormBuilderHelper {
     }
 
     static isHTMLElement(obj) {
-        let ret = obj instanceof HTMLElement;
+        let ret = !FormBuilderHelper.isNullOrUndefined(obj) && obj instanceof HTMLElement;
         if (!ret && FormBuilderHelper.isString(obj)) {//check by id
             ret = FormBuilderHelper.isNullOrUndefined(document.getElementById(obj));
         }
@@ -92,14 +100,42 @@ class FormBuilderHelper {
         throw new Error(FormBuilderHelper.#errorDictionary[key]);
     }
 
+    static populateOptionsFormJson(targetElement, json) {
+        if (FormBuilderHelper.isHTMLElement(targetElement)) {
+            let options = FormBuilderHelper.jsonToObject(json);
+            if (options) {
+                for (let [text, value] of Object.entries(options)) {
+                    var opt = document.createElement('option');
+                    opt.value = value;
+                    opt.innerHTML = text;
+                    targetElement.appendChild(opt);
+                }
+            }
+        }
+    }
+
+    static populateOptions(targetElement, options) {
+        if (FormBuilderHelper.isHTMLElement(targetElement) && options) {
+            for (let [text, value] of Object.entries(options)) {
+                var opt = document.createElement('option');
+                opt.value = value;
+                opt.innerHTML = text;
+                targetElement.appendChild(opt);
+            }
+        }
+    }
     static #errorDictionary = {
         //builder
         "builder.invalidbuilderel": "Placeholder element does not exist.",
         "builder.missingplaceholder": "Please enter placeholder id.",
+        "builder.missinginstance": "Missing or invalid FormBuilder instance.",
         //form
-        "form.missingformname": "Missing form name",
-        "form.error.missingformholder": "Missing or invalid form holder",
+        "form.missingformname": "Missing Form Name",
+        "form.missingforminstance": "Missing Form Instance",
+        "form.missingformholder": "Missing or invalid form holder",
+        "form.missinglistener": "Missing listener from caller",
         //components
+        "component.missingproperties": "Missing component properties",
         "component.invalidtype": "Invalid component type",
         "component.missingname": "Missing Component Name",
         "component.missingtype": "Missing Component Type",
@@ -113,7 +149,7 @@ class FormBuilderHelper {
 
     static #formDictionary = {
         //builder
-        
+
         //components
         "component.label": "New Label For",
         "component.defaultclass": "mb-0 col-md-6 fb-form-component"
@@ -130,38 +166,200 @@ class FormBuilderHelper {
     };
 }
 
-/****form fields */
-class FormBuilderFormComponent {
+class ObservableClass {
+    #observer;
+    #observingMethod;
+    constructor() {
+        if (this.constructor == ObservableClass) {
+            throw new Error("Abstract classes can't be instantiated.");
+        }
+    }
+
+    setObserver(observer, observingMethod) {
+        this.#observer = observer;
+        this.#observingMethod = observingMethod;
+    }
+
+    get hasObserver() {
+        return this.#observer && this.#observingMethod && typeof this.#observingMethod === 'function';
+    }
+    signalObserver(event, args) {
+        if (this.#observer && this.#observingMethod && typeof this.#observingMethod === 'function') {
+            this.#observingMethod(this.#observer, event, args);
+        } else {
+            throw new Error("Observer has not been set properly");
+        }
+    }
+}
+
+//form colpuments
+
+class FormBuilderFormComponent extends ObservableClass {
 
     //public members
     fbComponent;
     elementControl;
     labelControl;
+    metaData = {};
 
-    constructor(formname, json = null) {
-        if (FormBuilderHelper.isNullOrEmpty(formname)) {
+    constructor(formName, metaData, observer, observingMethod) {
+
+        if (FormBuilderHelper.isNullOrEmpty(formName)) {
             return FormBuilderHelper.throwError('form.missingformname');
         }
-        if (!FormBuilderHelper.isElement(json.type)) {
+        super();
+        this.metaData = metaData || {};
+        if (FormBuilderHelper.isJson(this.metaData)) {
+            this.metaData = this.metaData.parse(this.metaData);
+        }
+        if (FormBuilderHelper.isNullOrUndefined(this.metaData)) {
+            return FormBuilderHelper.throwError('form.missingproperties');
+        }
+
+        if (!FormBuilderHelper.isElement(this.metaData.type)) {
             return FormBuilderHelper.throwError('component.missingtype');
         }
 
-        if (!FormBuilderHelper.isElement(json.name)) {
+        if (!FormBuilderHelper.isElement(this.metaData.name)) {
             return FormBuilderHelper.throwError('component.missingname');
         }
-
-        this.formname = formname || 'fb-form';
-        this.type = json.type || null;
-        this.name = json.name || null;
-        this.label = json.label || '';
-        this.placeholder = json.placeholder || '';
-        this.attributes = json.attributes || {};
-        this.styles = json.styles || {};
-        this.eventlisteners = json.evenlisteners || {};
-        this.mandatory = json.mandatory || false;
-        this.properties = json.properties || null;
-        this.value = (typeof json.value !== 'undefined') ? json.value : null;
+        //observer
+        if (!FormBuilderHelper.isElement(this.metaData.name)) {
+            return FormBuilderHelper.throwError('component.missingname');
+        }
+        this.setObserver(observer, observingMethod);
     }
+
+    #triggerChange(event, args) {
+        if (this.hasObserver) {
+            this.signalObserver(event, args)
+        } else {
+            console.log('missing observer');
+        }
+    }
+
+    get label() {
+        return this.metaData.label || '';
+    }
+
+    set label(value) {
+        this.metaData.label = value;
+        if (this.labelControl) {
+            this.labelControl.textContent = value;
+        }
+    }
+
+    get value() {
+        if (this.elementControl) {
+            return this.elementControl.value;
+        } else {
+            return '';
+        }
+    }
+
+    set value(value) {
+        if (this.elementControl) {
+            this.elementControl.value = value;
+        }
+    }
+
+    get placeholder() {
+        this.metaData.placeholder || '';
+    }
+
+    set placeholder(value) {
+        this.metaData.placeholder = value;
+        if (this.elementControl) {
+            this.elementControl.setAttribute('placeholder', value);
+        }
+    }
+
+    get styles() {
+        return this.metaData.styles || {};
+    }
+
+    setStyle(key, value) {
+        if (this.metaData.styles === undefined) {
+            this.metaData.styles = {};
+        }
+        this.metaData.styles[key] = value;
+        if (this.elementControl) {
+            this.elementControl.setAttribute('style', FormBuilderFormComponent.#joinStyles(this.styles));
+        }
+    }
+
+    getStyle(key) {
+        let val = '';
+        if (this.styles[key] !== undefined) {
+            val = this.styles[key];
+        }
+    }
+
+    get properties() {
+        return this.metaData.properties || {};
+    }
+
+    setProperty(key, value) {
+        if (this.metaData.properties === undefined) {
+            this.metaData.properties = {};
+        }
+        this.metaData.properties[key] = value;
+
+    }
+
+    getProperty(key) {
+        let val = '';
+        if (this.properties[key] !== undefined) {
+            val = this.propertiess[key];
+        }
+    }
+
+
+    get attributes() {
+        return this.metaData.attributes || {};
+    }
+
+    setAttribute(key, value) {
+        if (this.metaData.attributes === undefined) {
+            this.metaData.attributes = {};
+        }
+        this.metaData.attributes[key] = value;
+        if (this.elementControl) {
+            this.elementControl.setAttribute(key, value);
+        }
+    }
+
+
+    getAttribute(key) {
+        let val = '';
+        if (this.attributes[key] !== undefined) {
+            val = this.attributes[key];
+        }
+        return val;
+    }
+
+    get type() {
+        return this.metaData.type || null;
+    }
+
+    get name() {
+        return this.metaData.name || null;
+    }
+
+    set name(value) {
+        this.metaData.name = value;
+        if (this.elementControl) {
+            this.elementControl.name = value;
+            this.elementControl.id = value;
+        }
+        if (this.labelControl) {
+            this.label.for = value;
+        }
+    }
+
+    get eventlisteners() {
+        return this.metaData.eventlisteners || {};
+    };
 
     static getType(type) {
         switch (type) {
@@ -181,17 +379,78 @@ class FormBuilderFormComponent {
         }
     }
 
+    setComponentProperty(type, name, val) {
+        switch (name) {
+            case 'name':
+                this.name = val;
+                break;
+            case 'label':
+                this.label = val;
+                break;
+            default:
+                switch (type) {
+                    case 'attribute':
+                    case 'attr':
+                        this.setAttribute(name, val);
+                        break;
+                    case 'style':
+                        this.setStyle(name, val);
+                        break;
+                    case 'prop':
+                    case 'property':
+                        this.setProperty(name, val);
+                        break;
+                    default:
+                        this[name] = val;
+                        break;
+                }
+                break;
+        }
+    }
+
+
+    getComponentProperty(type, name) {
+        let val = '';
+        switch (type) {
+            case 'attribute':
+            case 'attr':
+                val = this.getAttribute(name);
+                break;
+            case 'style':
+                val = this.getStyle(name);
+                break;
+            case 'prop':
+            case 'property':
+                this.getProperty(name);
+                break;
+            default:
+                val = this[name];
+                break;
+        }
+        return val;
+    }
 
     static #getNewLabel(compid) {
         return `${FormBuilderHelper.getComponentPropVal('label')} ${compid}`;
     }
 
+    static #joinStyles(styles) {
+        let style = '';
+        if (FormBuilderHelper.isObjcetButNotArray(styles)) {
+            for (let [key, val] of Object.entries(styles)) {
+                style = `${style}${key}:${val};`;
+            }
+        }
+        return style;
+    }
+
     build() {
         let compId = this.name;
-        this.fbComponent = FormBuilderHelper.createElement('div', `fb-comp-${compId}`, { class: FormBuilderHelper.getComponentPropVal('defaultclass') });
+        let topCls = 'mb-0 col-md-6 fb-form-component';
+        this.fbComponent = FormBuilderHelper.createElement('div', `comp-${compId}`, { class: topCls, tabindex:-1 });
         // Label field
         let lblProps = {
-            htmlFor: compId,
+            for: compId,
             class: 'form-label fb-form-label'
         }
         this.labelControl = FormBuilderHelper.createElement('label', 'noid', lblProps);
@@ -217,20 +476,16 @@ class FormBuilderFormComponent {
                     break;
                 default:
                     compProps[key] = attr;
+                    break;
             }
         }
         compProps['class'] = cls;
 
         //set style
-        let style = '';
-        for (let [key, val] of Object.entries(this.styles)) {
-            cls = `${style}${key}:${val};`;
-        }
-        if (!FormBuilderHelper.isNullOrEmpty(style)) {
-            compProps['style'] = style;
-        }
+        let style = FormBuilderFormComponent.#joinStyles(this.styles);
+        compProps['style'] = style;
 
-        let controlId = `${this.formname}[${compId}]`;
+        let controlId = `${this.formName}[${compId}]`;
         this.elementControl = FormBuilderHelper.createElement(FormBuilderFormComponent.getControlType(this.type), controlId, compProps);
 
         for (let [event, fn] of Object.entries(this.eventlisteners)) {
@@ -238,40 +493,77 @@ class FormBuilderFormComponent {
         }
         this.fbComponent.appendChild(this.labelControl);
         this.fbComponent.appendChild(this.elementControl);
+        this.fbComponent.addEventListener('focus', () => {
+            this.#triggerChange('currentComponentChanged', this);
+        })
+        this.fbComponent.addEventListener('mouseover', () => {
+            document.body.style.cursor = 'all-scroll';            
+        })
+       this.fbComponent.addEventListener('mouseout', () => {
+            document.body.style.cursor = 'auto';
+        })
+
         return this.fbComponent;
     }
 }
 
 //form
 
-class FormBuilderForm {
-
-    //private members
-    #formHolder;
+class FormBuilderForm extends ObservableClass {
 
     //public members
+
+    #metaData;
+    #placeHolder;
     currentComponent;
 
+    constructor(placeHolder, metaData, observer, observingMethod) {
 
-    constructor(name, formHolder, formObj) {
-        if (FormBuilderHelper.isNullOrEmpty(name)) {
-            return FormBuilderHelper.throwError('form.missingformname');
+        if (FormBuilderHelper.isNullOrUndefined(placeHolder) || !FormBuilderHelper.isHTMLElement(placeHolder)) {
+            return FormBuilderHelper.throwError('builder.missingplaceholder');
         }
-        if (!FormBuilderHelper.isElement(formHolder)) {
-            return FormBuilderHelper.throwError('form.missingformholder');
+
+        super();
+
+        this.#metaData = metaData || {};
+        if (FormBuilderHelper.isJson(this.#metaData)) {
+            this.#metaData = this.json.parse(this.#metaData);
         }
-        this.name = name;
-        this.#formHolder = formHolder;
-        if (FormBuilderHelper.isJson(formObj)) {
-            formObj = JSON.parse(formObj);
+        if (FormBuilderHelper.isNullOrEmpty(this.#metaData.formName)) {
+            return FormBuilderHelper.throwError('component.missingname');
         }
-        this.formObj = formObj || {};
+
         this.components = {};
-        for (let [name, comp] of Object.entries(this.formObj['components'] || {})) {
-            this.components[name] = new FormBuilderFormComponent(this.name, comp)
+        for (let [name, comp] of Object.entries(this.#metaData['components'] || {})) {
+            this.components[name] = new FormBuilderFormComponent(this.name, comp, this, this.#observingMethod)
         }
+        this.#placeHolder = placeHolder;
+        this.setObserver(observer, observingMethod);
     }
 
+    get name() {
+        return this.#metaData.formName;
+    }
+
+    get metaData() {
+        return this.#metaData;
+    }
+
+    #observingMethod(observer, event, args) {
+        //here this means callee
+        if (observer.constructor === FormBuilderForm) {
+            switch (event) {
+                case 'currentComponentChanged':
+                    observer.currentComponent = args;
+                    break;
+                default:
+                    break;
+            }
+            if (observer.hasObserver) {
+                observer.signalObserver(event, args);
+            }
+        }
+    }
     generateName(type) {
         let names = this.componentNames;
         let l = type.length;
@@ -284,7 +576,7 @@ class FormBuilderForm {
             }
             return idx;
         }));
-        if(curIdx && curIdx.length > 0 )
+        if (curIdx && curIdx.length > 0)
             return `${type}${Math.max.apply(Math, curIdx) + 1}`;
         else
             return `${type}1`;
@@ -292,10 +584,6 @@ class FormBuilderForm {
 
     get componentNames() {
         return Object.keys(this.components);
-    }
-
-    componentExists(name) {
-        return componentNames.includes(name);
     }
 
     addNewComponent(type) {
@@ -307,44 +595,54 @@ class FormBuilderForm {
         let component = {};
         component.name = this.generateName(type);
         component.type = type;
-        let newComponent = new FormBuilderFormComponent(this.name, component);
+        let newComponent = new FormBuilderFormComponent(this.name, component, this, this.#observingMethod);
         this.components[component.name] = newComponent;
 
         //add to builder pane
         let control = newComponent.build();
-        this.#formHolder.appendChild(control);
+        this.#placeHolder.appendChild(control);
         this.currentComponent = newComponent;
         return newComponent;
     }
-
 }
+
+//builder
 class FormBuilder {
 
-    //private members
-    #placeholder;
     #builderHolder;
-    #formname;
-    #buildserComponentsPane;
+    #formName;
+    #componentsPlaceHolder;
     #theForm;
-
-    //public members
-    formJson = {}
-
     #buildertTabPanes = {};
+    #editBar;
+    #currentComponent;
+    #formMetaData = {}
+    #editorPropElements = [];
 
     /**
-     * Class constructor.
+     * Class constructor of FormBuilder.
      * 
      * @param {string} placeholder place holder for form builder
+     * @param {string} formname form name
+     * @param {string} formMetaData form metadata
      */
-    constructor(placeholder, formname, formJson = null) {
-        if (placeholder) {
-            this.#formname = formname ?? 'sample';
-            this.#placeholder = placeholder;
-            this.#builderHolder = document.getElementById(this.#placeholder);
-            this.formJson = formJson || {};
-        } else {
+    constructor(placeholder, formname, formMetaData = null) {
+        if (FormBuilderHelper.isNullOrEmpty(placeholder)) {
             FormBuilderHelper.throwError('builder.missingplaceholder');
+        } else {
+            this.#formName = formname ?? 'sample';
+
+            this.#builderHolder = document.getElementById(placeholder);
+
+            this.#formMetaData = formMetaData || {};
+
+            if (FormBuilderHelper.isJson(this.#formMetaData)) {
+                this.#formMetaData = this.json.parse(this.#formMetaData);
+            }
+
+            if (FormBuilderHelper.isNullOrEmpty(this.#formMetaData.formName)) {
+                this.#formMetaData['formName'] = formname;
+            }
         }
     }
 
@@ -354,49 +652,41 @@ class FormBuilder {
 
     static #floudsBuilderlId = 'flouds-builder';
 
-    static #fbSidebarComponentsId = 'fb-sidebar-components';
+    static #fbSidebarComponentsId = 'sidebar-comps';
 
-    static #fbAreaId = 'fb-area';
+    static #fbAreaId = 'design-area';
 
-    static #fbPropertyBarId = 'fb-propertybar';
+    static #fbPropertyBarId = 'propertybar';
 
-    static #idEditbar = 'fb-eiditbar';
+    static #idEditbar = 'editbar';
 
-    static #refEditbar = 'fb-propertybar';
+    static #refEditbar = 'propertybar';
 
-    static #fbContainerId = 'fb-container';
+    static #fbContainerId = 'design-container';
 
-    static #fbFormContainerId = 'fb-form-container';
+    static #fbFormContainerId = 'form-container';
 
-    static #fbJsonContainer = 'fb-json-container';
+    static #fbJsonContainer = 'json-container';
 
-    static #basicComponents = 'basic';
+    static #refSidebar = 'sidebar';
 
-    static #advanceComponents = 'advance';
+    static #refArea = 'area';
 
-    static #refSidebar = 'fb-sidebar';
+    static #idSidebar = 'sidebar';
 
-    static #refArea = 'fb-area';
-
-    static #idSidebar = 'fb-sidebar';
-
-    static #idArea = 'fb-area';
+    static #idArea = 'area';
 
     //drag clases
-    static #dragCopyCls = 'fb-drag-copy';
+    static #dragCopyCls = 'drag-copy';
 
-    static #dragOntoCls = 'fb-drag-onto';
-
-    static #dragComponentRef = 'fb-drag-component';
+    static #dragOntoCls = 'drag-onto';
 
     //builder classes
-    static #fbComponentCls = 'fb-component';
+    static #fbAreaCls = 'fb-design-area';
 
-    static #fbFormCls = 'fb-form';
+    static #fbFormCls = 'fb-design-form';
 
     static #builderComponents = 'builder-components';
-
-    static #builderComponent = 'builder-component';
 
 
     get #builderPane() {
@@ -456,7 +746,7 @@ class FormBuilder {
         this.#builderPane.appendChild(builder);
 
         //add form
-        let form = this.#createElement('form', this.#formname);
+        let form = this.#createElement('form', this.#formName);
 
         //append form to form pane
         this.#formPane.appendChild(form);
@@ -473,9 +763,9 @@ class FormBuilder {
 
         //add edit bar
 
-        let edit = this.#getEditBar(FormBuilder.#idEditbar, FormBuilder.#refEditbar, 'tablist');
+        this.#editBar = this.#getEditBar(FormBuilder.#idEditbar, FormBuilder.#refEditbar, 'tablist');
 
-        propertyBar.appendChild(edit);
+        propertyBar.appendChild(this.#editBar);
 
         //append the main to placeholder
         this.#builderHolder.appendChild(buildermain);
@@ -487,9 +777,23 @@ class FormBuilder {
         if (this.#builderPane) {
             console.log('Valid container');
             //add the form
-            this.#theForm = new FormBuilderForm(this.#formname, this.#buildserComponentsPane, this.formJson);
+            this.#theForm = new FormBuilderForm(this.#componentsPlaceHolder, this.#formMetaData, this, this.#observingMethod);
         } else {
             console.log('Invalid container');
+        }
+    }
+
+    #observingMethod(observer, event, args) {
+        //here this means callee
+        if (observer.constructor === FormBuilder) {
+            switch (event) {
+                case 'currentComponentChanged':
+                    observer.#currentComponent = args;
+                    observer.#refreshEditBar();
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
@@ -505,6 +809,8 @@ class FormBuilder {
         attrs['data-group'] = group;
         attrs['data-key'] = type;
         attrs['comp-type'] = type;
+        attrs['draggable'] = true;
+
         if (FormBuilderHelper.isString(ref)) {
             attrs['ref'] = `${ref}-component`;
         }
@@ -512,11 +818,15 @@ class FormBuilder {
         let icon = this.#createElement('i', 'noid', { class: iconcls, style: `margin-right: 5px;` });
         icon.textContent = text;
         element.appendChild(icon);
+        element.ondragstart = (e) => {
+            let compType = e.target.attributes['comp-type'].value;
+            console.log(compType);
+            e.dataTransfer.setData("text", compType);
+        };
         element.onclick = (e) => {
             let btn = e.currentTarget;
             if (btn) {
-                let compoment = this.#theForm.addNewComponent(btn.attributes['comp-type'].value);
-                //this.#buildserComponentsPane.appendChild(compoment.build());
+                this.#currentComponent = this.#theForm.addNewComponent(btn.attributes['comp-type'].value);
             }
         };
         return element;
@@ -564,13 +874,13 @@ class FormBuilder {
         return tabPanes;
     }
 
-    #getAccordionItem(sidebarid, coreid, itemdesc, def, ref, items) {
-        let sidebarpanel = `${sidebarid}-panel-${coreid}`;
-        let sidebarheader = `${sidebarid}-header-${coreid}`;
-        let containerid = `${sidebarid}-components-${coreid}`;
-        let container = `${sidebarid}-container-${coreid}`;
-        let accordionItem = this.#createElement('div', sidebarpanel, { class: `accordion-item` });
-        let headerItem = this.#createElement('h2', sidebarheader, { class: `accordion-header` });
+    #getAccordionItem(accordianid, coreid, itemdesc, def, ref, items) {
+        let itempanel = `${accordianid}-panel-${coreid}`;
+        let itemheader = `${accordianid}-header-${coreid}`;
+        let containerid = `${accordianid}-components-${coreid}`;
+        let container = `${accordianid}-container-${coreid}`;
+        let accordionItem = this.#createElement('div', itempanel, { class: `accordion-item` });
+        let headerItem = this.#createElement('h2', itemheader, { class: `accordion-header` });
         let btnAttrs = {};
         let itemCls = 'accordion-collapse collapse';
         let btnCls = 'accordion-button';
@@ -585,7 +895,7 @@ class FormBuilder {
         btnAttrs['aria-expanded'] = def;
         btnAttrs['data-bs-target'] = `#${container}`;
         btnAttrs['data-bs-toggle'] = 'collapse';
-        btnAttrs['data-bs-parent'] = sidebarid;
+        btnAttrs['data-bs-parent'] = accordianid;
 
 
         let headerbtn = this.#createElement('button', `header-button-${coreid}`, btnAttrs);
@@ -595,7 +905,7 @@ class FormBuilder {
         //sidebar group
         let groupAttrs = {};
         groupAttrs['class'] = itemCls;
-        groupAttrs['aria-labelledby'] = sidebarheader;
+        groupAttrs['aria-labelledby'] = itemheader;
 
         if (FormBuilderHelper.isString(ref)) {
             groupAttrs['ref'] = `${ref}-group`;
@@ -636,9 +946,9 @@ class FormBuilder {
     #getBuildArea(areaid, ref, role) {
         ref = ref ?? 'component';
 
-        let topDiv = this.#createElement('div', areaid, { class: FormBuilder.#fbComponentCls, ref: ref });
+        let topDiv = this.#createElement('div', areaid, { class: FormBuilder.#fbAreaCls, ref: ref });
         let webDiv = this.#createElement('div', 'noid', { novalidate: ``, class: FormBuilder.#fbFormCls, ref: `webform` });
-        let dragConcainer = this.#createElement('div', 'noid', { class: `${FormBuilder.#builderComponents} ${FormBuilder.#dragOntoCls} fb-builder-form`, ref: `webform-container` });
+        //let dragConcainer = this.#createElement('div', 'noid', { class: `${FormBuilder.#builderComponents} ${FormBuilder.#dragOntoCls} builder-form`, ref: `webform-container` });
         let dcAttrs = {};
 
         dcAttrs['class'] = `drag-and-drop-alert alert alert-info no-drag`;
@@ -647,21 +957,32 @@ class FormBuilder {
         dcAttrs['data-position'] = '0';
         dcAttrs['role'] = 'alert';
 
-        let dragContainer = this.#createElement('div', 'noid', dcAttrs);
-        dragContainer.innerHTML = 'Drag and Drop a form component';
+        //let dragContainer = this.#createElement('div', 'noid', dcAttrs);
+        //dragContainer.innerHTML = 'Drag and Drop a form component';
 
         //append drag container
-        dragConcainer.appendChild(dragContainer);
+        //dragConcainer.appendChild(dragContainer);
 
-        this.#buildserComponentsPane = webDiv;
+        this.#componentsPlaceHolder = webDiv;
 
         //let dragComponent = this.#createElement('div', 'noid', dcAttrs);
 
         //append build div
-        webDiv.appendChild(dragConcainer);
+        //webDiv.appendChild(dragConcainer);
 
         //append drag container
         topDiv.appendChild(webDiv);
+
+
+        //drag drop
+        topDiv.ondragover = (e) => {
+            e.preventDefault();
+        };
+
+        topDiv.ondrop = (e) => {
+            e.preventDefault();
+            this.#currentComponent = this.#theForm.addNewComponent(e.dataTransfer.getData("text"));
+        };
 
         return topDiv;
     }
@@ -695,7 +1016,59 @@ class FormBuilder {
         return accordian;
     }
 
+    #createProperty(propObjects, callback) {
+        let propId = `prop-${propObjects.mappedProp}`;
+        let mappedType = propObjects['mappedType'];
+        let mappedProp = propObjects['mappedProp'];
+        let propPane = this.#createElement('div', 'noid', { class: 'editor-property-pane row' });
+        let nameCol = this.#createElement('div', 'noid', { class: 'editor-property-row' });
+        let valueCol = this.#createElement('div', 'noid', { class: 'editor-property-row' });
+        let propName = this.#createElement('label', 'noid', { class: 'editor-property-label', for: propId });
+        propName.textContent = propObjects.name;
+        let editorEl;
+        let length = 20;
+        if (!FormBuilderHelper.isNullOrUndefined(propObjects['maxlength']) && Number.isInteger(propObjects['maxlength'])) {
+            length = propObjects['maxlength'];
+        }
+        let cls = 'editor-property';
+        let elAttributes = {};
+        elAttributes.class = cls;
+        switch (propObjects.type) {
+            case 'textfield':
+                elAttributes['maxlength'] = length;
+                editorEl = this.#createElement('input', propId, elAttributes);
+                break;
+            case 'select':
+                editorEl = this.#createElement('select', propId, elAttributes);
+                FormBuilderHelper.populateOptions(editorEl, propObjects['options']);
+                if (propObjects.default) {
+                    editorEl.value = propObjects.default;
+                }
+
+                break;
+            default:
+                elAttributes['maxlength'] = length;
+                editorEl = this.#createElement('input', propId, elAttributes);
+                break;
+        }
+
+        let mappedCompProp = { mappedType: mappedType, mappedProp: mappedProp, mappedElement: editorEl };
+        editorEl.onchange = (e) => {
+            let prop = e.currentTarget;
+            if (prop && callback) {
+                callback(mappedCompProp);
+            }
+        };
+        nameCol.appendChild(propName);
+        valueCol.appendChild(editorEl);
+        propPane.appendChild(nameCol);
+        propPane.appendChild(valueCol);
+        this.#editorPropElements.push(mappedCompProp);
+        return propPane;
+    }
+
     #getEditBar(editsidebarid, ref, role) {
+        let attachedComponent;
         let editbarAttrs = {};
         editbarAttrs['class'] = 'accordion';
         if (FormBuilderHelper.isString(ref)) {
@@ -705,36 +1078,40 @@ class FormBuilder {
             editbarAttrs['role'] = role;
         }
         //sidebar
-        var accordian = this.#createElement('div', editsidebarid, editbarAttrs);
+        let accordian = this.#createElement('div', editsidebarid, editbarAttrs);
 
-        //create tabs
-        if (FormBuilderHelper.isObjcetButNotArray(FormBuilder.#attributes)) {
-            for (let [key, value] of Object.entries(FormBuilder.#attributes)) {
-                let accItems = [];
-                /*TODO
-                let compButtons = value['btns'];
-                if (FormBuilderHelper.isArray(compButtons)) {
-                    for (let item of compButtons) {
-                        let compBtn = this.#createSidebarButton(item['type'], key, item['text'], item['iconCls'], ref);
-                        accItems.push(compBtn);
+
+        if (FormBuilderHelper.isObjcetButNotArray(FormBuilder.#properties)) {
+            for (let [key, value] of Object.entries(FormBuilder.#properties)) {
+                let propItems = [];
+                let props = value['props'];
+                if (FormBuilderHelper.isArray(props)) {
+                    for (let item of props) {
+                        let propItem = this.#createProperty(item, (mappedCompProp) => {
+                            if (this.#currentComponent) {
+                                let val = mappedCompProp['mappedElement'].value;
+                                let type = mappedCompProp['mappedType'];
+                                let prop = mappedCompProp['mappedProp'];
+                                this.#currentComponent.setComponentProperty(type, prop, val);
+                            }
+                        });
+                        propItems.push(propItem);
                     }
                 }
-                */
-                accordian.appendChild(this.#getAccordionItem(editsidebarid, key, value['text'], value['default'], ref, accItems));
+                accordian.appendChild(this.#getAccordionItem(editsidebarid, key, value['text'], value['default'], ref, propItems));
             }
         }
+
         return accordian;
     }
 
-    #domReady(fn) {
-        if (document.readyState !== 'loading') {
-            console.log('document is already ready in FormBuilder, just execute code here');
-            fn();
-        } else {
-            document.addEventListener('DOMContentLoaded', () => {
-                console.log('document was not ready FormBuilder, place code here');
-                fn();
-            });
+    #refreshEditBar() {
+        if (this.#currentComponent) {
+            for (let mappedPorpEl of this.#editorPropElements) {
+                let val = this.#currentComponent.getComponentProperty(mappedPorpEl['mappedType'], mappedPorpEl['mappedProp']); {
+                    mappedPorpEl['mappedElement'].value = val;
+                }
+            }
         }
     }
 
@@ -762,22 +1139,62 @@ class FormBuilder {
         }
     };
 
-    static #attributes = {
+    static #properties = {
         "display": {
             text: "Display",
-            default: true
+            default: true,
+            props: [
+                {
+                    mappedType: "gen",
+                    mappedProp: "name",
+                    name: "Name",
+                    type: "textfield",
+                    maxlength: 50
+                },
+                {
+                    mappedType: "gen",
+                    mappedProp: "label",
+                    name: "Description",
+                    type: "textfield",
+                    maxlength: 50
+                },
+                {
+                    mappedType: "gen",
+                    mappedProp: "type",
+                    name: "Type",
+                    type: "textfield"
+                },
+            ]
         },
         "data": {
-            display: "Data Source",
-            default: false
+            text: "Data Source",
+            default: false,
+            props: [
+                {
+                    mappedType: "attr",
+                    mappedProp: "data-key",
+                    name: "Binding",
+                    type: "textfield",
+                    maxlength: 30
+                },
+                {
+                    mappedType: "attr",
+                    mappedProp: "required",
+                    name: "Required",
+                    type: "select",
+                    default: 'false',
+                    options: {
+                        True: 'true',
+                        False: 'false'
+                    }
+                }
+            ]
         },
         "attributes": {
-            display: "HTML Attributes",
+            text: "HTML Attributes",
             default: false
         }
     };
-
-    // Do not leave a trailing comma on the last dictionary element. This can produce errors on external services
 }
 
 let domReady = function (fn) {

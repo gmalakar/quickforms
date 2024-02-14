@@ -1,0 +1,10 @@
+.fb-adorner-comp {
+    position: absolute;
+    border: dotted thin;
+    background-color: aliceblue;
+    z-index: 100;
+}
+.fb-design-area{
+    height: 100%;
+    background-color:whitesmoke
+}
