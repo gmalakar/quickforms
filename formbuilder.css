@@ -1,10 +1,16 @@
-.fb-adorner-comp {
-    position: absolute;
+.fb-selected-comp {
     border: dotted thin;
-    background-color: aliceblue;
-    z-index: 100;
+    z-index: -1;
 }
 .fb-design-area{
     height: 100%;
     background-color:whitesmoke
 }
+.fb-delete-comp-btn {
+    float: right;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+  }

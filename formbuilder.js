@@ -1,3 +1,109 @@
+class FormBuilderModal {
+    modalid;
+    #modalEl;
+    #titleEl;
+    #messageEl;
+    #footerEl;
+    #bootstrapModal;
+    #response;
+    #caller;
+
+    static YesNo = 'YN';
+    static OkCancel = 'OC';
+    static Ok = 'OK';
+
+    constructor(id) {
+        this.modalid = id;
+    }
+
+    hide() {
+        if (this.#bootstrapModal) {
+            this.#bootstrapModal.hide();
+        }
+    };
+
+    show() {
+        if (this.#bootstrapModal) {
+            this.#bootstrapModal.show();
+        }
+    };
+
+    #modalButtonClicked(which) {
+        if (this.#response && typeof this.#response === 'function') {
+            this.#response(this.#caller, which);
+        }
+    }
+    setModal(caller, title, message, type, callback, messageClass, reset) {
+        this.#caller = caller;
+        this.#response = callback;
+        if (!this.#modalEl || reset) {
+            let titleId = 'title-' + this.modalid;
+            let btnId = 'btnModalMessage-' + this.modalid;
+            let messageId = 'message-' + this.modalid;
+
+            let footerId = 'footer-' + this.modalid;
+
+            let modal = FormBuilderHelper.createElement('div', this.modalid, {
+                class: 'modal fade',
+                role: 'dialog', 'data-bs-backdrop': 'static', 'data-backdrop': 'static', 'data-bs-keyboard': false, 'data-keyboard': false, tabindex: '-1',
+                'aria-labelledby': titleId, 'aria-hidden': true
+            });
+            let modalDialog = FormBuilderHelper.createElement('div', 'noid', { class: 'modal-dialog' });
+            let modalContent = FormBuilderHelper.createElement('div', 'noid', { class: 'modal-content' });
+            let modalHeader = FormBuilderHelper.createElement('div', 'noid', { class: 'modal-header' });
+            let moldalTitle = FormBuilderHelper.createElement('h5', titleId, { class: 'modal-title' });
+            let moldalClose = FormBuilderHelper.createElement('button', btnId, { class: 'btn-close', type: 'button', 'data-bs-dismiss': 'modal', 'aria-label': 'Close' });
+            modalHeader.appendChild(moldalTitle);
+            modalHeader.appendChild(moldalClose);
+            this.#titleEl = moldalTitle;
+
+            let moldalBody = FormBuilderHelper.createElement('div', 'noid', { class: 'modal-body' });
+            let moldalMessage = FormBuilderHelper.createElement('p', messageId, { class: 'text-success' });
+            moldalBody.appendChild(moldalMessage);
+            this.#messageEl = moldalMessage;
+
+            this.#footerEl = FormBuilderHelper.createElement('div', footerId, { class: 'modal-footer' });
+            modalContent.appendChild(modalHeader);
+            modalContent.appendChild(moldalBody);
+            modalContent.appendChild(this.#footerEl);
+
+            modalDialog.appendChild(modalContent);
+            modal.appendChild(modalDialog);
+            this.#modalEl = modal;
+            this.#bootstrapModal = new bootstrap.Modal(this.#modalEl, {});
+        }
+        this.#titleEl.innerHTML = title;
+        this.#messageEl.innerHTML = message;
+        this.#footerEl.innerHTML = '';
+
+        if (messageClass && FormBuilderHelper.isString(messageClass)) {
+            messageEl.class = messageClass;
+        }
+        if (type === FormBuilderModal.YesNo || type === FormBuilderModal.OkCancel) {
+            let moldalFooterYes = FormBuilderHelper.createElement('button', 'footer-btn-yes' + this.modalid, { class: 'btn btn-primary', type: 'button', 'data-bs-dismiss': 'modal' });
+            moldalFooterYes.textContent = type === FormBuilderModal.YesNo ? 'Yes' : 'Ok';
+            moldalFooterYes.addEventListener('click', (e) => {
+                this.#modalButtonClicked('yes');
+            })
+            this.#footerEl.appendChild(moldalFooterYes);
+            let moldalFooterNo = FormBuilderHelper.createElement('button', 'footer-btn-no' + this.modalid, { class: 'btn btn-primary', type: 'button', 'data-bs-dismiss': 'modal' });
+            moldalFooterNo.textContent = type === FormBuilderModal.YesNo ? 'No' : 'Cancel';;
+            moldalFooterNo.addEventListener('click', (e) => {
+                this.#modalButtonClicked('no');
+            })
+            this.#footerEl.appendChild(moldalFooterNo);
+        } else {
+            let moldalFooterClose = FormBuilderHelper.createElement('button', 'footer-btn-close' + this.modalid, { class: 'btn btn-primary', type: 'button', 'data-bs-dismiss': 'modal' });
+            moldalFooterClose.textContent = type === FormBuilderModal.Ok ? 'Ok' : 'Close';
+            moldalFooterClose.addEventListener('click', (e) => {
+                this.#modalButtonClicked(type === FormBuilderModal.Ok ? 'Ok' : 'Close');
+            })
+            this.#footerEl.appendChild(moldalFooterClose);
+        }
+        //return this.modalEl;
+    }
+}
+
 class FormBuilderHelper {
     constructor() { }
 
@@ -14,7 +120,7 @@ class FormBuilderHelper {
 
     static isJson(str) {
         try {
-            this.json.parse(str);
+            JSON.parse(str);
         } catch (e) {
             return false;
         }
@@ -23,11 +129,12 @@ class FormBuilderHelper {
 
     static jsonToObject(json) {
         try {
-            return this.json.parse(json);
+            return JSON.parse(json);
         } catch {
             return null;
         }
     }
+
     static isArray(obj) {
         if (
             typeof obj === 'object' &&
@@ -54,6 +161,7 @@ class FormBuilderHelper {
         }
         return ret;
     }
+
     static isElement(obj) {
         let ret = !FormBuilderHelper.isNullOrUndefined(obj) && obj instanceof Element;
         if (!ret && FormBuilderHelper.isString(obj)) {//check by id
@@ -84,6 +192,7 @@ class FormBuilderHelper {
         }
         return element;
     }
+
     static isNode(obj) {
         let ret = obj instanceof Node;
         if (!ret && FormBuilderHelper.isString(obj)) {//check by id
@@ -124,6 +233,59 @@ class FormBuilderHelper {
             }
         }
     }
+    static removeClassByPrefix(el, prefix) {
+        let regx = new RegExp('\\b' + prefix + '.*?\\b', 'g');
+        el.className = el.className.replace(regx, '');
+        return el;
+    };
+
+    static removeClasses(el, cls) {
+        if (el) {
+            for (let c of cls.split(' ')) {
+                if (el.classList.contains(c)) {
+                    el.classList.remove(c);
+                }
+            }
+        }
+    };
+
+    static replaceClass(el, clsToReplace, replaceBy) {
+        if (el) {
+            me.removeClasses(el, clsToReplace);
+            me.addClasses(el, replaceBy);
+        }
+    };
+
+    static addClasses(el, cls) {
+        if (el) {
+            for (let c of cls.split(' ')) {
+                if (!el.classList.contains(c)) {
+                    el.classList.add(c);
+                }
+            }
+        }
+    };
+
+    static dataTransferGetData(e) {
+        try {
+            return JSON.parse(e.dataTransfer.getData("text"))
+        } catch {
+            return {};
+        }
+    }
+
+    static dataTransferSetData(e, datafor, datatoset) {
+        let data = JSON.stringify({ for: datafor, data: datatoset, x: e.x || e.pageX, y: e.y || e.pageY });
+        e.dataTransfer.clearData();
+        e.dataTransfer.setData("text", data);
+    }
+
+    static dataTransferGetPosition(e) {
+        return { x: e.pageX, y: pageY };
+    }
+
+    static modalWindow = new FormBuilderModal('modalWindow');
+
     static #errorDictionary = {
         //builder
         "builder.invalidbuilderel": "Placeholder element does not exist.",
@@ -131,6 +293,7 @@ class FormBuilderHelper {
         "builder.missinginstance": "Missing or invalid FormBuilder instance.",
         //form
         "form.missingformname": "Missing Form Name",
+        "form.missingcontainer": "Missing Container",
         "form.missingforminstance": "Missing Form Instance",
         "form.missingformholder": "Missing or invalid form holder",
         "form.missinglistener": "Missing listener from caller",
@@ -192,6 +355,7 @@ class ObservableClass {
     }
 }
 
+
 //form colpuments
 
 class FormBuilderFormComponent extends ObservableClass {
@@ -201,13 +365,19 @@ class FormBuilderFormComponent extends ObservableClass {
     elementControl;
     labelControl;
     metaData = {};
+    container;
 
-    constructor(formName, metaData, observer, observingMethod) {
+    constructor(formName, container, metaData, observer, observingMethod, build) {
 
         if (FormBuilderHelper.isNullOrEmpty(formName)) {
             return FormBuilderHelper.throwError('form.missingformname');
         }
+
+        if (!FormBuilderHelper.isHTMLElement(container)) {
+            return FormBuilderHelper.throwError('form.missingcontainer');
+        }
         super();
+        this.container = container;
         this.metaData = metaData || {};
         if (FormBuilderHelper.isJson(this.metaData)) {
             this.metaData = this.metaData.parse(this.metaData);
@@ -228,6 +398,9 @@ class FormBuilderFormComponent extends ObservableClass {
             return FormBuilderHelper.throwError('component.missingname');
         }
         this.setObserver(observer, observingMethod);
+        if (build) {
+            this.build();
+        }
     }
 
     #triggerChange(event, args) {
@@ -443,22 +616,25 @@ class FormBuilderFormComponent extends ObservableClass {
         }
         return style;
     }
-
     build() {
         let compId = this.name;
-        let topCls = 'mb-0 col-md-6 fb-form-component';
-        this.fbComponent = FormBuilderHelper.createElement('div', `comp-${compId}`, { class: topCls, tabindex:-1 });
+        let topCls = 'm-2 col-md-6 fb-form-component';
+        let divId = `comp-${compId}`;
+
+        this.fbComponent = FormBuilderHelper.createElement('div', divId, { class: topCls, tabindex: -1, draggable: true, ref: compId });
         // Label field
         let lblProps = {
             for: compId,
             class: 'form-label fb-form-label'
         }
+
         this.labelControl = FormBuilderHelper.createElement('label', 'noid', lblProps);
+
         if (FormBuilderHelper.isNullOrEmpty(this.label)) {
             this.label = FormBuilderFormComponent.#getNewLabel(this.name);
         }
-        this.labelControl.textContent = this.label;
 
+        this.labelControl.textContent = this.label;
 
         //set class
         //default class
@@ -491,18 +667,53 @@ class FormBuilderFormComponent extends ObservableClass {
         for (let [event, fn] of Object.entries(this.eventlisteners)) {
             this.elementControl.addEventListener(event, fn())
         }
+
         this.fbComponent.appendChild(this.labelControl);
+
         this.fbComponent.appendChild(this.elementControl);
+
         this.fbComponent.addEventListener('focus', () => {
             this.#triggerChange('currentComponentChanged', this);
         })
-        this.fbComponent.addEventListener('mouseover', () => {
-            document.body.style.cursor = 'all-scroll';            
-        })
-       this.fbComponent.addEventListener('mouseout', () => {
-            document.body.style.cursor = 'auto';
+
+        this.elementControl.addEventListener('focus', () => {
+            this.#triggerChange('currentComponentChanged', this);
         })
 
+        this.fbComponent.addEventListener('mouseover', () => {
+            document.body.style.cursor = 'all-scroll';
+        })
+
+        this.fbComponent.addEventListener('mouseout', () => {
+            document.body.style.cursor = 'auto';
+        })
+        this.fbComponent.addEventListener('dragstart', (e) => {
+            FormBuilderHelper.dataTransferSetData(e, 'move', divId);
+        })
+        this.fbComponent.addEventListener('drop', (e) => {
+            e.preventDefault();
+            let data = FormBuilderHelper.dataTransferGetData(e);
+            if (data && data.for && data.data && data.for === 'move' && data.data !== e.target.id) {
+                let up = (data.y - e.y || pageY) > 0;
+                let draggedComponent = document.getElementById(data.data);
+
+                if (this.container.hasChildNodes()) {
+                    this.container.removeChild(draggedComponent);
+                }
+
+                if (up) {//find the top component
+                    this.container.insertBefore(draggedComponent, this.fbComponent);
+                } else {//find the below component
+                    let nextComponent = this.fbComponent.nextSibling;
+                    if (nextComponent) {
+                        this.container.insertBefore(draggedComponent, nextComponent);
+                    } else {
+                        this.container.appendChild(draggedComponent);
+                    }
+                }
+            }
+        })
+        this.container.appendChild(this.fbComponent);
         return this.fbComponent;
     }
 }
@@ -514,12 +725,13 @@ class FormBuilderForm extends ObservableClass {
     //public members
 
     #metaData;
-    #placeHolder;
+    #compContainer;
     currentComponent;
 
-    constructor(placeHolder, metaData, observer, observingMethod) {
 
-        if (FormBuilderHelper.isNullOrUndefined(placeHolder) || !FormBuilderHelper.isHTMLElement(placeHolder)) {
+    constructor(compContainer, metaData, observer, observingMethod) {
+
+        if (FormBuilderHelper.isNullOrUndefined(compContainer) || !FormBuilderHelper.isHTMLElement(compContainer)) {
             return FormBuilderHelper.throwError('builder.missingplaceholder');
         }
 
@@ -535,9 +747,9 @@ class FormBuilderForm extends ObservableClass {
 
         this.components = {};
         for (let [name, comp] of Object.entries(this.#metaData['components'] || {})) {
-            this.components[name] = new FormBuilderFormComponent(this.name, comp, this, this.#observingMethod)
+            this.components[name] = new FormBuilderFormComponent(this.name, compContainer, comp, this, this.#observingMethod, true)
         }
-        this.#placeHolder = placeHolder;
+        this.#compContainer = compContainer;
         this.setObserver(observer, observingMethod);
     }
 
@@ -586,21 +798,38 @@ class FormBuilderForm extends ObservableClass {
         return Object.keys(this.components);
     }
 
-    addNewComponent(type) {
+
+    removeComponent(component) {
+        if (component && component.fbComponent) {
+            if (this.#compContainer.hasChildNodes()) {
+                let compToSelect;
+                let next = component.fbComponent.nextSibling;
+                if (!next) {
+                    next = component.fbComponent.previousSibling;
+                }
+                if (next) {
+                    compToSelect = next.getAttribute('ref');
+                }
+                this.#compContainer.removeChild(component.fbComponent);
+                if (this.components.hasOwnProperty(component.name)) {
+                    delete this.components[component.name];
+                }
+                if (compToSelect && this.components.hasOwnProperty(compToSelect)) {
+                    this.components[compToSelect].fbComponent.focus();
+                }
+            }
+        }
+    }
+
+    addComponent(type) {
         if (FormBuilderHelper.isNullOrEmpty(type)) {
             return FormBuilderHelper.throwError('component.missingtype');
         }
-        //generate component name
-
         let component = {};
         component.name = this.generateName(type);
         component.type = type;
-        let newComponent = new FormBuilderFormComponent(this.name, component, this, this.#observingMethod);
+        let newComponent = new FormBuilderFormComponent(this.name, this.#compContainer, component, this, this.#observingMethod, true);
         this.components[component.name] = newComponent;
-
-        //add to builder pane
-        let control = newComponent.build();
-        this.#placeHolder.appendChild(control);
         this.currentComponent = newComponent;
         return newComponent;
     }
@@ -611,7 +840,7 @@ class FormBuilder {
 
     #builderHolder;
     #formName;
-    #componentsPlaceHolder;
+    #componentsContainer;
     #theForm;
     #buildertTabPanes = {};
     #editBar;
@@ -646,6 +875,8 @@ class FormBuilder {
         }
     }
 
+    static #clsSelected = 'fb-selected-comp';
+
     static #fbMainId = 'fb-main';
 
     static #fbPanelId = 'fb-panel';
@@ -660,33 +891,21 @@ class FormBuilder {
 
     static #idEditbar = 'editbar';
 
-    static #refEditbar = 'propertybar';
-
     static #fbContainerId = 'design-container';
 
     static #fbFormContainerId = 'form-container';
 
     static #fbJsonContainer = 'json-container';
 
-    static #refSidebar = 'sidebar';
-
-    static #refArea = 'area';
-
     static #idSidebar = 'sidebar';
 
     static #idArea = 'area';
 
-    //drag clases
-    static #dragCopyCls = 'drag-copy';
-
-    static #dragOntoCls = 'drag-onto';
-
-    //builder classes
     static #fbAreaCls = 'fb-design-area';
 
     static #fbFormCls = 'fb-design-form';
 
-    static #builderComponents = 'builder-components';
+    static #compDeleteBtn = FormBuilderHelper.createElement('button', 'fb-delete-comp-btn', { class: 'btn-close fb-delete-comp-btn' });
 
 
     get #builderPane() {
@@ -732,10 +951,10 @@ class FormBuilder {
         let componentBar = this.#createElement('div', FormBuilder.#fbSidebarComponentsId, { class: `col-xs-3 col-sm-3 col-md-2 formcomponents` });
 
         //form area
-        let formarea = this.#createElement('div', FormBuilder.#fbAreaId, { class: `col-xs-6 col-sm-6 col-md-8 formarea`, ref: `form` });
+        let formarea = this.#createElement('div', FormBuilder.#fbAreaId, { class: `col-xs-6 col-sm-6 col-md-8 formarea`, ref: FormBuilder.#floudsBuilderlId });
 
         //property bar
-        let propertyBar = this.#createElement('div', FormBuilder.#fbPropertyBarId, { class: `col-xs-3 col-sm-3 col-md-2 editbar`, ref: `editbar` });
+        let propertyBar = this.#createElement('div', FormBuilder.#fbPropertyBarId, { class: `col-xs-3 col-sm-3 col-md-2 editbar`, ref: FormBuilder.#floudsBuilderlId });
 
         builder.appendChild(componentBar);
 
@@ -753,17 +972,17 @@ class FormBuilder {
 
         //add side bar
 
-        let sidebar = this.#getSideBar(FormBuilder.#idSidebar, FormBuilder.#refSidebar, 'tablist');
+        let sidebar = this.#getSideBar(FormBuilder.#idSidebar, FormBuilder.#fbSidebarComponentsId, 'tablist');
 
         componentBar.appendChild(sidebar);
 
-        let area = this.#getBuildArea(FormBuilder.#idArea, FormBuilder.#refArea);
+        let area = this.#getBuildArea(FormBuilder.#idArea, FormBuilder.#fbAreaId);
 
         formarea.appendChild(area);
 
         //add edit bar
 
-        this.#editBar = this.#getEditBar(FormBuilder.#idEditbar, FormBuilder.#refEditbar, 'tablist');
+        this.#editBar = this.#getEditBar(FormBuilder.#idEditbar, FormBuilder.#fbPropertyBarId, 'tablist');
 
         propertyBar.appendChild(this.#editBar);
 
@@ -777,10 +996,52 @@ class FormBuilder {
         if (this.#builderPane) {
             console.log('Valid container');
             //add the form
-            this.#theForm = new FormBuilderForm(this.#componentsPlaceHolder, this.#formMetaData, this, this.#observingMethod);
+            this.#theForm = new FormBuilderForm(this.#componentsContainer, this.#formMetaData, this, this.#observingMethod);
+            //set delete function
+            FormBuilder.#compDeleteBtn.addEventListener('click', (e) => {
+                FormBuilderHelper.modalWindow.setModal(this, "Delete Component", "Do you want to delete this component?", FormBuilderModal.YesNo, function (source, which) {
+                    if (which === 'yes') {
+                        if (source) {
+                            source.#theForm.removeComponent();
+                            source.#theForm.removeComponent( source.#currentComponent);
+                        }
+                    }
+                }, null, true);
+                FormBuilderHelper.modalWindow.show();
+            })
         } else {
             console.log('Invalid container');
         }
+    }
+
+    #setDeleteButton(component, set) {
+        if (component) {
+            let firstChild = component.fbComponent.firstChild;
+            if (set) {
+                FormBuilderHelper.addClasses(component.fbComponent, FormBuilder.#clsSelected);
+                if (FormBuilderHelper.isNullOrUndefined(firstChild)) {
+                    component.fbComponent.appendChild(FormBuilder.#compDeleteBtn);
+                }
+                else if (firstChild !== FormBuilder.#compDeleteBtn) {
+                    component.fbComponent.insertBefore(FormBuilder.#compDeleteBtn, firstChild);
+                }
+            } else {
+                FormBuilderHelper.removeClasses(component.fbComponent, FormBuilder.#clsSelected);
+                if (firstChild === FormBuilder.#compDeleteBtn) {
+                    component.fbComponent.removeChild(FormBuilder.#compDeleteBtn);
+                }
+            }
+        }
+    }
+
+    #setCurrentComponent(component) {
+        if (this.#currentComponent !== component) {
+            //reset
+            this.#setDeleteButton(this.#currentComponent, false);
+            this.#currentComponent = component;
+            this.#setDeleteButton(this.#currentComponent, true);
+        }
+        this.#refreshEditBar();
     }
 
     #observingMethod(observer, event, args) {
@@ -788,8 +1049,7 @@ class FormBuilder {
         if (observer.constructor === FormBuilder) {
             switch (event) {
                 case 'currentComponentChanged':
-                    observer.#currentComponent = args;
-                    observer.#refreshEditBar();
+                    observer.#setCurrentComponent(args);
                     break;
                 default:
                     break;
@@ -804,7 +1064,7 @@ class FormBuilder {
     #createSidebarButton(type, group, text, iconcls, ref) {
         let attrs = {};
         attrs['tabindex'] = '0'
-        attrs['class'] = `btn btn-outline-primary btn-sm formcomponent ${FormBuilder.#dragCopyCls} m-0`;
+        attrs['class'] = `btn btn-outline-primary btn-sm formcomponent m-0`;
         attrs['data-type'] = type;
         attrs['data-group'] = group;
         attrs['data-key'] = type;
@@ -816,17 +1076,18 @@ class FormBuilder {
         }
         let element = this.#createElement('span', 'noid', attrs);
         let icon = this.#createElement('i', 'noid', { class: iconcls, style: `margin-right: 5px;` });
-        icon.textContent = text;
+        icon.textContent =` ${text} `;
         element.appendChild(icon);
         element.ondragstart = (e) => {
             let compType = e.target.attributes['comp-type'].value;
             console.log(compType);
-            e.dataTransfer.setData("text", compType);
+            FormBuilderHelper.dataTransferSetData(e, 'add-comp', compType);
         };
         element.onclick = (e) => {
             let btn = e.currentTarget;
             if (btn) {
-                this.#currentComponent = this.#theForm.addNewComponent(btn.attributes['comp-type'].value);
+                this.#setCurrentComponent(this.#theForm.addComponent(btn.attributes['comp-type'].value));
+                //this.#currentComponent = this.#theForm.addComponent(btn.attributes['comp-type'].value);
             }
         };
         return element;
@@ -943,34 +1204,21 @@ class FormBuilder {
         return accordionItem;
     }
 
-    #getBuildArea(areaid, ref, role) {
+    #getBuildArea(areaid, ref) {
         ref = ref ?? 'component';
 
         let topDiv = this.#createElement('div', areaid, { class: FormBuilder.#fbAreaCls, ref: ref });
-        let webDiv = this.#createElement('div', 'noid', { novalidate: ``, class: FormBuilder.#fbFormCls, ref: `webform` });
+        let webDiv = this.#createElement('div', 'noid', { novalidate: ``, class: FormBuilder.#fbFormCls, ref: areaid });
         //let dragConcainer = this.#createElement('div', 'noid', { class: `${FormBuilder.#builderComponents} ${FormBuilder.#dragOntoCls} builder-form`, ref: `webform-container` });
         let dcAttrs = {};
 
-        dcAttrs['class'] = `drag-and-drop-alert alert alert-info no-drag`;
+        //dcAttrs['class'] = `drag-and-drop-alert alert alert-info no-drag`;
         dcAttrs['style'] = `text-align:center;`;
         dcAttrs['data-noattach'] = true;
         dcAttrs['data-position'] = '0';
-        dcAttrs['role'] = 'alert';
 
-        //let dragContainer = this.#createElement('div', 'noid', dcAttrs);
-        //dragContainer.innerHTML = 'Drag and Drop a form component';
+        this.#componentsContainer = webDiv;
 
-        //append drag container
-        //dragConcainer.appendChild(dragContainer);
-
-        this.#componentsPlaceHolder = webDiv;
-
-        //let dragComponent = this.#createElement('div', 'noid', dcAttrs);
-
-        //append build div
-        //webDiv.appendChild(dragConcainer);
-
-        //append drag container
         topDiv.appendChild(webDiv);
 
 
@@ -981,7 +1229,12 @@ class FormBuilder {
 
         topDiv.ondrop = (e) => {
             e.preventDefault();
-            this.#currentComponent = this.#theForm.addNewComponent(e.dataTransfer.getData("text"));
+            let data = FormBuilderHelper.dataTransferGetData(e);
+            if (data && data.for && data.data) {
+                if (data.for === 'add-comp') {
+                    this.#setCurrentComponent(this.#theForm.addComponent(data.data));
+                }
+            }
         };
 
         return topDiv;
@@ -1035,10 +1288,12 @@ class FormBuilder {
         elAttributes.class = cls;
         switch (propObjects.type) {
             case 'textfield':
+                elAttributes.class =  elAttributes.class + ' form-control'
                 elAttributes['maxlength'] = length;
                 editorEl = this.#createElement('input', propId, elAttributes);
                 break;
             case 'select':
+                elAttributes.class =  elAttributes.class + ' form-select'
                 editorEl = this.#createElement('select', propId, elAttributes);
                 FormBuilderHelper.populateOptions(editorEl, propObjects['options']);
                 if (propObjects.default) {
@@ -1106,12 +1361,12 @@ class FormBuilder {
     }
 
     #refreshEditBar() {
-        if (this.#currentComponent) {
-            for (let mappedPorpEl of this.#editorPropElements) {
-                let val = this.#currentComponent.getComponentProperty(mappedPorpEl['mappedType'], mappedPorpEl['mappedProp']); {
-                    mappedPorpEl['mappedElement'].value = val;
-                }
+        for (let mappedPorpEl of this.#editorPropElements) {
+            let val = '';
+            if (this.#currentComponent) {
+                val = this.#currentComponent.getComponentProperty(mappedPorpEl['mappedType'], mappedPorpEl['mappedProp']);
             }
+            mappedPorpEl['mappedElement'].value = val;
         }
     }
 
@@ -1136,6 +1391,23 @@ class FormBuilder {
         "advanced": {
             text: "Advanced",
             default: false
+        },
+        "layout": {
+            text: "Layout",
+            default: false,
+            btns: [
+                {
+                    "default": true,
+                    "type": "columns",
+                    "text": "Columns",
+                    "iconCls": "bi bi-window",
+                },
+                {
+                    "type": "table",
+                    "text": "Table",
+                    "iconCls": "bi bi-table",
+                }
+            ]
         }
     };
 
