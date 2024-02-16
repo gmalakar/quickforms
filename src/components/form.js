@@ -30,7 +30,7 @@ export default class Form extends Observer {
 
         this.components = {};
         for (let [name, comp] of Object.entries(this.#metaData['components'] || {})) {
-            this.components[name] = new Component( compContainer, comp, this, this.#observingMethod, true)
+            this.components[name] = new Component( this.name, compContainer, comp, this, this.#observingMethod, true)
         }
         this.#compContainer = compContainer;
         this.setObserver(observer, observingMethod);
@@ -112,7 +112,7 @@ export default class Form extends Observer {
         let component = {};
         component.name = this.#generateName(type);
         component.type = type;
-        let newComponent = new Component( this.#compContainer, component, this, this.#observingMethod, true);
+        let newComponent = new Component(  this.name, this.#compContainer, component, this, this.#observingMethod, true);
         this.components[component.name] = newComponent;
         this.currentComponent = newComponent;
         return newComponent;

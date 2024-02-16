@@ -11,13 +11,14 @@ export default class Component extends Observer {
     metaData = {};
     container;
 
-    constructor(container, metaData, observer, observingMethod, build) {
+    constructor(attachedFormName, container, metaData, observer, observingMethod, build) {
 
         if (!HtmlUtils.isHTMLElement(container)) {
             return ErrorHandler.throwError(ErrorHandler.errorCode.Form.MISSING_CONTAINER);
         }
         super();
         this.container = container;
+        this.formName = attachedFormName;
         this.metaData = metaData || {};
         if (CommonUtils.isJson(this.metaData)) {
             this.metaData = this.metaData.parse(this.metaData);
@@ -162,11 +163,12 @@ export default class Component extends Observer {
     set name(value) {
         this.metaData.name = value;
         if (this.elementControl) {
+            value = `${this.formName}[${value}]`;
             this.elementControl.name = value;
             this.elementControl.id = value;
         }
         if (this.labelControl) {
-            this.label.for = value;
+            this.labelControl.for = value;
         }
     }
 

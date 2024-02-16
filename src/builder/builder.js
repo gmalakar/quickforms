@@ -3,7 +3,8 @@ import ErrorHandler from '../utils/error-handler.js';
 import HtmlUtils from '../utils/html-utils.js';
 import Modal from '../utils/modal.js';
 import Form from '../components/form.js';
-
+import ComponentsBar from './components-bar.js';
+import PropertiesBar from './properties-bar.js';
 //builder
 export default class Builder {
 
@@ -15,7 +16,6 @@ export default class Builder {
     #editBar;
     #currentComponent;
     #formMetaData = {}
-    #editorPropElements = [];
 
     /**
      * Class constructor of Builder.
@@ -102,7 +102,7 @@ export default class Builder {
         this.#builderHolder.innerHTML = '';
 
         //create main div
-        let buildermain = this.#createElement('div', Builder.#fbMainId);
+        let buildermain = this.#createElement('div', Builder.#fbMainId );
 
         //creat tabobjects
         let tabs = {};
@@ -117,13 +117,13 @@ export default class Builder {
         let builder = this.#createElement('div', Builder.#floudsBuilderlId, { class: `flouds builder row Builder` });
 
         //formcomponents
-        let componentBar = this.#createElement('div', Builder.#fbSidebarComponentsId, { class: `col-xs-3 col-sm-3 col-md-2 formcomponents` });
+        let componentBar = this.#createElement('div', Builder.#fbSidebarComponentsId, { class: `col-xs-3 col-sm-3 col-md-2 fb-component-bar` });
 
         //form area
         let formarea = this.#createElement('div', Builder.#fbAreaId, { class: `col-xs-6 col-sm-6 col-md-8 formarea`, ref: Builder.#floudsBuilderlId });
 
         //property bar
-        let propertyBar = this.#createElement('div', Builder.#fbPropertyBarId, { class: `col-xs-3 col-sm-3 col-md-2 editbar`, ref: Builder.#floudsBuilderlId });
+        let propertyBar = this.#createElement('div', Builder.#fbPropertyBarId, { class: `col-xs-3 col-sm-3 col-md-2 fb-property-bar`, ref: Builder.#floudsBuilderlId });
 
         builder.appendChild(componentBar);
 
@@ -141,7 +141,9 @@ export default class Builder {
 
         //add side bar
 
-        let sidebar = this.#getSideBar(Builder.#idSidebar, Builder.#fbSidebarComponentsId, 'tablist');
+        let sidebar = ComponentsBar.get(Builder.#idSidebar, Builder.#fbSidebarComponentsId, (source, type)=>{
+            this.#setCurrentComponent(this.#theForm.addComponent(type));
+        } );
 
         componentBar.appendChild(sidebar);
 
@@ -151,7 +153,14 @@ export default class Builder {
 
         //add edit bar
 
-        this.#editBar = this.#getEditBar(Builder.#idEditbar, Builder.#fbPropertyBarId, 'tablist');
+        this.#editBar = PropertiesBar.get (Builder.#idEditbar, Builder.#fbPropertyBarId, (e, mappedCompProp)=>{
+            if (this.#currentComponent) {
+                let val = mappedCompProp['mappedElement'].value;
+                let type = mappedCompProp['mappedType'];
+                let prop = mappedCompProp['mappedProp'];
+                this.#currentComponent.setComponentProperty(type, prop, val);
+            }            
+        });
 
         propertyBar.appendChild(this.#editBar);
 
@@ -210,7 +219,7 @@ export default class Builder {
             this.#currentComponent = component;
             this.#setDeleteButton(this.#currentComponent, true);
         }
-        this.#refreshEditBar();
+        PropertiesBar.refreshEditBar( this.#currentComponent );
     }
 
     #observingMethod(observer, event, args) {
@@ -228,38 +237,6 @@ export default class Builder {
 
     #createElement(tag, id, attributes) {
         return HtmlUtils.createElement(tag, id, attributes);
-    }
-
-    #createSidebarButton(type, group, text, iconcls, ref) {
-        let attrs = {};
-        attrs['tabindex'] = '0'
-        attrs['class'] = `btn btn-outline-primary btn-sm formcomponent m-0`;
-        attrs['data-type'] = type;
-        attrs['data-group'] = group;
-        attrs['data-key'] = type;
-        attrs['comp-type'] = type;
-        attrs['draggable'] = true;
-
-        if (CommonUtils.isString(ref)) {
-            attrs['ref'] = `${ref}-component`;
-        }
-        let element = this.#createElement('span', 'noid', attrs);
-        let icon = this.#createElement('i', 'noid', { class: iconcls, style: `margin-right: 5px;` });
-        icon.textContent =` ${text} `;
-        element.appendChild(icon);
-        element.ondragstart = (e) => {
-            let compType = e.target.attributes['comp-type'].value;
-            console.log(compType);
-            HtmlUtils.dataTransferSetData(e, 'add-comp', compType);
-        };
-        element.onclick = (e) => {
-            let btn = e.currentTarget;
-            if (btn) {
-                this.#setCurrentComponent(this.#theForm.addComponent(btn.attributes['comp-type'].value));
-                //this.#currentComponent = this.#theForm.addComponent(btn.attributes['comp-type'].value);
-            }
-        };
-        return element;
     }
 
     #addTabPanel(parentEl, panelid, tabs, defaultselected) {
@@ -304,75 +281,6 @@ export default class Builder {
         return tabPanes;
     }
 
-    #getAccordionItem(accordianid, coreid, itemdesc, def, ref, items) {
-        let itempanel = `${accordianid}-panel-${coreid}`;
-        let itemheader = `${accordianid}-header-${coreid}`;
-        let containerid = `${accordianid}-components-${coreid}`;
-        let container = `${accordianid}-container-${coreid}`;
-        let accordionItem = this.#createElement('div', itempanel, { class: `accordion-item` });
-        let headerItem = this.#createElement('h2', itemheader, { class: `accordion-header` });
-        let btnAttrs = {};
-        let itemCls = 'accordion-collapse collapse';
-        let btnCls = 'accordion-button';
-        if (def) {
-            itemCls = itemCls + ' show';
-        } else {
-            btnCls = btnCls + ' collapsed';
-        }
-        btnAttrs.class = btnCls;
-        btnAttrs.Type = 'button';
-        btnAttrs['aria-controls'] = container;
-        btnAttrs['aria-expanded'] = def;
-        btnAttrs['data-bs-target'] = `#${container}`;
-        btnAttrs['data-bs-toggle'] = 'collapse';
-        btnAttrs['data-bs-parent'] = accordianid;
-
-
-        let headerbtn = this.#createElement('button', `header-button-${coreid}`, btnAttrs);
-        headerbtn.textContent = itemdesc;
-        headerItem.appendChild(headerbtn);
-
-        //sidebar group
-        let groupAttrs = {};
-        groupAttrs['class'] = itemCls;
-        groupAttrs['aria-labelledby'] = itemheader;
-
-        if (CommonUtils.isString(ref)) {
-            groupAttrs['ref'] = `${ref}-group`;
-        }
-
-        let groupItem = this.#createElement('div', container, groupAttrs);
-
-        //sidebar container
-        //sidebar group
-        let containerAttrs = {};
-        containerAttrs['class'] = 'accordion-body d-grid gap-1 no-drop p-2 w-100';
-
-        if (CommonUtils.isString(ref)) {
-            containerAttrs['ref'] = `${ref}-container`;
-        }
-
-
-        let groupBody = this.#createElement('div', containerid, containerAttrs);
-
-        //create tabs
-        if (CommonUtils.isArray(items)) {
-            for (let item of items) {
-                if (HtmlUtils.isNode(item) || CommonUtils.isString(item)) {
-                    groupBody.appendChild(item);
-                }
-            }
-        }
-
-        groupItem.appendChild(groupBody);
-
-        accordionItem.appendChild(headerItem);
-
-        accordionItem.appendChild(groupItem);
-
-        return accordionItem;
-    }
-
     #getBuildArea(areaid, ref) {
         ref = ref ?? 'component';
 
@@ -408,232 +316,4 @@ export default class Builder {
 
         return topDiv;
     }
-
-    #getSideBar(sidebarid, ref, role) {
-        let sidebarAttrs = {};
-        sidebarAttrs['class'] = 'accordion';
-        if (CommonUtils.isString(ref)) {
-            sidebarAttrs['ref'] = ref;
-        }
-        if (CommonUtils.isString(role)) {
-            sidebarAttrs['role'] = role;
-        }
-        //sidebar
-        var accordian = this.#createElement('div', sidebarid, sidebarAttrs);
-
-        //create tabs
-        if (CommonUtils.isObjcetButNotArray(Builder.#components)) {
-            for (let [key, value] of Object.entries(Builder.#components)) {
-                let accItems = [];
-                let compButtons = value['btns'];
-                if (CommonUtils.isArray(compButtons)) {
-                    for (let item of compButtons) {
-                        let compBtn = this.#createSidebarButton(item['type'], key, item['text'], item['iconCls'], ref);
-                        accItems.push(compBtn);
-                    }
-                }
-                accordian.appendChild(this.#getAccordionItem(sidebarid, key, value['text'], value['default'], ref, accItems));
-            }
-        }
-        return accordian;
-    }
-
-    #createProperty(propObjects, callback) {
-        let propId = `prop-${propObjects.mappedProp}`;
-        let mappedType = propObjects['mappedType'];
-        let mappedProp = propObjects['mappedProp'];
-        let propPane = this.#createElement('div', 'noid', { class: 'editor-property-pane row' });
-        let nameCol = this.#createElement('div', 'noid', { class: 'editor-property-row' });
-        let valueCol = this.#createElement('div', 'noid', { class: 'editor-property-row' });
-        let propName = this.#createElement('label', 'noid', { class: 'editor-property-label', for: propId });
-        propName.textContent = propObjects.name;
-        let editorEl;
-        let length = 20;
-        if (!CommonUtils.isNullOrUndefined(propObjects['maxlength']) && Number.isInteger(propObjects['maxlength'])) {
-            length = propObjects['maxlength'];
-        }
-        let cls = 'editor-property';
-        let elAttributes = {};
-        elAttributes.class = cls;
-        switch (propObjects.type) {
-            case 'textfield':
-                elAttributes.class =  elAttributes.class + ' form-control'
-                elAttributes['maxlength'] = length;
-                editorEl = this.#createElement('input', propId, elAttributes);
-                break;
-            case 'select':
-                elAttributes.class =  elAttributes.class + ' form-select'
-                editorEl = this.#createElement('select', propId, elAttributes);
-                HtmlUtils.populateOptions(editorEl, propObjects['options']);
-                if (propObjects.default) {
-                    editorEl.value = propObjects.default;
-                }
-
-                break;
-            default:
-                elAttributes['maxlength'] = length;
-                editorEl = this.#createElement('input', propId, elAttributes);
-                break;
-        }
-
-        let mappedCompProp = { mappedType: mappedType, mappedProp: mappedProp, mappedElement: editorEl };
-        editorEl.onchange = (e) => {
-            let prop = e.currentTarget;
-            if (prop && callback) {
-                callback(mappedCompProp);
-            }
-        };
-        nameCol.appendChild(propName);
-        valueCol.appendChild(editorEl);
-        propPane.appendChild(nameCol);
-        propPane.appendChild(valueCol);
-        this.#editorPropElements.push(mappedCompProp);
-        return propPane;
-    }
-
-    #getEditBar(editsidebarid, ref, role) {
-        let attachedComponent;
-        let editbarAttrs = {};
-        editbarAttrs['class'] = 'accordion';
-        if (CommonUtils.isString(ref)) {
-            editbarAttrs['ref'] = ref;
-        }
-        if (CommonUtils.isString(role)) {
-            editbarAttrs['role'] = role;
-        }
-        //sidebar
-        let accordian = this.#createElement('div', editsidebarid, editbarAttrs);
-
-
-        if (CommonUtils.isObjcetButNotArray(Builder.#properties)) {
-            for (let [key, value] of Object.entries(Builder.#properties)) {
-                let propItems = [];
-                let props = value['props'];
-                if (CommonUtils.isArray(props)) {
-                    for (let item of props) {
-                        let propItem = this.#createProperty(item, (mappedCompProp) => {
-                            if (this.#currentComponent) {
-                                let val = mappedCompProp['mappedElement'].value;
-                                let type = mappedCompProp['mappedType'];
-                                let prop = mappedCompProp['mappedProp'];
-                                this.#currentComponent.setComponentProperty(type, prop, val);
-                            }
-                        });
-                        propItems.push(propItem);
-                    }
-                }
-                accordian.appendChild(this.#getAccordionItem(editsidebarid, key, value['text'], value['default'], ref, propItems));
-            }
-        }
-
-        return accordian;
-    }
-
-    #refreshEditBar() {
-        for (let mappedPorpEl of this.#editorPropElements) {
-            let val = '';
-            if (this.#currentComponent) {
-                val = this.#currentComponent.getComponentProperty(mappedPorpEl['mappedType'], mappedPorpEl['mappedProp']);
-            }
-            mappedPorpEl['mappedElement'].value = val;
-        }
-    }
-
-    static #components = {
-        "basic": {
-            text: "Basic",
-            default: true,
-            btns: [
-                {
-                    "default": true,
-                    "type": "textfield",
-                    "text": "Text Field",
-                    "iconCls": "bi bi-terminal",
-                },
-                {
-                    "type": "textarea",
-                    "text": "Text Area",
-                    "iconCls": "bi bi-type",
-                }
-            ]
-        },
-        "advanced": {
-            text: "Advanced",
-            default: false
-        },
-        "layout": {
-            text: "Layout",
-            default: false,
-            btns: [
-                {
-                    "default": true,
-                    "type": "columns",
-                    "text": "Columns",
-                    "iconCls": "bi bi-window",
-                },
-                {
-                    "type": "table",
-                    "text": "Table",
-                    "iconCls": "bi bi-table",
-                }
-            ]
-        }
-    };
-
-    static #properties = {
-        "display": {
-            text: "Display",
-            default: true,
-            props: [
-                {
-                    mappedType: "gen",
-                    mappedProp: "name",
-                    name: "Name",
-                    type: "textfield",
-                    maxlength: 50
-                },
-                {
-                    mappedType: "gen",
-                    mappedProp: "label",
-                    name: "Description",
-                    type: "textfield",
-                    maxlength: 50
-                },
-                {
-                    mappedType: "gen",
-                    mappedProp: "type",
-                    name: "Type",
-                    type: "textfield"
-                },
-            ]
-        },
-        "data": {
-            text: "Data Source",
-            default: false,
-            props: [
-                {
-                    mappedType: "attr",
-                    mappedProp: "data-key",
-                    name: "Binding",
-                    type: "textfield",
-                    maxlength: 30
-                },
-                {
-                    mappedType: "attr",
-                    mappedProp: "required",
-                    name: "Required",
-                    type: "select",
-                    default: 'false',
-                    options: {
-                        True: 'true',
-                        False: 'false'
-                    }
-                }
-            ]
-        },
-        "attributes": {
-            text: "HTML Attributes",
-            default: false
-        }
-    };
 }
