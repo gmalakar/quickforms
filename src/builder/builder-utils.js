@@ -57,7 +57,7 @@ export default class BuilderUtils{
                 },
                 {
                     mappedType: "gen",
-                    mappedProp: "label",
+                    mappedProp: "caption",
                     name: "Description",
                     type: "textfield",
                     maxlength: 50

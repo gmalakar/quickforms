@@ -81,7 +81,9 @@ export default class Modal {
         this.#footerEl.innerHTML = '';
 
         if (messageClass && CommonUtils.isString(messageClass)) {
-            messageEl.class = messageClass;
+            this.#messageEl.className = messageClass;
+        }else{
+            this.#messageEl.className = 'text-success';
         }
         if (type === Modal.YesNo || type === Modal.OkCancel) {
             let moldalFooterYes = HtmlUtils.createElement('button', 'footer-btn-yes' + this.modalid, { class: 'btn btn-primary', type: 'button', 'data-bs-dismiss': 'modal' });

@@ -17,6 +17,8 @@ export default class ErrorCode {
         INVALID_ATTRIBUTE: 'Invalid Component attribute.',
         INVALID_EVENT_LISTENER: 'Invalid event listerers.',
         INVALID_PROPERTIES: 'Invalid Component properties.',
+        INVALID_NAME: 'Invalid Component Name.',
+        USED_NAME: 'Component Name is already in use.',
     };
     Form = {
         //form
@@ -26,6 +28,7 @@ export default class ErrorCode {
         MISSING_NAME: 'Missing Form name.',
         MISSING_CONTAINER: 'Missing Container.',
         MISSING_INSTANCE: 'Missing Form instance.',
+        INVALID_INSTANCE: 'Invalid Form instance.',
         MISSING_PLACEHOLDER: 'Missing or invalid form placeholder.',
         MISING_LISTENER: 'Missing listener from caller.',
     }

@@ -7,10 +7,9 @@ export default class Form extends Observer {
 
     //public members
 
-    #metaData;
-    #compContainer;
+    #formMetaData;
+    compContainer;
     currentComponent;
-
 
     constructor(compContainer, metaData, observer, observingMethod) {
 
@@ -20,28 +19,24 @@ export default class Form extends Observer {
 
         super();
 
-        this.#metaData = metaData || {};
-        if (CommonUtils.isJson(this.#metaData)) {
-            this.#metaData = this.json.parse(this.#metaData);
+        this.#formMetaData = metaData || {};
+        if (CommonUtils.isJson(this.#formMetaData)) {
+            this.#formMetaData = this.json.parse(this.#formMetaData);
         }
-        if (CommonUtils.isNullOrEmpty(this.#metaData.formName)) {
+        if (CommonUtils.isNullOrEmpty(this.#formMetaData.formName)) {
             return ErrorHandler.throwError(ErrorHandler.errorCode.Form.MISSING_NAME);
         }
 
         this.components = {};
-        for (let [name, comp] of Object.entries(this.#metaData['components'] || {})) {
-            this.components[name] = new Component( this.name, compContainer, comp, this, this.#observingMethod, true)
+        for (let [name, compMetaData] of Object.entries(this.#formMetaData['components'] || {})) {
+            this.components[name] = new Component( this, compMetaData, this.#observingMethod, true)
         }
-        this.#compContainer = compContainer;
+        this.compContainer = compContainer;
         this.setObserver(observer, observingMethod);
     }
 
     get name() {
-        return this.#metaData.formName;
-    }
-   
-    get metaData() {
-        return this.#metaData;
+        return this.#formMetaData.formName;
     }
 
     #observingMethod(observer, event, args) {
@@ -59,7 +54,7 @@ export default class Form extends Observer {
             }
         }
     }
-    
+
     #generateName(type) {
         let names = this.componentNames;
         let l = type.length;
@@ -84,22 +79,23 @@ export default class Form extends Observer {
 
 
     removeComponent(component) {
-        if (component && component.fbComponent) {
-            if (this.#compContainer.hasChildNodes()) {
+        let compCtl = component && component.attachedControl.componentControl;
+        if (compCtl) {
+            if (this.compContainer.hasChildNodes()) {
                 let compToSelect;
-                let next = component.fbComponent.nextSibling;
+                let next = compCtl.nextSibling;
                 if (!next) {
-                    next = component.fbComponent.previousSibling;
+                    next = compCtl.previousSibling;
                 }
                 if (next) {
                     compToSelect = next.getAttribute('ref');
                 }
-                this.#compContainer.removeChild(component.fbComponent);
+                this.compContainer.removeChild(compCtl);
                 if (this.components.hasOwnProperty(component.name)) {
                     delete this.components[component.name];
                 }
                 if (compToSelect && this.components.hasOwnProperty(compToSelect)) {
-                    this.components[compToSelect].fbComponent.focus();
+                    this.components[compToSelect].attachedControl.componentControl.focus();
                 }
             }
         }
@@ -109,11 +105,11 @@ export default class Form extends Observer {
         if (CommonUtils.isNullOrEmpty(type)) {
             return ErrorHandler.throwError(ErrorHandler.errorCode.Component.MISSING_TYPE);
         }
-        let component = {};
-        component.name = this.#generateName(type);
-        component.type = type;
-        let newComponent = new Component(  this.name, this.#compContainer, component, this, this.#observingMethod, true);
-        this.components[component.name] = newComponent;
+        let compMetaData = {};
+        compMetaData.name = this.#generateName(type);
+        compMetaData.type = type;
+        let newComponent = new Component(  this, compMetaData, this.#observingMethod, true);
+        this.components[compMetaData.name] = newComponent;
         this.currentComponent = newComponent;
         return newComponent;
     }

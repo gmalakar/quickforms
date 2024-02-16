@@ -3,6 +3,8 @@ import CommonUtils from './common-utils.js';
 export default class HtmlUtils {
     constructor() { }
 
+    static #validToken = new RegExp('^[A-Za-z][A-Za-z0-9_:\.-]*$');
+    
     static getElement(elementid) {
         let ret;
         if (CommonUtils.isString(elementid)) {//check by id
@@ -11,6 +13,21 @@ export default class HtmlUtils {
         return ret;
     }
 
+    static joinStyles(styles) {
+        let style = '';
+        if (CommonUtils.isObjcetButNotArray(styles)) {
+            for (let [key, val] of Object.entries(styles)) {
+                style = `${style}${key}:${val};`;
+            }
+        }
+        return style;
+    }
+    
+    static isValidName(token)
+    {
+        return !CommonUtils.isNullOrEmpty(token) && HtmlUtils.#validToken.test( token );
+
+    }
     static isElement(obj) {
         let ret = !CommonUtils.isNullOrUndefined(obj) && obj instanceof Element;
         if (!ret && CommonUtils.isString(obj)) {//check by id

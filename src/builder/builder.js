@@ -156,9 +156,20 @@ export default class Builder {
         this.#editBar = PropertiesBar.get (Builder.#idEditbar, Builder.#fbPropertyBarId, (e, mappedCompProp)=>{
             if (this.#currentComponent) {
                 let val = mappedCompProp['mappedElement'].value;
+                let oldval = mappedCompProp['mappedElement']['oldvalue'];
                 let type = mappedCompProp['mappedType'];
                 let prop = mappedCompProp['mappedProp'];
-                this.#currentComponent.setComponentProperty(type, prop, val);
+                this.#currentComponent.setComponentProperty(type, prop, val, (msg)=>{
+                    if(!CommonUtils.isNullOrEmpty( msg ) ){
+                        Modal.commonModalWindow.setModal(this, "Invalid Component", msg, Modal.Ok, function (source, which) {
+                            if(e.target){
+                                e.target.value=oldval;
+                                e.target.focus();
+                            } 
+                        }, 'text-danger', true);
+                        Modal.commonModalWindow.show();                
+                    }
+                });
             }            
         });
 
@@ -194,19 +205,22 @@ export default class Builder {
 
     #setDeleteButton(component, set) {
         if (component) {
-            let firstChild = component.fbComponent.firstChild;
-            if (set) {
-                HtmlUtils.addClasses(component.fbComponent, Builder.#clsSelected);
-                if (CommonUtils.isNullOrUndefined(firstChild)) {
-                    component.fbComponent.appendChild(Builder.#compDeleteBtn);
-                }
-                else if (firstChild !== Builder.#compDeleteBtn) {
-                    component.fbComponent.insertBefore(Builder.#compDeleteBtn, firstChild);
-                }
-            } else {
-                HtmlUtils.removeClasses(component.fbComponent, Builder.#clsSelected);
-                if (firstChild === Builder.#compDeleteBtn) {
-                    component.fbComponent.removeChild(Builder.#compDeleteBtn);
+            let compControl = component.attachedControl.componentControl;
+            if( compControl ){
+                let firstChild = compControl.firstChild;
+                if (set) {
+                    HtmlUtils.addClasses(compControl, Builder.#clsSelected);
+                    if (CommonUtils.isNullOrUndefined(firstChild)) {
+                        compControl.appendChild(Builder.#compDeleteBtn);
+                    }
+                    else if (firstChild !== Builder.#compDeleteBtn) {
+                        compControl.insertBefore(Builder.#compDeleteBtn, firstChild);
+                    }
+                } else {
+                    HtmlUtils.removeClasses(compControl, Builder.#clsSelected);
+                    if (firstChild === Builder.#compDeleteBtn) {
+                        compControl.removeChild(Builder.#compDeleteBtn);
+                    }
                 }
             }
         }

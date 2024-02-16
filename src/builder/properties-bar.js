@@ -15,6 +15,7 @@ export default class PropertiesBar{
                 val = currentComponent.getComponentProperty(mappedPorpEl['mappedType'], mappedPorpEl['mappedProp']);
             }
             mappedPorpEl['mappedElement'].value = val;
+            mappedPorpEl['mappedElement']['oldvalue'] = val;
         }
     }
     
