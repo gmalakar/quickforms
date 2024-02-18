@@ -5,6 +5,7 @@ import Modal from '../utils/modal.js';
 import Form from '../components/form.js';
 import ComponentsBar from './components-bar.js';
 import PropertiesBar from './properties-bar.js';
+import Container from '../components/container.js';
 //builder
 export default class Builder {
 
@@ -16,6 +17,7 @@ export default class Builder {
     #editBar;
     #currentComponent;
     #formMetaData = {}
+    container;
 
     /**
      * Class constructor of Builder.
@@ -185,13 +187,12 @@ export default class Builder {
         if (this.#builderPane) {
             console.log('Valid container');
             //add the form
-            this.#theForm = new Form(this.#componentsContainer, this.#formMetaData, this, this.#observingMethod);
+            this.#theForm = new Form(this.container, this.#formMetaData, this, this.#observingMethod);
             //set delete function
             Builder.#compDeleteBtn.addEventListener('click', (e) => {
                 Modal.commonModalWindow.setModal(this, "Delete Component", "Do you want to delete this component?", Modal.YesNo, function (source, which) {
                     if (which === 'yes') {
                         if (source) {
-                            source.#theForm.removeComponent();
                             source.#theForm.removeComponent( source.#currentComponent);
                         }
                     }
@@ -297,9 +298,9 @@ export default class Builder {
 
     #getBuildArea(areaid, ref) {
         ref = ref ?? 'component';
-
+        this.container = new Container(areaid);
         let topDiv = this.#createElement('div', areaid, { class: Builder.#fbAreaCls, ref: ref });
-        let webDiv = this.#createElement('div', 'noid', { novalidate: ``, class: Builder.#fbFormCls, ref: areaid });
+        let webDiv = this.container.control;
         //let dragConcainer = this.#createElement('div', 'noid', { class: `${Builder.#builderComponents} ${Builder.#dragOntoCls} builder-form`, ref: `webform-container` });
         let dcAttrs = {};
 

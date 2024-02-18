@@ -8,17 +8,19 @@ export default class Form extends Observer {
     //public members
 
     #formMetaData;
-    compContainer;
     currentComponent;
+    container;
 
-    constructor(compContainer, metaData, observer, observingMethod) {
+    constructor(container, metaData, observer, observingMethod) {
 
-        if (CommonUtils.isNullOrUndefined(compContainer) || !HtmlUtils.isHTMLElement(compContainer)) {
+        if (CommonUtils.isNullOrUndefined(container) || 
+        CommonUtils.isNullOrUndefined(container.control) || 
+        !HtmlUtils.isHTMLElement(container.control)) {
             return ErrorHandler.throwError(ErrorHandler.errorCode.Builder.MISSING_PLACEHOLDER);
         }
 
         super();
-
+        this.container = container;
         this.#formMetaData = metaData || {};
         if (CommonUtils.isJson(this.#formMetaData)) {
             this.#formMetaData = this.json.parse(this.#formMetaData);
@@ -31,10 +33,13 @@ export default class Form extends Observer {
         for (let [name, compMetaData] of Object.entries(this.#formMetaData['components'] || {})) {
             this.components[name] = new Component( this, compMetaData, this.#observingMethod, true)
         }
-        this.compContainer = compContainer;
+        //this.containerControl = container;
         this.setObserver(observer, observingMethod);
     }
 
+    get containerControl(){
+        this.container.control;
+    }
     get name() {
         return this.#formMetaData.formName;
     }
@@ -81,7 +86,7 @@ export default class Form extends Observer {
     removeComponent(component) {
         let compCtl = component && component.attachedControl.componentControl;
         if (compCtl) {
-            if (this.compContainer.hasChildNodes()) {
+            if (compCtl.hasChildNodes()) {
                 let compToSelect;
                 let next = compCtl.nextSibling;
                 if (!next) {
@@ -90,7 +95,7 @@ export default class Form extends Observer {
                 if (next) {
                     compToSelect = next.getAttribute('ref');
                 }
-                this.compContainer.removeChild(compCtl);
+                this.container.control.removeChild(compCtl);
                 if (this.components.hasOwnProperty(component.name)) {
                     delete this.components[component.name];
                 }

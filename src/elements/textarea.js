@@ -1,8 +1,8 @@
 import BaseControl from '../base/base-control.js';
 
-export default class TextField extends BaseControl {
+export default class TextArea extends BaseControl {
     constructor(containingComponent) {
-        super(containingComponent, 'Text Field');
+        super(containingComponent, 'Text Area');
         this.buildControl();
     }
 }

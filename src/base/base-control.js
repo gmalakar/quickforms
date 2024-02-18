@@ -30,18 +30,17 @@ export default class BaseControl {
         this.defaultCaptionn = defaultCaption;
         this.containingComponent = containingComponent;
         this.compMetaData = containingComponent.compMetaData || {};
-        this.#compControlId  = `comp-${this.name}`
-        this.buildControl();
+        this.#compControlId  = this.compMetaData.name || ''; //dont change this
     }
 
     get containingForm() {
         return this.containingComponent.containingForm;
     };
 
-    get container() {
-        return this.containingComponent.container;
+    get containerControl() {
+        return this.containingComponent.containerControl;
     };
-
+    
     get caption() {
         return this.compMetaData.caption || '';
     }
@@ -152,14 +151,25 @@ export default class BaseControl {
     set name(value) {
         let oldName = this.compMetaData.name;
         this.compMetaData.name = value;
+        //change the name of the component
+        if (this.componentControl) {
+            this.componentControl.name = value;
+            this.componentControl.id = value;
+            //set the new ref
+            this.componentControl.setAttribute('ref',value);
+        }
+        //chenge the name of the element control
         if (this.elementControl) {
             value = `${this.containingForm.name}[${value}]`;
             this.elementControl.name = value;
             this.elementControl.id = value;
         }
-        if (this.captionControl) {
-            this.captionControl.for = value;
+        //change the for of the label control 
+        if (this.captionControl && this.elementControl) {
+            this.captionControl.setAttribute('for', this.elementControl.name);
         }
+        //change the name in the container
+        this.containingComponent.container.changeName(oldName, this.name );
         //delete old and add new
         delete this.containingForm.componentNames[oldName];
         this.containingForm.componentNames[this.name] = this;
@@ -323,18 +333,18 @@ export default class BaseControl {
                     let up = (data.y - e.y || pageY) > 0;
                     let draggedComponent = document.getElementById(data.data);
 
-                    if (this.container.hasChildNodes()) {
-                        this.container.removeChild(draggedComponent);
+                    if (this.containerControl.hasChildNodes()) {
+                        this.containerControl.removeChild(draggedComponent);
                     }
 
                     if (up) {//find the top component
-                        this.container.insertBefore(draggedComponent, this.componentControl);
+                        this.containerControl.insertBefore(draggedComponent, this.componentControl);
                     } else {//find the below component
                         let nextComponent = this.componentControl.nextSibling;
                         if (nextComponent) {
-                            this.container.insertBefore(draggedComponent, nextComponent);
+                            this.containerControl.insertBefore(draggedComponent, nextComponent);
                         } else {
-                            this.container.appendChild(draggedComponent);
+                            this.containerControl.appendChild(draggedComponent);
                         }
                     }
                 }
@@ -352,9 +362,10 @@ export default class BaseControl {
         this.componentControl.appendChild(this.captionControl);
 
         this.componentControl.appendChild(this.elementControl);
+        if (this.containingComponent.inDesignMode) {
+            this.setDesignMode();
+        }
 
-        this.setDesignMode();
-
-        this.container.appendChild(this.componentControl);
+        this.containerControl.appendChild(this.componentControl);
     }
 }
