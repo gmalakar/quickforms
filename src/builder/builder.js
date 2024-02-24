@@ -5,19 +5,16 @@ import Modal from '../utils/modal.js';
 import Form from '../components/form.js';
 import ComponentsBar from './components-bar.js';
 import PropertiesBar from './properties-bar.js';
-import Container from '../components/container.js';
 //builder
 export default class Builder {
 
-    #builderHolder;
+    #builderContainer;
     #formName;
-    #componentsContainer;
-    #theForm;
+    #theFormContainer;
     #buildertTabPanes = {};
     #editBar;
     #currentComponent;
     #formMetaData = {}
-    container;
 
     /**
      * Class constructor of Builder.
@@ -26,27 +23,23 @@ export default class Builder {
      * @param {string} formname form name
      * @param {string} formMetaData form metadata
      */
-    constructor(placeholder, formname, formMetaData = null) {
+    constructor(placeholder, formMetaData) {
         if (CommonUtils.isNullOrEmpty(placeholder)) {
-            ErrorHandler.throwError(ErrorHandler.errorCode.Builder.MISSING_PLACEHOLDER);
-        } else {
-            this.#formName = formname ?? 'sample';
+            return ErrorHandler.throwError(ErrorHandler.errorCode.Builder.MISSING_PLACEHOLDER);
+        } else if (CommonUtils.isNullOrUndefined(formMetaData)) {
+            return ErrorHandler.throwError(ErrorHandler.errorCode.Builder.MISSING_FORM_METADATA);
+        } else if (CommonUtils.isNullOrEmpty(formMetaData.name)) {
+            return ErrorHandler.throwError(ErrorHandler.errorCode.Form.MISSING_NAME);
+        }
+        else {
+            //defaut form name
+            this.#formName = formMetaData.name;
 
-            this.#builderHolder = document.getElementById(placeholder);
-
-            this.#formMetaData = formMetaData || {};
-
-            if (CommonUtils.isJson(this.#formMetaData)) {
-                this.#formMetaData = CommonUtils.jsonToObject(this.#formMetaData);
-            }
-
-            if (CommonUtils.isNullOrEmpty(this.#formMetaData.formName)) {
-                this.#formMetaData['formName'] = formname;
-            }
+            this.#formMetaData = formMetaData;
+            //builder container
+            this.#builderContainer = document.getElementById(placeholder);
         }
     }
-
-    static #clsSelected = 'fb-selected-comp';
 
     static #fbMainId = 'fb-main';
 
@@ -74,25 +67,21 @@ export default class Builder {
 
     static #fbAreaCls = 'fb-design-area';
 
-    static #fbFormCls = 'fb-design-form';
 
-    static #compDeleteBtn = HtmlUtils.createElement('button', 'fb-delete-comp-btn', { class: 'btn-close fb-delete-comp-btn' });
-
-
-    get #builderPane() {
+    get builderPane() {
         return this.#buildertTabPanes[Builder.#fbContainerId];
     }
 
-    get #formPane() {
+    get formPane() {
         return this.#buildertTabPanes[Builder.#fbFormContainerId];
     }
 
-    get #jsonPane() {
+    get jsonPane() {
         return this.#buildertTabPanes[Builder.#fbJsonContainer];
     }
 
     buildBuilder() {
-        if (this.#builderHolder) {
+        if (this.#builderContainer) {
             this.#createBed();
         } else {
             ErrorHandler.throwError('builder.invalidbuilderel');
@@ -101,10 +90,10 @@ export default class Builder {
 
     #createBed() {
         //clear the placeholder
-        this.#builderHolder.innerHTML = '';
+        this.#builderContainer.innerHTML = '';
 
         //create main div
-        let buildermain = this.#createElement('div', Builder.#fbMainId );
+        let buildermain = this.#createElement('div', Builder.#fbMainId);
 
         //creat tabobjects
         let tabs = {};
@@ -118,123 +107,88 @@ export default class Builder {
         //main builder
         let builder = this.#createElement('div', Builder.#floudsBuilderlId, { class: `flouds builder row Builder` });
 
-        //formcomponents
+        //components bar
         let componentBar = this.#createElement('div', Builder.#fbSidebarComponentsId, { class: `col-xs-3 col-sm-3 col-md-2 fb-component-bar` });
 
-        //form area
-        let formarea = this.#createElement('div', Builder.#fbAreaId, { class: `col-xs-6 col-sm-6 col-md-8 formarea`, ref: Builder.#floudsBuilderlId });
+        //form design area
+        let formArea = this.#createElement('div', Builder.#fbAreaId, { class: `col-xs-6 col-sm-6 col-md-8 fb-form-area`, ref: Builder.#floudsBuilderlId });
 
         //property bar
         let propertyBar = this.#createElement('div', Builder.#fbPropertyBarId, { class: `col-xs-3 col-sm-3 col-md-2 fb-property-bar`, ref: Builder.#floudsBuilderlId });
 
+        //append components bar
         builder.appendChild(componentBar);
 
-        builder.appendChild(formarea);
+        //appened form area
+        builder.appendChild(formArea);
 
+        //append property bar
         builder.appendChild(propertyBar);
 
-        this.#builderPane.appendChild(builder);
+        //add designer
+        //add container holder
+        let formContainerHolder = this.#createElement('div', Builder.#idArea, { class: Builder.#fbAreaCls, ref: Builder.#fbAreaId });
+
+        //add form container
+        this.#theFormContainer = new Form(this.#formName, this.#formMetaData, this, this.#observingMethod, true);
+
+        //append the contaioner
+        formContainerHolder.appendChild(this.#theFormContainer.control);
 
         //add form
         let form = this.#createElement('form', this.#formName);
 
         //append form to form pane
-        this.#formPane.appendChild(form);
+        this.formPane.appendChild(form);
 
         //add side bar
 
-        let sidebar = ComponentsBar.get(Builder.#idSidebar, Builder.#fbSidebarComponentsId, (source, type)=>{
-            this.#setCurrentComponent(this.#theForm.addComponent(type));
-        } );
+        let sidebar = ComponentsBar.get(Builder.#idSidebar, Builder.#fbSidebarComponentsId, (source, type) => {
+            this.#theFormContainer.addComponent(null, type, true);
+        });
 
         componentBar.appendChild(sidebar);
 
-        let area = this.#getBuildArea(Builder.#idArea, Builder.#fbAreaId);
-
-        formarea.appendChild(area);
+        formArea.appendChild(formContainerHolder);
 
         //add edit bar
-
-        this.#editBar = PropertiesBar.get (Builder.#idEditbar, Builder.#fbPropertyBarId, (e, mappedCompProp)=>{
+        this.#editBar = PropertiesBar.get(Builder.#idEditbar, Builder.#fbPropertyBarId, (e, mappedCompProp) => {
             if (this.#currentComponent) {
                 let val = mappedCompProp['mappedElement'].value;
                 let oldval = mappedCompProp['mappedElement']['oldvalue'];
                 let type = mappedCompProp['mappedType'];
                 let prop = mappedCompProp['mappedProp'];
-                this.#currentComponent.setComponentProperty(type, prop, val, (msg)=>{
-                    if(!CommonUtils.isNullOrEmpty( msg ) ){
+                this.#currentComponent.control.setComponentProperty(type, prop, val, (msg) => {
+                    if (!CommonUtils.isNullOrEmpty(msg)) {
                         Modal.commonModalWindow.setModal(this, "Invalid Component", msg, Modal.Ok, function (source, which) {
-                            if(e.target){
-                                e.target.value=oldval;
+                            if (e.target) {
+                                e.target.value = oldval;
                                 e.target.focus();
-                            } 
+                            }
                         }, 'text-danger', true);
-                        Modal.commonModalWindow.show();                
+                        Modal.commonModalWindow.show();
                     }
                 });
-            }            
+            }
         });
 
         propertyBar.appendChild(this.#editBar);
 
         //append the main to placeholder
-        this.#builderHolder.appendChild(buildermain);
+        this.#builderContainer.appendChild(buildermain);
+
+        //appened builder
+        this.builderPane.appendChild(builder);
 
         this.#finalizeBuilder();
     }
 
     #finalizeBuilder() {
-        if (this.#builderPane) {
+        if (this.builderPane) {
             console.log('Valid container');
-            //add the form
-            this.#theForm = new Form(this.container, this.#formMetaData, this, this.#observingMethod);
-            //set delete function
-            Builder.#compDeleteBtn.addEventListener('click', (e) => {
-                Modal.commonModalWindow.setModal(this, "Delete Component", "Do you want to delete this component?", Modal.YesNo, function (source, which) {
-                    if (which === 'yes') {
-                        if (source) {
-                            source.#theForm.removeComponent( source.#currentComponent);
-                        }
-                    }
-                }, null, true);
-                Modal.commonModalWindow.show();
-            })
         } else {
             console.log('Invalid container');
         }
-    }
-
-    #setDeleteButton(component, set) {
-        if (component) {
-            let compControl = component.attachedControl.componentControl;
-            if( compControl ){
-                let firstChild = compControl.firstChild;
-                if (set) {
-                    HtmlUtils.addClasses(compControl, Builder.#clsSelected);
-                    if (CommonUtils.isNullOrUndefined(firstChild)) {
-                        compControl.appendChild(Builder.#compDeleteBtn);
-                    }
-                    else if (firstChild !== Builder.#compDeleteBtn) {
-                        compControl.insertBefore(Builder.#compDeleteBtn, firstChild);
-                    }
-                } else {
-                    HtmlUtils.removeClasses(compControl, Builder.#clsSelected);
-                    if (firstChild === Builder.#compDeleteBtn) {
-                        compControl.removeChild(Builder.#compDeleteBtn);
-                    }
-                }
-            }
-        }
-    }
-
-    #setCurrentComponent(component) {
-        if (this.#currentComponent !== component) {
-            //reset
-            this.#setDeleteButton(this.#currentComponent, false);
-            this.#currentComponent = component;
-            this.#setDeleteButton(this.#currentComponent, true);
-        }
-        PropertiesBar.refreshEditBar( this.#currentComponent );
     }
 
     #observingMethod(observer, event, args) {
@@ -242,7 +196,8 @@ export default class Builder {
         if (observer.constructor === Builder) {
             switch (event) {
                 case 'currentComponentChanged':
-                    observer.#setCurrentComponent(args);
+                    PropertiesBar.refreshEditBar(args);
+                    observer.#currentComponent = args;
                     break;
                 default:
                     break;
@@ -294,41 +249,5 @@ export default class Builder {
             parentEl.appendChild(content);
         }
         return tabPanes;
-    }
-
-    #getBuildArea(areaid, ref) {
-        ref = ref ?? 'component';
-        this.container = new Container(areaid);
-        let topDiv = this.#createElement('div', areaid, { class: Builder.#fbAreaCls, ref: ref });
-        let webDiv = this.container.control;
-        //let dragConcainer = this.#createElement('div', 'noid', { class: `${Builder.#builderComponents} ${Builder.#dragOntoCls} builder-form`, ref: `webform-container` });
-        let dcAttrs = {};
-
-        //dcAttrs['class'] = `drag-and-drop-alert alert alert-info no-drag`;
-        dcAttrs['style'] = `text-align:center;`;
-        dcAttrs['data-noattach'] = true;
-        dcAttrs['data-position'] = '0';
-
-        this.#componentsContainer = webDiv;
-
-        topDiv.appendChild(webDiv);
-
-
-        //drag drop
-        topDiv.ondragover = (e) => {
-            e.preventDefault();
-        };
-
-        topDiv.ondrop = (e) => {
-            e.preventDefault();
-            let data = HtmlUtils.dataTransferGetData(e);
-            if (data && data.for && data.data) {
-                if (data.for === 'add-comp') {
-                    this.#setCurrentComponent(this.#theForm.addComponent(data.data));
-                }
-            }
-        };
-
-        return topDiv;
     }
 }

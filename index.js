@@ -1,3 +1,5 @@
 import Builder from './src/builder/builder.js'
-let formBuilder = new Builder('builder-container','myform');
+let formMetaData = {};
+formMetaData['name'] = 'testform';
+let formBuilder = new Builder('builder-container', formMetaData);
 formBuilder.buildBuilder();

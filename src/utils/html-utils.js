@@ -1,10 +1,11 @@
+import ColumnEditors from '../editors/columns-editor.js';
 import CommonUtils from './common-utils.js';
 
 export default class HtmlUtils {
     constructor() { }
 
     static #validToken = new RegExp('^[A-Za-z][A-Za-z0-9_:\.-]*$');
-    
+
     static getElement(elementid) {
         let ret;
         if (CommonUtils.isString(elementid)) {//check by id
@@ -22,16 +23,15 @@ export default class HtmlUtils {
         }
         return style;
     }
-    
-    static isValidName(token)
-    {
-        return !CommonUtils.isNullOrEmpty(token) && HtmlUtils.#validToken.test( token );
+
+    static isValidName(token) {
+        return !CommonUtils.isNullOrEmpty(token) && HtmlUtils.#validToken.test(token);
 
     }
     static isElement(obj) {
         let ret = !CommonUtils.isNullOrUndefined(obj) && obj instanceof Element;
         if (!ret && CommonUtils.isString(obj)) {//check by id
-            ret = CommonUtils.isNullOrUndefined(document.getElementById(obj));
+            ret = !CommonUtils.isNullOrUndefined(document.getElementById(obj));
         }
         return ret;
     }
@@ -39,7 +39,7 @@ export default class HtmlUtils {
     static isHTMLElement(obj) {
         let ret = !CommonUtils.isNullOrUndefined(obj) && obj instanceof HTMLElement;
         if (!ret && CommonUtils.isString(obj)) {//check by id
-            ret = CommonUtils.isNullOrUndefined(document.getElementById(obj));
+            ret = !CommonUtils.isNullOrUndefined(document.getElementById(obj));
         }
         return ret;
     }
@@ -140,5 +140,51 @@ export default class HtmlUtils {
 
     static dataTransferGetPosition(e) {
         return { x: e.pageX, y: pageY };
+    }
+
+    static show(el) {
+        if (el && HtmlUtils.isElement(el)) {
+            el.style.display = "block";
+        }
+        else if (el && CommonUtils.isString(el)) {
+            let el2 = document.getElementById(el);
+            if (el2) {
+                el2.style.display = "block";
+            }
+        };
+    }
+
+    static hide(el) {
+        if (el && HtmlUtils.isElement(el)) {
+            el.style.display = "none";
+        }
+        else if (el && CommonUtils.isString(el)) {
+            let el2 = document.getElementById(el);
+            if (el2) {
+                el2.style.display = "none";
+            }
+        };
+    }
+
+    static findAncestor(el, cls) {
+        while ((el = el.parentElement) && !el.classList.contains(cls));
+        return el;
+    }
+
+    static createIconButton(btnAttrs, iconAttrs, name, btntxt) {
+        let btnName = name || 'noid';
+        let btn = HtmlUtils.createElement('button', btnName, btnAttrs);
+        if (iconAttrs) {
+            let icon = HtmlUtils.createElement('i', 'noid', iconAttrs);
+            if (btntxt) {
+                icon.textContent = ` ${btntxt} `;
+            }
+            btn.appendChild(icon);
+        } else {
+            if (btntxt) {
+                btn.textContent = ` ${btntxt} `;
+            }
+        }
+        return btn;
     }
 }

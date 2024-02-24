@@ -1,5 +1,5 @@
-export default class BuilderUtils{
-    constructor() {       
+export default class BuilderUtils {
+    constructor() {
     }
 
     static componentTypes = {
@@ -66,8 +66,11 @@ export default class BuilderUtils{
                     mappedType: "gen",
                     mappedProp: "type",
                     name: "Type",
-                    type: "textfield"
-                },
+                    type: "textfield",
+                    attributes: {
+                        readonly: true
+                    }
+                }
             ]
         },
         "data": {
@@ -91,6 +94,22 @@ export default class BuilderUtils{
                         True: 'true',
                         False: 'false'
                     }
+                }
+            ]
+        },
+        "columns": {
+            text: "Columns Props",
+            default: false,
+            visibleFor: 'columns',
+            props: [
+                {
+                    mappedType: "prop",
+                    mappedProp: "col-props",
+                    name: "Properties",
+                    type: "popup",
+                    popupname: 'columns',
+                    default: 'false',
+                    readonly: true
                 }
             ]
         },

@@ -5,6 +5,7 @@ export default class ErrorCode {
         //builder
         INVALID_PLACEHOLDER: 'Placeholder element does not exist.',
         MISSING_PLACEHOLDER: 'Missing placeholder id.',
+        MISSING_FORM_METADATA: 'Missing form metadata.',
         MISSING_CONTAINER: 'Missing Container.',
         INVALID_BUILDER: 'Missing or invalid FormBuilder instance.',
     };
@@ -20,6 +21,7 @@ export default class ErrorCode {
         INVALID_PROPERTIES: 'Invalid Component properties.',
         INVALID_NAME: 'Invalid Component Name.',
         USED_NAME: 'Component Name is already in use.',
+        INVALID_COMPONENT_ARRAY: 'Invalid component array!',
     };
     Form = {
         //form

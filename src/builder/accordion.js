@@ -1,22 +1,32 @@
 import HtmlUtils from '../utils/html-utils.js';
 import CommonUtils from '../utils/common-utils.js';
-export default class Accordion{
-    constructor(){
+export default class Accordion {
+    constructor() {
 
     }
-    
-    static  getAccordionItem(accordianid, coreid, itemdesc, def, ref, items) {
+
+    static getAccordionItem(accordianid, coreid, itemProps, ref, items, createItems) {
+        let itemdesc = itemProps['text'] || 'Missing Item Desc';
+        let def = itemProps['default'] || false;
+        let visibleFor = itemProps['visibleFor'];
         let itempanel = `${accordianid}-panel-${coreid}`;
         let itemheader = `${accordianid}-header-${coreid}`;
         let containerid = `${accordianid}-components-${coreid}`;
         let container = `${accordianid}-container-${coreid}`;
-        let accordionItem = HtmlUtils.createElement('div', itempanel, { class: `accordion-item` });
+        let itemAttr = { class: 'accordion-item' };
+        if (visibleFor) {
+            itemAttr['visiblefor'] = visibleFor;
+        }
+        let accordionItem = HtmlUtils.createElement('div', itempanel, itemAttr);
+        if (visibleFor) {
+            accordionItem.style.display = "none";
+        }
         let headerItem = HtmlUtils.createElement('h2', itemheader, { class: `accordion-header` });
         let btnAttrs = {};
-        let itemCls = 'accordion-collapse collapse';
+        let grpItemCls = 'accordion-collapse collapse';
         let btnCls = 'accordion-button';
         if (def) {
-            itemCls = itemCls + ' show';
+            grpItemCls = grpItemCls + ' show';
         } else {
             btnCls = btnCls + ' collapsed';
         }
@@ -35,7 +45,7 @@ export default class Accordion{
 
         //sidebar group
         let groupAttrs = {};
-        groupAttrs['class'] = itemCls;
+        groupAttrs['class'] = grpItemCls;
         groupAttrs['aria-labelledby'] = itemheader;
 
         if (CommonUtils.isString(ref)) {
@@ -57,7 +67,10 @@ export default class Accordion{
         let groupBody = HtmlUtils.createElement('div', containerid, containerAttrs);
 
         //create tabs
-        if (CommonUtils.isArray(items)) {
+        if (CommonUtils.isFunction(createItems)) {
+            createItems(groupBody, items);
+        }
+        else if (CommonUtils.isArray(items)) {
             for (let item of items) {
                 if (HtmlUtils.isNode(item) || CommonUtils.isString(item)) {
                     groupBody.appendChild(item);

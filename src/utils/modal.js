@@ -108,6 +108,6 @@ export default class Modal {
         }
         //return this.modalEl;
     }
-    //common dtatic modal window
+    //common static modal window
     static commonModalWindow = new Modal( Modal.COMMON_MODAL_ID )
 }
