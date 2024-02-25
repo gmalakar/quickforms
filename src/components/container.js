@@ -164,6 +164,14 @@ export default class Container extends Observer {
                 this.#containerControl.appendChild(this.dragControl);
                 //set delete function
                 this.#compDeleteBtn.addEventListener("click", (e) => {
+                    Modal.commonModalWindow.setModal(this, "Delete Component", "Do you want to delete this component?", Modal.YesNo, function (source, which) {
+                        if (which === 'yes') {
+                            if (source) {
+                                source.removeComponent(source.#currentComponent);
+                            }
+                        }
+                    }, null, true);
+                    Modal.commonModalWindow.show();
                 });
             }
         }

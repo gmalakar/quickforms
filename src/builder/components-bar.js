@@ -1,4 +1,3 @@
-import BuilderUtils from './builder-utils.js';
 import CommonUtils from '../utils/common-utils.js';
 import HtmlUtils from '../utils/html-utils.js';
 import Accordion from './accordion.js';
@@ -47,8 +46,8 @@ export default class ComponentsBar {
         var accordian = HtmlUtils.createElement('div', barId, sidebarAttrs);
 
         //create tabs
-        if (CommonUtils.isObjcetButNotArray(BuilderUtils.componentTypes)) {
-            for (let [key, value] of Object.entries(BuilderUtils.componentTypes)) {
+        if (CommonUtils.isObjcetButNotArray(ComponentsBar.componentTypes)) {
+            for (let [key, value] of Object.entries(ComponentsBar.componentTypes)) {
                 let compButtons = value['btns'];
                 delete value['btns'];
                 accordian.appendChild(Accordion.getAccordionItem(barId, key, value, ref, compButtons, function (container, props) {
@@ -63,4 +62,45 @@ export default class ComponentsBar {
         }
         return accordian;
     }
+
+    static componentTypes = {
+        "basic": {
+            text: "Basic",
+            default: true,
+            btns: [
+                {
+                    "default": true,
+                    "type": "textfield",
+                    "text": "Text Field",
+                    "iconCls": "bi bi-terminal",
+                },
+                {
+                    "type": "textarea",
+                    "text": "Text Area",
+                    "iconCls": "bi bi-type",
+                }
+            ]
+        },
+        "advanced": {
+            text: "Advanced",
+            default: false
+        },
+        "layout": {
+            text: "Layout",
+            default: false,
+            btns: [
+                {
+                    "default": true,
+                    "type": "columns",
+                    "text": "Columns",
+                    "iconCls": "bi bi-window",
+                },
+                {
+                    "type": "table",
+                    "text": "Table",
+                    "iconCls": "bi bi-table",
+                }
+            ]
+        }
+    };
 }

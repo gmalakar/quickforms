@@ -1,4 +1,3 @@
-import BuilderUtils from './builder-utils.js';
 import CommonUtils from '../utils/common-utils.js';
 import HtmlUtils from '../utils/html-utils.js';
 import Accordion from './accordion.js';
@@ -21,12 +20,14 @@ export default class PropertiesBar {
             mappedPorpEl['mappedElement']['oldvalue'] = val;
         }
         //select all visible for
-        let visibleForELs = PropertiesBar.accordian.querySelectorAll('[visiblefor]')
-        for (let el of visibleForELs) {
-            if (el.getAttribute('visiblefor').includes(currentComponent.type)) {
-                HtmlUtils.show(el);
-            } else {
-                HtmlUtils.hide(el);
+        if (currentComponent) {
+            let visibleForELs = PropertiesBar.accordian.querySelectorAll('[visiblefor]')
+            for (let el of visibleForELs) {
+                if (el.getAttribute('visiblefor').includes(currentComponent.type)) {
+                    HtmlUtils.show(el);
+                } else {
+                    HtmlUtils.hide(el);
+                }
             }
         }
     }
@@ -130,8 +131,8 @@ export default class PropertiesBar {
         PropertiesBar.accordian = HtmlUtils.createElement('div', editsidebarid, editbarAttrs);
 
 
-        if (CommonUtils.isObjcetButNotArray(BuilderUtils.componentProperties)) {
-            for (let [key, value] of Object.entries(BuilderUtils.componentProperties)) {
+        if (CommonUtils.isObjcetButNotArray(PropertiesBar.componentProperties)) {
+            for (let [key, value] of Object.entries(PropertiesBar.componentProperties)) {
                 let props = value['props'];
                 delete value['props'];
                 PropertiesBar.accordian.appendChild(Accordion.getAccordionItem(editsidebarid, key, value, ref, props, function (container, props) {
@@ -147,4 +148,81 @@ export default class PropertiesBar {
 
         return PropertiesBar.accordian;
     }
+
+
+    static componentProperties = {
+        "display": {
+            text: "Display",
+            default: true,
+            props: [
+                {
+                    mappedType: "gen",
+                    mappedProp: "name",
+                    name: "Name",
+                    type: "textfield",
+                    maxlength: 50
+                },
+                {
+                    mappedType: "gen",
+                    mappedProp: "caption",
+                    name: "Description",
+                    type: "textfield",
+                    maxlength: 50
+                },
+                {
+                    mappedType: "gen",
+                    mappedProp: "type",
+                    name: "Type",
+                    type: "textfield",
+                    attributes: {
+                        readonly: true
+                    }
+                }
+            ]
+        },
+        "data": {
+            text: "Data Source",
+            default: false,
+            props: [
+                {
+                    mappedType: "attr",
+                    mappedProp: "data-key",
+                    name: "Binding",
+                    type: "textfield",
+                    maxlength: 30
+                },
+                {
+                    mappedType: "attr",
+                    mappedProp: "required",
+                    name: "Required",
+                    type: "select",
+                    default: 'false',
+                    options: {
+                        True: 'true',
+                        False: 'false'
+                    }
+                }
+            ]
+        },
+        "columns": {
+            text: "Columns Props",
+            default: false,
+            visibleFor: 'columns',
+            props: [
+                {
+                    mappedType: "prop",
+                    mappedProp: "col-props",
+                    name: "Properties",
+                    type: "popup",
+                    popupname: 'columns',
+                    default: 'false',
+                    readonly: true
+                }
+            ]
+        },
+        "attributes": {
+            text: "HTML Attributes",
+            default: false
+        }
+    };
 }
