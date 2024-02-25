@@ -18,7 +18,7 @@ export default class Columns extends BaseControl {
             return ErrorHandler.throwError(
                 ErrorHandler.errorCode.Component.INVALID_COMPONENT_ARRAY
             );
-        } else this.inDesignMode && this.#columnLength === 0;
+        } else this.designmode && this.#columnLength === 0;
         {
             //add default blank components
             this.columns[`${this.#coulmnPrefix}-${0}`] = {
@@ -31,7 +31,7 @@ export default class Columns extends BaseControl {
                 name: `${this.#coulmnPrefix}-${1}`,
             };
         }
-        if (this.inDesignMode) {
+        if (this.designmode) {
             this.defaultColumnClass = this.defaultColumnClass + " fb-design-mode";
         }
         this.buildControl();
@@ -47,21 +47,14 @@ export default class Columns extends BaseControl {
             //create row
             this.columnsControl = HtmlUtils.createElement("div", this.#coulmnPrefix, {
                 class: this.defaultRowClass,
-                ref: this.compMetaData.name,
+                ref: this.schema.name,
             });
-            for (let [name, metaData] of Object.entries(this.columns || {})) {
+            for (let [name, schema] of Object.entries(this.columns || {})) {
                 let column = HtmlUtils.createElement("div", name, {
                     class: this.defaultColumnClass,
-                    ref: this.compMetaData.name,
+                    ref: this.schema.name,
                 });
-                let container = new Container(
-                    parentContainer.formName,
-                    metaData,
-                    parentContainer.observer,
-                    parentContainer.observingMethod,
-                    this.containingComponent,
-                    this.inDesignMode
-                );
+                let container = new Container(schema, parentContainer.observer, this.containingComponent, this.designmode);
                 column.appendChild(container.control);
                 this.columnsControl.appendChild(column);
             }

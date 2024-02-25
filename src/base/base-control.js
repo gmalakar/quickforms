@@ -17,7 +17,7 @@ export default class BaseControl {
 
     containingComponent;
 
-    compMetaData = {};
+    schema = {};
 
     defaultCaptionn;
 
@@ -25,7 +25,7 @@ export default class BaseControl {
 
     columns = {};
 
-    inDesignMode = false;
+    designmode = false;
 
     constructor(containingComponent, defaultCaption = "Base Element") {
         if (this.constructor === BaseControl) {
@@ -33,16 +33,16 @@ export default class BaseControl {
         }
         this.defaultCaptionn = defaultCaption;
         this.containingComponent = containingComponent;
-        this.compMetaData = containingComponent.compMetaData || {};
-        this.inDesignMode = this.containingComponent.inDesignMode || false;
-        if (this.inDesignMode) {
+        this.schema = containingComponent.schema || {};
+        this.designmode = this.containingComponent.designmode || false;
+        if (this.designmode) {
             this.componentClass = this.componentClass + " fb-design-mode";
         }
-        this.columns = this.compMetaData.columns || {};
+        this.columns = this.schema.columns || {};
     }
 
     get name() {
-        this.compMetaData.name || "";
+        this.schema.name || "";
     }
 
     get containingContainer() {
@@ -54,11 +54,11 @@ export default class BaseControl {
     }
 
     get caption() {
-        return this.compMetaData.caption || "";
+        return this.schema.caption || "";
     }
 
     set caption(value) {
-        this.compMetaData.caption = value;
+        this.schema.caption = value;
         if (this.captionControl) {
             this.captionControl.textContent = value;
         }
@@ -79,25 +79,25 @@ export default class BaseControl {
     }
 
     get placeholder() {
-        this.compMetaData.placeholder || "";
+        this.schema.placeholder || "";
     }
 
     set placeholder(value) {
-        this.compMetaData.placeholder = value;
+        this.schema.placeholder = value;
         if (this.elementControl) {
             this.elementControl.setAttribute("placeholder", value);
         }
     }
 
     get styles() {
-        return this.compMetaData.styles || {};
+        return this.schema.styles || {};
     }
 
     setStyle(key, value) {
-        if (this.compMetaData.styles === undefined) {
-            this.compMetaData.styles = {};
+        if (this.schema.styles === undefined) {
+            this.schema.styles = {};
         }
-        this.compMetaData.styles[key] = value;
+        this.schema.styles[key] = value;
         if (this.elementControl) {
             this.elementControl.setAttribute("style", HtmlUtils.joinStyles(value));
         }
@@ -111,14 +111,14 @@ export default class BaseControl {
     }
 
     get properties() {
-        return this.compMetaData.properties || {};
+        return this.schema.properties || {};
     }
 
     setProperty(key, value) {
-        if (this.compMetaData.properties === undefined) {
-            this.compMetaData.properties = {};
+        if (this.schema.properties === undefined) {
+            this.schema.properties = {};
         }
-        this.compMetaData.properties[key] = value;
+        this.schema.properties[key] = value;
     }
 
     getProperty(key) {
@@ -129,14 +129,14 @@ export default class BaseControl {
     }
 
     get attributes() {
-        return this.compMetaData.attributes || {};
+        return this.schema.attributes || {};
     }
 
     setAttribute(key, value) {
-        if (this.compMetaData.attributes === undefined) {
-            this.compMetaData.attributes = {};
+        if (this.schema.attributes === undefined) {
+            this.schema.attributes = {};
         }
-        this.compMetaData.attributes[key] = value;
+        this.schema.attributes[key] = value;
         if (this.elementControl) {
             this.elementControl.setAttribute(key, value);
         }
@@ -151,16 +151,16 @@ export default class BaseControl {
     }
 
     get type() {
-        return this.compMetaData.type || null;
+        return this.schema.type || null;
     }
 
     get name() {
-        return this.compMetaData.name || null;
+        return this.schema.name || null;
     }
 
     set name(value) {
-        let oldName = this.compMetaData.name;
-        this.compMetaData.name = value;
+        let oldName = this.schema.name;
+        this.schema.name = value;
         //change the name of the component
         if (this.componentControl) {
             this.componentControl.name = value;
@@ -183,7 +183,7 @@ export default class BaseControl {
     }
 
     get eventlisteners() {
-        return this.compMetaData.eventlisteners || {};
+        return this.schema.eventlisteners || {};
     }
 
     #checkIfUsedByOtherComponent(newname) {
@@ -195,7 +195,7 @@ export default class BaseControl {
         let invalidMsg = "";
         switch (name) {
             case "name":
-                if (this.compMetaData.name !== val) {
+                if (this.schema.name !== val) {
                     //changed
                     if (!HtmlUtils.isValidName(val)) {
                         invalidMsg = ErrorHandler.errorCode.Component.INVALID_NAME;
@@ -275,10 +275,10 @@ export default class BaseControl {
         };
 
         this.captionControl = HtmlUtils.createElement("label", "noid", lblProps);
-        if (CommonUtils.isNullOrEmpty(this.compMetaData.caption)) {
+        if (CommonUtils.isNullOrEmpty(this.schema.caption)) {
             this.caption = this.defaultCaptionn;
         } else {
-            this.caption = this.compMetaData.caption;
+            this.caption = this.schema.caption;
         }
     }
 

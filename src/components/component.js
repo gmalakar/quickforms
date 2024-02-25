@@ -7,14 +7,14 @@ import Columns from "../elements/columns.js";
 import Container from "./container.js";
 export default class Component {
     //public members
-    compMetaData = {};
+    schema = {};
     container;
     containerControl;
-    inDesignMode;
+    designmode;
     control;
     name;
     parentComponent;
-    constructor(containingContainer, metaData) {
+    constructor(containingContainer, schema) {
         if (!(containingContainer instanceof Container)) {
             return ErrorHandler.throwError(
                 ErrorHandler.errorCode.Form.INVALID_INSTANCE
@@ -29,8 +29,8 @@ export default class Component {
 
         this.container = containingContainer;
         this.containerControl = this.container.control;
-        this.compMetaData = metaData || {};
-        this.inDesignMode = this.container.inDesignMode;
+        this.schema = schema || {};
+        this.designmode = this.container.designmode;
 
         let parentComponent;
 
@@ -40,31 +40,31 @@ export default class Component {
 
         this.parentComponent = parentComponent || this;
 
-        if (CommonUtils.isJson(this.compMetaData)) {
-            this.compMetaData = JSON.parse(this.compMetaData);
+        if (CommonUtils.isJson(this.schema)) {
+            this.schema = JSON.parse(this.schema);
         }
 
-        if (CommonUtils.isNullOrUndefined(this.compMetaData)) {
+        if (CommonUtils.isNullOrUndefined(this.schema)) {
             return ErrorHandler.throwError(
                 ErrorHandler.errorCode.Form.MISSING_PROPERTIES
             );
         }
 
-        if (CommonUtils.isNullOrEmpty(this.compMetaData.type)) {
+        if (CommonUtils.isNullOrEmpty(this.schema.type)) {
             return ErrorHandler.throwError(
                 ErrorHandler.errorCode.Component.MISSING_TYPE
             );
         }
 
-        if (CommonUtils.isNullOrEmpty(this.compMetaData.name)) {
+        if (CommonUtils.isNullOrEmpty(this.schema.name)) {
             return ErrorHandler.throwError(
                 ErrorHandler.errorCode.Component.MISSING_NAME
             );
         }
 
-        this.name = this.compMetaData.name;
+        this.name = this.schema.name;
 
-        this.control = Component.getComponentControl(this.compMetaData.type, this);
+        this.control = Component.getComponentControl(this.schema.type, this);
 
         this.container.control.appendChild(this.control.componentControl);
     }
@@ -85,10 +85,10 @@ export default class Component {
     }
 
     get type() {
-        return this.compMetaData.type;
+        return this.schema.type;
     }
 
     get name() {
-        return this.compMetaData.name;
+        return this.schema.name;
     }
 }

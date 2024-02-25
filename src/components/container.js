@@ -1,25 +1,24 @@
 import CommonUtils from "../utils/common-utils.js";
 import HtmlUtils from "../utils/html-utils.js";
-import Observer from "../base/observer.js";
+import Observable from "../base/observable.js";
 import Component from "./component.js";
 import Modal from "../utils/modal.js";
-export default class Container extends Observer {
+export default class Container extends Observable {
     containerClass = "fb-container h-100";
     #containerControl;
     #mutationObserver;
     deagControl;
-    inDesignMode;
-    dragControl;
+    designmode;
     #dragName;
-    formName;
     containingContainer;
-    #metaData;
+    schema;
     allComponentNames = [];
     components = {};
     #guid;
     #currentComponent;
     #hasParentContainer = false;
     stopdrag = false;
+    observer;
     parentComponet;
 
     static #clsDesign = "fb-design-mode";
@@ -28,29 +27,24 @@ export default class Container extends Observer {
 
     #compDeleteBtn;
 
-    constructor(
-        formName,
-        metaData,
-        observer,
-        observingMethod,
-        parentComponent,
-        indesignMode = false
-    ) {
+    constructor(schema, observer, parentComponent, designmode = false) {
         super();
         this.#guid = CommonUtils.ShortGuid();
-        this.#metaData = metaData || {};
+        this.schema = schema || {};
 
-        if (CommonUtils.isJson(this.#metaData)) {
-            this.#metaData = JSON.parse(this.#metaData);
+        if (CommonUtils.isJson(this.schema)) {
+            this.schema = JSON.parse(this.schema);
         }
-        this.parentComponet = parentComponent;
+        this.parentComponent = parentComponent;
 
-        this.containingContainer = this.parentComponet ? this.parentComponet.container || this : this;
+        this.containingContainer = parentComponent ? parentComponent.container || this : this;
 
-        this.setObserver(observer, observingMethod);
+        this.observer = observer;
 
-        this.formName = formName;
-        this.inDesignMode = indesignMode;
+        this.setObserver(observer);
+
+        this.designmode = designmode;
+
         this.#dragName = `drag-component-${this.#guid}`;
 
         this.#compDeleteBtn = HtmlUtils.createElement(
@@ -64,10 +58,10 @@ export default class Container extends Observer {
             this.allComponentNames = this.containingContainer.allComponentNames;
         }
 
-        for (let [name, compMetaData] of Object.entries(
-            this.#metaData["components"] || {}
+        for (let [name, schema] of Object.entries(
+            this.parentComponents || {}
         )) {
-            let newComponent = new Component(this, compMetaData);
+            let newComponent = new Component(this, schema);
             this.components[name] = newComponent;
             this.allComponentNames.push(name);
         }
@@ -82,7 +76,7 @@ export default class Container extends Observer {
     }
 
     get name() {
-        return this.#metaData.formName;
+        return this.schema.name;
     }
 
     // Callback function to execute when mutations are observed
@@ -104,7 +98,7 @@ export default class Container extends Observer {
                 }
             }
         }
-        if (this.inDesignMode) {
+        if (this.designmode) {
             let len = this.length;
             if (len === 1) {
                 if (this.#containerControl.contains(this.dragControl)) {
@@ -134,7 +128,7 @@ export default class Container extends Observer {
             });
             this.#mutationObserver = new MutationObserver(this.#nodeChanged);
             this.#mutationObserver.observe(this.#containerControl, this.#config);
-            if (this.inDesignMode) {
+            if (this.designmode) {
                 //drag drop
                 this.#containerControl.ondragover = (e) => {
                     e.preventDefault();
@@ -148,7 +142,7 @@ export default class Container extends Observer {
                         let data = HtmlUtils.dataTransferGetData(e);
                         if (data && data.for && data.data) {
                             if (data.for === "add-comp") {
-                                this.addComponent(null, data.data, true);
+                                this.addComponent(data.data, true);
                             }
                         }
                     }
@@ -179,7 +173,7 @@ export default class Container extends Observer {
     }
 
     setDesignMode(component) {
-        if (this.inDesignMode) {
+        if (this.designmode) {
             let attachedControl = component.control;
 
             if (attachedControl) {
@@ -349,7 +343,8 @@ export default class Container extends Observer {
                 if (this.components.hasOwnProperty(component.name)) {
                     delete this.components[component.name];
                 }
-
+                //remove from schema
+                this.removeComponentSchema(component.name);
                 CommonUtils.deleteFromArray(this.allComponentNames, component.name);
 
                 let curComponent;
@@ -362,30 +357,54 @@ export default class Container extends Observer {
         }
     }
 
-    addComponent(metaData, type, setCurrent = false) {
-        let compMetaData = metaData || {};
-        let compType = compMetaData.type || type;
+    get parentComponents() {
+        let parentschema = this.parentComponet ? this.parentComponet.schema : this.schema;
+        if (!parentschema.hasOwnProperty('comonents')) {
+            parentschema['comonents'] = {};
+        }
+        return parentschema['comonents'];
+    }
 
-        if (CommonUtils.isNullOrEmpty(compType)) {
+    addComponentSchema(name, compSchema) {
+        this.parentComponents[name] = compSchema;
+    }
+
+    removeComponentSchema(name) {
+        let pComponents = this.parentComponents;
+        if (pComponents.hasOwnProperty(name)) {
+            delete pComponents[name];
+        }
+    }
+
+    changeComponentSchemaName(oldname, newname) {
+        let pComponents = this.parentComponents;
+
+        if (pComponents.hasOwnProperty(oldname)) {
+            let compSchema = pComponents[oldname];
+            delete pComponents[oldname];
+            //add new one
+            pComponents[newname] = compSchema;
+        }
+    }
+
+    addComponent(type, setCurrent = false) {
+        let componentSchema = {};
+        if (CommonUtils.isNullOrEmpty(type)) {
             return ErrorHandler.throwError(
                 ErrorHandler.errorCode.Component.MISSING_TYPE
             );
         }
+        componentSchema.name = this.#generateName(type);
+        componentSchema.type = type;
+        this.addComponentSchema(componentSchema.name, componentSchema);
+        let newComponent = new Component(this, componentSchema);
 
-        if (CommonUtils.isNullOrEmpty(compMetaData.name)) {
-            compMetaData.name = this.#generateName(type);
-        }
-
-        if (CommonUtils.isNullOrEmpty(compMetaData.type)) {
-            compMetaData.type = compType;
-        }
-        let newComponent = new Component(this, compMetaData);
-
-        if (this.inDesignMode) {
+        if (this.designMode) {
             this.setDesignMode(newComponent);
         }
 
-        this.components[compMetaData.name] = newComponent;
+
+        this.components[componentSchema.name] = newComponent;
         this.allComponentNames.push(newComponent.name);
 
         if (setCurrent) {
@@ -407,6 +426,8 @@ export default class Container extends Observer {
             //add new one
             this.components[newname] = comp;
         }
+        this.changeComponentSchemaName(oldname, newname);
+
         CommonUtils.replaceInArray(this.allComponentNames, oldname, newname);
     }
 }

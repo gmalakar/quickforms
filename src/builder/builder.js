@@ -5,37 +5,38 @@ import Modal from '../utils/modal.js';
 import Form from '../components/form.js';
 import ComponentsBar from './components-bar.js';
 import PropertiesBar from './properties-bar.js';
+import Observer from '../base/observer.js';
 //builder
 export default class Builder {
 
     #builderContainer;
-    #formName;
+    #formname;
     #theFormContainer;
     #buildertTabPanes = {};
     #editBar;
     #currentComponent;
-    #formMetaData = {}
+    #formschema = {}
 
     /**
      * Class constructor of Builder.
      * 
      * @param {string} placeholder place holder for form builder
      * @param {string} formname form name
-     * @param {string} formMetaData form metadata
+     * @param {string} formschema form metadata
      */
-    constructor(placeholder, formMetaData) {
+    constructor(placeholder, formschema) {
         if (CommonUtils.isNullOrEmpty(placeholder)) {
             return ErrorHandler.throwError(ErrorHandler.errorCode.Builder.MISSING_PLACEHOLDER);
-        } else if (CommonUtils.isNullOrUndefined(formMetaData)) {
+        } else if (CommonUtils.isNullOrUndefined(formschema)) {
             return ErrorHandler.throwError(ErrorHandler.errorCode.Builder.MISSING_FORM_METADATA);
-        } else if (CommonUtils.isNullOrEmpty(formMetaData.name)) {
+        } else if (CommonUtils.isNullOrEmpty(formschema.name)) {
             return ErrorHandler.throwError(ErrorHandler.errorCode.Form.MISSING_NAME);
         }
         else {
             //defaut form name
-            this.#formName = formMetaData.name;
+            this.#formname = formschema.name;
 
-            this.#formMetaData = formMetaData;
+            this.#formschema = formschema;
             //builder container
             this.#builderContainer = document.getElementById(placeholder);
         }
@@ -130,13 +131,13 @@ export default class Builder {
         let formContainerHolder = this.#createElement('div', Builder.#idArea, { class: Builder.#fbAreaCls, ref: Builder.#fbAreaId });
 
         //add form container
-        this.#theFormContainer = new Form(this.#formName, this.#formMetaData, this, this.#observingMethod, true);
+        this.#theFormContainer = new Form(this.#formschema, new Observer(this, this.#observingMethod), true);
 
         //append the contaioner
         formContainerHolder.appendChild(this.#theFormContainer.control);
 
         //add form
-        let form = this.#createElement('form', this.#formName);
+        let form = this.#createElement('form', this.#formname);
 
         //append form to form pane
         this.formPane.appendChild(form);
@@ -144,7 +145,7 @@ export default class Builder {
         //add side bar
 
         let sidebar = ComponentsBar.get(Builder.#idSidebar, Builder.#fbSidebarComponentsId, (source, type) => {
-            this.#theFormContainer.addComponent(null, type, true);
+            this.#theFormContainer.addComponent(type, true);
         });
 
         componentBar.appendChild(sidebar);

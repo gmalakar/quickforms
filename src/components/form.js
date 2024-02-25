@@ -1,8 +1,10 @@
 import Container from './container.js';
+
 export default class Form extends Container {
 
-    constructor(formname, metaData, observer, observingMethod, indDsigMode = false) {
+    constructor(schema, observer, designmode = false) {
 
-        super(formname, metaData, observer, observingMethod, null, indDsigMode);
+        super(schema, observer, null, designmode);
     }
+
 }
