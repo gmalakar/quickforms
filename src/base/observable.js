@@ -23,7 +23,7 @@ export default class Observable {
 
     signalObserver(event, args) {
         if (this.hasObserver) {
-            this.observer.listener(this.observer, event, args);
+            this.observer.listener(this.observer.target, event, args);
         } else {
             throw new Error("Observer has not been set properly");
         }

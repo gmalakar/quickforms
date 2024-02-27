@@ -38,7 +38,8 @@ export default class BaseControl {
         if (this.designmode) {
             this.componentClass = this.componentClass + " fb-design-mode";
         }
-        this.columns = this.schema.columns || {};
+        this.schema.columns = this.schema.columns || {};
+        this.columns = this.schema.columns;
     }
 
     get name() {
@@ -179,6 +180,8 @@ export default class BaseControl {
             this.captionControl.setAttribute("for", this.elementControl.name);
         }
         //change the name in the container
+        //chenge the component name
+        this.containingComponent.name = this.name;
         this.containingContainer.changeName(oldName, this.name);
     }
 
@@ -190,47 +193,60 @@ export default class BaseControl {
         return this.containingContainer.allComponentNames.includes(newname);
     }
 
+    setComponentPropertyLocal(type, name, val) {
+    }
+
     //invalidProp is a callback with message
     setComponentProperty(type, name, val, invalidProp) {
+
+        let useLocal = name === 'col-props' && this.type === 'columns';
         let invalidMsg = "";
-        switch (name) {
-            case "name":
-                if (this.schema.name !== val) {
-                    //changed
-                    if (!HtmlUtils.isValidName(val)) {
-                        invalidMsg = ErrorHandler.errorCode.Component.INVALID_NAME;
-                    } else if (this.#checkIfUsedByOtherComponent(val)) {
-                        invalidMsg = ErrorHandler.errorCode.Component.USED_NAME;
-                    } else {
-                        this.name = val;
+        if (!useLocal) {
+            switch (name) {
+                case "name":
+                    if (this.schema.name !== val) {
+                        //changed
+                        if (!HtmlUtils.isValidName(val)) {
+                            invalidMsg = ErrorHandler.errorCode.Component.INVALID_NAME;
+                        } else if (this.#checkIfUsedByOtherComponent(val)) {
+                            invalidMsg = ErrorHandler.errorCode.Component.USED_NAME;
+                        } else {
+                            this.name = val;
+                        }
                     }
-                }
-                break;
-            case "caption":
-                this.caption = val;
-                break;
-            default:
-                switch (type) {
-                    case "attribute":
-                    case "attr":
-                        this.setAttribute(name, val);
-                        break;
-                    case "style":
-                        this.setStyle(name, val);
-                        break;
-                    case "prop":
-                    case "property":
-                        this.setProperty(name, val);
-                        break;
-                    default:
-                        this[name] = val;
-                        break;
-                }
-                break;
+                    break;
+                case "caption":
+                    this.caption = val;
+                    break;
+                default:
+                    switch (type) {
+                        case "attribute":
+                        case "attr":
+                            this.setAttribute(name, val);
+                            break;
+                        case "style":
+                            this.setStyle(name, val);
+                            break;
+                        case "prop":
+                        case "property":
+                            this.setProperty(name, val);
+                            break;
+                        default:
+                            this[name] = val;
+                            break;
+                    }
+                    break;
+            }
         }
 
-        if (!CommonUtils.isNullOrEmpty(invalidProp)) {
-            invalidProp(invalidMsg);
+        if (!CommonUtils.isNullOrEmpty(invalidMsg)) {
+            if (invalidProp && invalidProp === typeof 'fuction') {
+                invalidProp(invalidMsg);
+            }
+        } else {
+            //raise property changed
+            this.setComponentPropertyLocal(type, name, val);
+            this.containingContainer.propertyChanged(name);
         }
     }
 
@@ -252,6 +268,10 @@ export default class BaseControl {
                 val = this[name];
                 break;
         }
+        return this.getComponentPropertyLocal(type, name, val);
+    }
+
+    getComponentPropertyLocal(type, name, val) {
         return val;
     }
 

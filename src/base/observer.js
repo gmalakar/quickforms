@@ -1,8 +1,8 @@
 export default class Observer {
-    observer;
+    target;
     listener;
     constructor(observer, listener) {
-        this.observer = observer;
+        this.target = observer;
         this.listener = listener;
     }
 }

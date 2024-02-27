@@ -16,7 +16,7 @@ export default class Builder {
     #editBar;
     #currentComponent;
     #formschema = {}
-
+    #jsonHolder;
     /**
      * Class constructor of Builder.
      * 
@@ -68,6 +68,7 @@ export default class Builder {
 
     static #fbAreaCls = 'fb-design-area';
 
+    static #jsonschema = 'json-schema';
 
     get builderPane() {
         return this.#buildertTabPanes[Builder.#fbContainerId];
@@ -106,7 +107,7 @@ export default class Builder {
         this.#buildertTabPanes = this.#addTabPanel(buildermain, Builder.#fbPanelId, tabs, Builder.#fbContainerId);
 
         //main builder
-        let builder = this.#createElement('div', Builder.#floudsBuilderlId, { class: `flouds builder row Builder` });
+        let builder = this.#createElement('div', Builder.#floudsBuilderlId, { class: `fb-builder row` });
 
         //components bar
         let componentBar = this.#createElement('div', Builder.#fbSidebarComponentsId, { class: `col-xs-3 col-sm-3 col-md-2 fb-component-bar` });
@@ -131,7 +132,7 @@ export default class Builder {
         let formContainerHolder = this.#createElement('div', Builder.#idArea, { class: Builder.#fbAreaCls, ref: Builder.#fbAreaId });
 
         //add form container
-        this.#theFormContainer = new Form(this.#formschema, new Observer(this, this.#observingMethod), true);
+        this.#theFormContainer = new Form(this.#formschema, new Observer(this, this.#listener), true);
 
         //append the contaioner
         formContainerHolder.appendChild(this.#theFormContainer.control);
@@ -181,6 +182,12 @@ export default class Builder {
         //appened builder
         this.builderPane.appendChild(builder);
 
+        //append json schema
+
+        this.#jsonHolder = this.#createElement('pre', Builder.#jsonschema, { class: `fb-json-holder` });
+
+        this.jsonPane.appendChild(this.#jsonHolder);
+
         this.#finalizeBuilder();
     }
 
@@ -192,13 +199,17 @@ export default class Builder {
         }
     }
 
-    #observingMethod(observer, event, args) {
+    #listener(target, event, args) {
         //here this means callee
-        if (observer.constructor === Builder) {
+        if (target instanceof Builder) {
             switch (event) {
                 case 'currentComponentChanged':
                     PropertiesBar.refreshEditBar(args);
-                    observer.#currentComponent = args;
+                    target.#currentComponent = args;
+                    break;
+                case 'schemachanged':
+                    let json = target.#theFormContainer.getJSONSchema();
+                    target.#jsonHolder.innerHTML = target.#theFormContainer.getJSONSchema();
                     break;
                 default:
                     break;
@@ -226,20 +237,21 @@ export default class Builder {
             if (CommonUtils.isObjcetButNotArray(tabs)) {
                 for (let [key, value] of Object.entries(tabs)) {
                     let linkclass = `nav-link`;
-                    let paneclass = `tabpane fade`;
+                    let paneclass = `tab-pane fade`;
                     if (key === defaultselected) {
                         linkclass = linkclass + ' active';
                         paneclass = paneclass + ' active show'
                     }
                     //tab nav
                     let navlink = this.#createElement('li', key + '-li', { class: `nav-item`, role: `presentation` });
-                    let link = this.#createElement('a', 'noid', { href: `#${key}`, class: linkclass, role: `tab`, 'data-bs-toggle': `tab`, });
+                    let tabid = key + '-tab';
+                    let link = this.#createElement('a', tabid, { href: `#${key}`, class: linkclass, role: `tab`, 'data-bs-toggle': `tab`, });
                     link.innerHTML = value;
                     navlink.appendChild(link);
                     nav.appendChild(navlink);
 
                     //content
-                    let panel = this.#createElement('div', key, { class: paneclass, role: `tabpanel` });
+                    let panel = this.#createElement('div', key, { class: paneclass, role: `tabpanel`, 'area-labelledb': tabid, tabindex: '0' });
                     tabPanes[key] = panel;
                     content.appendChild(panel);
                 }

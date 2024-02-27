@@ -22,6 +22,7 @@ export default class ErrorCode {
         INVALID_NAME: 'Invalid Component Name.',
         USED_NAME: 'Component Name is already in use.',
         INVALID_COMPONENT_ARRAY: 'Invalid component array!',
+        MISSING_CONTAINER: 'Missing Container Name.'
     };
     Form = {
         //form

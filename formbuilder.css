@@ -34,3 +34,6 @@ table.table-fit tfoot th,
 table.table-fit tfoot td {
   width: auto !important;
 }
+.fb-json-holder {
+  height: 100%;
+}

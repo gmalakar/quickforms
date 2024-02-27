@@ -3,6 +3,7 @@ import HtmlUtils from "../utils/html-utils.js";
 import Observable from "../base/observable.js";
 import Component from "./component.js";
 import Modal from "../utils/modal.js";
+import ErrorHandler from "../utils/error-handler.js";
 export default class Container extends Observable {
     containerClass = "fb-container h-100";
     #containerControl;
@@ -11,7 +12,7 @@ export default class Container extends Observable {
     designmode;
     #dragName;
     containingContainer;
-    schema;
+    containerSchema;
     allComponentNames = [];
     components = {};
     #guid;
@@ -19,7 +20,8 @@ export default class Container extends Observable {
     #hasParentContainer = false;
     stopdrag = false;
     observer;
-    parentComponet;
+
+    schema;
 
     static #clsDesign = "fb-design-mode";
 
@@ -27,17 +29,35 @@ export default class Container extends Observable {
 
     #compDeleteBtn;
 
-    constructor(schema, observer, parentComponent, designmode = false) {
+    constructor(schema, observer, containingContainer, designmode = false) {
         super();
         this.#guid = CommonUtils.ShortGuid();
-        this.schema = schema || {};
+        schema = schema || {};
 
-        if (CommonUtils.isJson(this.schema)) {
-            this.schema = JSON.parse(this.schema);
+        if (CommonUtils.isJson(schema)) {
+            schema = JSON.parse(schema);
         }
-        this.parentComponent = parentComponent;
 
-        this.containingContainer = parentComponent ? parentComponent.container || this : this;
+        if (!schema.hasOwnProperty('name')) {
+            return ErrorHandler.throwError(
+                ErrorHandler.errorCode.Component.MISSING_CONTAINER
+            );
+        }
+
+        if (!schema.hasOwnProperty('type')) {
+            schema['type'] = "container";
+        }
+
+        if (!schema.hasOwnProperty('components')) {
+            schema['components'] = {};
+        }
+
+        this.schema = schema;
+
+
+        this.containerSchema = schema['components'];
+
+        this.containingContainer = containingContainer || this
 
         this.observer = observer;
 
@@ -58,10 +78,10 @@ export default class Container extends Observable {
             this.allComponentNames = this.containingContainer.allComponentNames;
         }
 
-        for (let [name, schema] of Object.entries(
-            this.parentComponents || {}
+        for (let [name, compschema] of Object.entries(
+            this.compContainer || {}
         )) {
-            let newComponent = new Component(this, schema);
+            let newComponent = new Component(this, compschema);
             this.components[name] = newComponent;
             this.allComponentNames.push(name);
         }
@@ -73,10 +93,6 @@ export default class Container extends Observable {
 
     get componentNames() {
         return Object.keys(this.components);
-    }
-
-    get name() {
-        return this.schema.name;
     }
 
     // Callback function to execute when mutations are observed
@@ -110,15 +126,18 @@ export default class Container extends Observable {
                 }
             }
         }
+        console.log('nodechange')
+        this.#triggerChange("schemachanged");
     };
 
     controls = {};
 
-    #config = { childList: true };
+    #config = { attributes: true, childList: true };
 
     get length() {
         return Object.keys(this.controls).length;
     }
+
     get control() {
         if (!this.#containerControl) {
             this.#containerControl = HtmlUtils.createElement("div", "noid", {
@@ -161,7 +180,7 @@ export default class Container extends Observable {
                     Modal.commonModalWindow.setModal(this, "Delete Component", "Do you want to delete this component?", Modal.YesNo, function (source, which) {
                         if (which === 'yes') {
                             if (source) {
-                                source.removeComponent(source.#currentComponent);
+                                source.removeComponent(source.currentComponent);
                             }
                         }
                     }, null, true);
@@ -170,6 +189,11 @@ export default class Container extends Observable {
             }
         }
         return this.#containerControl;
+    }
+
+
+    getJSONSchema() {
+        return JSON.stringify(this.containerSchema, null, 2)
     }
 
     setDesignMode(component) {
@@ -344,7 +368,7 @@ export default class Container extends Observable {
                     delete this.components[component.name];
                 }
                 //remove from schema
-                this.removeComponentSchema(component.name);
+                this.tryRemoveSchema(component.name);
                 CommonUtils.deleteFromArray(this.allComponentNames, component.name);
 
                 let curComponent;
@@ -357,27 +381,23 @@ export default class Container extends Observable {
         }
     }
 
-    get parentComponents() {
-        let parentschema = this.parentComponet ? this.parentComponet.schema : this.schema;
-        if (!parentschema.hasOwnProperty('comonents')) {
-            parentschema['comonents'] = {};
-        }
-        return parentschema['comonents'];
+    get compContainer() {
+        return this.containerSchema;
     }
 
-    addComponentSchema(name, compSchema) {
-        this.parentComponents[name] = compSchema;
+    tryAddSchema(name, schema) {
+        this.compContainer[name] = schema;
     }
 
-    removeComponentSchema(name) {
-        let pComponents = this.parentComponents;
+    tryRemoveSchema(name) {
+        let pComponents = this.compContainer;
         if (pComponents.hasOwnProperty(name)) {
             delete pComponents[name];
         }
     }
 
-    changeComponentSchemaName(oldname, newname) {
-        let pComponents = this.parentComponents;
+    tryChangeSchemaName(oldname, newname) {
+        let pComponents = this.compContainer;
 
         if (pComponents.hasOwnProperty(oldname)) {
             let compSchema = pComponents[oldname];
@@ -396,10 +416,10 @@ export default class Container extends Observable {
         }
         componentSchema.name = this.#generateName(type);
         componentSchema.type = type;
-        this.addComponentSchema(componentSchema.name, componentSchema);
+        this.tryAddSchema(componentSchema.name, componentSchema);
         let newComponent = new Component(this, componentSchema);
 
-        if (this.designMode) {
+        if (this.designmode) {
             this.setDesignMode(newComponent);
         }
 
@@ -426,8 +446,13 @@ export default class Container extends Observable {
             //add new one
             this.components[newname] = comp;
         }
-        this.changeComponentSchemaName(oldname, newname);
+        this.tryChangeSchemaName(oldname, newname);
 
         CommonUtils.replaceInArray(this.allComponentNames, oldname, newname);
+    }
+
+    propertyChanged(name) {
+        console.log(`property ${name} is changed`)
+        this.#triggerChange("schemachanged");
     }
 }

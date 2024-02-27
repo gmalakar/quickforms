@@ -9,6 +9,8 @@ export default class ColumnsEditor extends BaseEditor {
     #editorEl;
     #table;
 
+    static changeEvent = new Event("change");
+
     constructor() {
         ColumnsEditor.COLUMN_EDITOR_ID = CommonUtils.ShortGuid();
         let modalMetaData = {
@@ -156,6 +158,7 @@ export default class ColumnsEditor extends BaseEditor {
         btn.addEventListener("click", (e) => {
             ColumnsEditor.#commonModalWindow.hide(() => {
                 this.#editorEl.value = JSON.stringify(this.#table.data);
+                this.#editorEl.dispatchEvent(ColumnsEditor.changeEvent);
             });
         });
 

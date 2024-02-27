@@ -171,6 +171,12 @@ export default class HtmlUtils {
         return el;
     }
 
+    static removeChilds(parent) {
+        while (parent.lastChild) {
+            parent.removeChild(parent.lastChild);
+        }
+    };
+
     static createIconButton(btnAttrs, iconAttrs, name, btntxt) {
         let btnName = name || 'noid';
         let btn = HtmlUtils.createElement('button', btnName, btnAttrs);
