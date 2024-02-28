@@ -2,16 +2,73 @@ import CommonUtils from '../utils/common-utils.js';
 import HtmlUtils from '../utils/html-utils.js';
 import Accordion from './accordion.js';
 import ColumnsEditor from '../editors/columns-editor.js';
-
+import TabControl from '../utils/tab-control.js';
+import Modal from '../utils/modal.js';
 export default class PropertiesBar {
-    constructor() {
+
+    ref;
+    #guid;
+    controlId;
+    tabControl;
+    #tab;
+    #formTabID;
+    #compTabID;
+    #compAcordID;
+    #formAccordID;
+    #tabPanes;
+    #formschema;
+    formPropElements = [];
+    compPropElements = [];
+    #selectedComponent;
+
+    constructor(formschema, ref) {
+        this.#formschema = formschema;
+        this.ref = ref;
+        this.#guid = CommonUtils.ShortGuid();
+        this.controlId = `pbar-${this.#guid}`;
+        this.#formTabID = `fprop-${this.#guid}`;
+        this.#compTabID = `cprop-${this.#guid}`;
+        this.#compAcordID = `caccord-${this.#guid}`;
+        this.#formAccordID = `faccord-${this.#guid}`;
+        this.#create();
+    }
+    get formTab() {
+        return this.#tabPanes[this.#formTabID];
     }
 
-    static accordian;
-    static #editorPropElements = [];
+    get compTab() {
+        return this.#tabPanes[this.#compTabID];
+    }
 
-    static refreshEditBar(currentComponent) {
-        for (let mappedPorpEl of PropertiesBar.#editorPropElements) {
+    onCompPropChanged(target, e, mappedCompProp) {
+        if (target.#selectedComponent) {
+            let val = mappedCompProp['mappedElement'].value;
+            let oldval = mappedCompProp['mappedElement']['oldvalue'];
+            let type = mappedCompProp['mappedType'];
+            let prop = mappedCompProp['mappedProp'];
+            target.#selectedComponent.control.setComponentProperty(type, prop, val, (msg) => {
+                if (!CommonUtils.isNullOrEmpty(msg)) {
+                    Modal.commonModalWindow.setModal(target, "Invalid Component", msg, Modal.Ok, function (source, which) {
+                        if (e.target) {
+                            e.target.value = oldval;
+                            e.target.focus();
+                        }
+                    }, 'text-danger', true);
+                    Modal.commonModalWindow.show();
+                }
+            });
+        }
+    }
+
+    onFormPropChanged(target, e, mappedCompProp) {
+        if (target.#formschema) {
+            alert('here');
+        }
+    }
+
+    refreshComponent(currentComponent) {
+        this.#selectedComponent = currentComponent;
+        for (let mappedPorpEl of this.compPropElements) {
             let val = '';
             if (currentComponent) {
                 val = currentComponent.control.getComponentProperty(mappedPorpEl['mappedType'], mappedPorpEl['mappedProp']);
@@ -21,7 +78,7 @@ export default class PropertiesBar {
         }
         //select all visible for
         if (currentComponent) {
-            let visibleForELs = PropertiesBar.accordian.querySelectorAll('[visiblefor]')
+            let visibleForELs = this.compTab.querySelectorAll('[visiblefor]')
             for (let el of visibleForELs) {
                 if (el.getAttribute('visiblefor').includes(currentComponent.type)) {
                     HtmlUtils.show(el);
@@ -30,13 +87,44 @@ export default class PropertiesBar {
                 }
             }
         }
+        this.#tab.show(this.#compTabID);
     }
 
-    static popup(e, which) {
-        alert(which);
+    refreshForm() {
+        if (this.#formschema) {
+            for (let mappedPorpEl of this.formPropElements) {
+                let val = '';
+                if (currentComponent) {
+                    val = currentComponent.control.getComponentProperty(mappedPorpEl['mappedType'], mappedPorpEl['mappedProp']);
+                }
+                mappedPorpEl['mappedElement'].value = val;
+                mappedPorpEl['mappedElement']['oldvalue'] = val;
+            }
+        }
+        for (let mappedPorpEl of this.compPropElements) {
+            let val = '';
+            if (currentComponent) {
+                val = currentComponent.control.getComponentProperty(mappedPorpEl['mappedType'], mappedPorpEl['mappedProp']);
+            }
+            mappedPorpEl['mappedElement'].value = val;
+            mappedPorpEl['mappedElement']['oldvalue'] = val;
+        }
+        //select all visible for
+        if (currentComponent) {
+            let visibleForELs = this.compTab.querySelectorAll('[visiblefor]')
+            for (let el of visibleForELs) {
+                if (el.getAttribute('visiblefor').includes(currentComponent.type)) {
+                    HtmlUtils.show(el);
+                } else {
+                    HtmlUtils.hide(el);
+                }
+            }
+        }
+        this.#tab.show(this.#compTabID);
     }
-    static #createProperty(propObjects, callback) {
-        let propId = `prop-${propObjects.mappedProp}`;
+
+    static #createProp(propFor, propObjects, propElements, caller, onPropertyChanged) {
+        let propId = `${propFor}-prop-${propObjects.mappedProp}`;
         let mappedType = propObjects['mappedType'];
         let mappedProp = propObjects['mappedProp'];
         let propPane = HtmlUtils.createElement('div', 'noid', { class: 'editor-property-pane row' });
@@ -104,8 +192,8 @@ export default class PropertiesBar {
         let mappedCompProp = { mappedType: mappedType, mappedProp: mappedProp, mappedElement: editorEl };
         editorEl.onchange = (e) => {
             let prop = e.currentTarget;
-            if (prop && callback) {
-                callback(e, mappedCompProp);
+            if (prop && onPropertyChanged) {
+                onPropertyChanged(caller, e, mappedCompProp);
             }
         };
         nameCol.appendChild(propName);
@@ -116,29 +204,64 @@ export default class PropertiesBar {
         }
         propPane.appendChild(nameCol);
         propPane.appendChild(valueCol);
-        PropertiesBar.#editorPropElements.push(mappedCompProp);
+        propElements.push(mappedCompProp);
         return propPane;
     }
 
+    #create() {
+        //creat tabobjects
+        let tabs = {};
+        tabs[this.#formTabID] = 'Form';
+        tabs[this.#compTabID] = 'Components';
 
-    static get(editsidebarid, ref, onPropertyChanged) {
-        let editbarAttrs = {};
-        editbarAttrs['class'] = 'accordion';
-        if (CommonUtils.isString(ref)) {
-            editbarAttrs['ref'] = ref;
+        this.#tab = new TabControl(this.controlId, tabs, this.#formTabID);
+        this.tabControl = this.#tab.tabControl;
+
+        //tab panes
+        this.#tabPanes = this.#tab.tabPanes;
+
+        //form accordian      
+        let formAttrs = {};
+        formAttrs['class'] = 'accordion px-2 py-1';
+        if (CommonUtils.isString(this.ref)) {
+            formAttrs['ref'] = this.ref;
+        }
+        let formAccordion = HtmlUtils.createElement('div', this.#formAccordID, formAttrs);
+
+        if (CommonUtils.isObjcetButNotArray(PropertiesBar.formProperties)) {
+            for (let [key, value] of Object.entries(PropertiesBar.formProperties)) {
+                let props = value['props'];
+                delete value['props'];
+                let me = this;
+                formAccordion.appendChild(Accordion.getAccordionItem(this.#formAccordID, key, value, this.ref, props, this, function (caller, container, props) {
+                    if (CommonUtils.isArray(props)) {
+                        for (let item of props) {
+                            let propItem = PropertiesBar.#createProp(caller.formAccordID, item, caller.formPropElements, caller, caller.onFormPropChanged);
+                            container.appendChild(propItem);
+                        }
+                    }
+                }));
+            }
+        }
+        this.formTab.appendChild(formAccordion);
+
+        //components tab
+        let compAttrs = {};
+        compAttrs['class'] = 'accordion px-2 py-1';
+        if (CommonUtils.isString(this.ref)) {
+            compAttrs['ref'] = this.ref;
         }
         //property bar
-        PropertiesBar.accordian = HtmlUtils.createElement('div', editsidebarid, editbarAttrs);
-
+        let compAccordian = HtmlUtils.createElement('div', this.#compAcordID, compAttrs);
 
         if (CommonUtils.isObjcetButNotArray(PropertiesBar.componentProperties)) {
             for (let [key, value] of Object.entries(PropertiesBar.componentProperties)) {
                 let props = value['props'];
                 delete value['props'];
-                PropertiesBar.accordian.appendChild(Accordion.getAccordionItem(editsidebarid, key, value, ref, props, function (container, props) {
+                compAccordian.appendChild(Accordion.getAccordionItem(this.#compAcordID, key, value, this.ref, props, this, function (caller, container, props) {
                     if (CommonUtils.isArray(props)) {
                         for (let item of props) {
-                            let propItem = PropertiesBar.#createProperty(item, onPropertyChanged);
+                            let propItem = PropertiesBar.#createProp(caller.compAcordID, item, caller.compPropElements, caller, caller.onCompPropChanged);
                             container.appendChild(propItem);
                         }
                     }
@@ -146,9 +269,8 @@ export default class PropertiesBar {
             }
         }
 
-        return PropertiesBar.accordian;
+        this.compTab.appendChild(compAccordian);
     }
-
 
     static componentProperties = {
         "display": {
@@ -218,6 +340,54 @@ export default class PropertiesBar {
                     default: 'false',
                     readonly: true
                 }
+            ]
+        },
+        "attributes": {
+            text: "HTML Attributes",
+            default: false
+        }
+    };
+
+    static formProperties = {
+        "design": {
+            text: "Design",
+            default: true,
+            props: [
+                {
+                    mappedType: "gen",
+                    mappedProp: "name",
+                    name: "Name",
+                    type: "textfield",
+                    maxlength: 50
+                },
+                {
+                    mappedType: "gen",
+                    mappedProp: "caption",
+                    name: "Caption",
+                    type: "textfield",
+                    maxlength: 50
+                }
+            ]
+        },
+        "layout": {
+            text: "Layout",
+            default: false,
+            props: [
+                {
+                    mappedType: "style",
+                    mappedProp: "height",
+                    name: "Height",
+                    type: "number",
+                    maxlength: 3
+                },
+                {
+                    mappedType: "style",
+                    mappedProp: "width",
+                    name: "With",
+                    type: "number",
+                    maxlength: 3
+                },
+
             ]
         },
         "attributes": {

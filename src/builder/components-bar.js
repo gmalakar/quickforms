@@ -8,7 +8,7 @@ export default class ComponentsBar {
     static #createOption(type, group, text, iconcls, ref, optionOnClick) {
         let attrs = {};
         attrs['tabindex'] = '0'
-        attrs['class'] = `btn btn-outline-primary btn-sm formcomponent m-0`;
+        attrs['class'] = `btn btn-outline-primary btn-sm m-0`;
         attrs['data-type'] = type;
         attrs['data-group'] = group;
         attrs['data-key'] = type;
@@ -20,7 +20,7 @@ export default class ComponentsBar {
         }
         let element = HtmlUtils.createElement('span', 'noid', attrs);
         let icon = HtmlUtils.createElement('i', 'noid', { class: iconcls, style: `margin-right: 5px;` });
-        icon.textContent = ` ${text} `;
+        element.textContent = ` ${text} `;
         element.appendChild(icon);
         element.ondragstart = (e) => {
             let compType = e.target.attributes['comp-type'].value;
@@ -38,7 +38,7 @@ export default class ComponentsBar {
 
     static get(barId, ref, optionOnClick) {
         let sidebarAttrs = {};
-        sidebarAttrs['class'] = 'accordion';
+        sidebarAttrs['class'] = 'accordion px-2 py-1';
         if (CommonUtils.isString(ref)) {
             sidebarAttrs['ref'] = ref;
         }

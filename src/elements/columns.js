@@ -17,8 +17,7 @@ export default class Columns extends BaseControl {
             return ErrorHandler.throwError(
                 ErrorHandler.errorCode.Component.INVALID_COMPONENT_ARRAY
             );
-        } else this.designmode && this.#columnLength === 0;
-        {
+        } else if (this.designmode && this.#columnLength === 0) {
             for (let i = 0; i < 2; i++) {
                 this.addcolumn(i);
             }
@@ -112,6 +111,8 @@ export default class Columns extends BaseControl {
         return `col-${size}-${width} col-${size}-offset-${offset} col-${size}-push-${push} col-${size}-pull-${pull}`;
     }
     setLabelControl() { }
+
+    setElementControl() { }
 
     setColumnsControl(reset) {
         if (this.#columnLength > 0) {

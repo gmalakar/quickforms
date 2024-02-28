@@ -1,9 +1,8 @@
 .fb-design-mode {
-  border: 1px dotted #ccc;
+  border: 1px;
 }
 .fb-design-area {
   height: 100%;
-  background-color: whitesmoke;
 }
 .fb-delete-comp-btn {
   float: right;
@@ -14,8 +13,9 @@
   height: 16px;
 }
 .fb-drag-drop-indication {
-  background-color: darkkhaki;
+  background-color: bisque;
   height: auto;
+  width: auto;
 }
 .fb-editor {
   width: fit-content;

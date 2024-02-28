@@ -9,7 +9,7 @@ export default class BaseControl {
 
     elementControl;
 
-    componentClass = "m-2 col-md-12 fb-form-component";
+    componentClass = "mb-2 fb-form-component";
 
     labelClass = "form-label fb-form-label";
 
@@ -198,7 +198,6 @@ export default class BaseControl {
 
     //invalidProp is a callback with message
     setComponentProperty(type, name, val, invalidProp) {
-
         let useLocal = name === 'col-props' && this.type === 'columns';
         let invalidMsg = "";
         if (!useLocal) {

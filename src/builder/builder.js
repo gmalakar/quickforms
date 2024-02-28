@@ -2,10 +2,11 @@ import CommonUtils from '../utils/common-utils.js';
 import ErrorHandler from '../utils/error-handler.js';
 import HtmlUtils from '../utils/html-utils.js';
 import Modal from '../utils/modal.js';
-import Form from '../components/form.js';
+import FormContainer from '../components/form-container.js';
 import ComponentsBar from './components-bar.js';
 import PropertiesBar from './properties-bar.js';
 import Observer from '../base/observer.js';
+import TabControl from '../utils/tab-control.js';
 //builder
 export default class Builder {
 
@@ -17,6 +18,7 @@ export default class Builder {
     #currentComponent;
     #formschema = {}
     #jsonHolder;
+    #guid;
     /**
      * Class constructor of Builder.
      * 
@@ -33,6 +35,7 @@ export default class Builder {
             return ErrorHandler.throwError(ErrorHandler.errorCode.Form.MISSING_NAME);
         }
         else {
+            this.#guid = CommonUtils.ShortGuid();
             //defaut form name
             this.#formname = formschema.name;
 
@@ -42,44 +45,16 @@ export default class Builder {
         }
     }
 
-    static #fbMainId = 'fb-main';
-
-    static #fbPanelId = 'fb-panel';
-
-    static #floudsBuilderlId = 'flouds-builder';
-
-    static #fbSidebarComponentsId = 'sidebar-comps';
-
-    static #fbAreaId = 'design-area';
-
-    static #fbPropertyBarId = 'propertybar';
-
-    static #idEditbar = 'editbar';
-
-    static #fbContainerId = 'design-container';
-
-    static #fbFormContainerId = 'form-container';
-
-    static #fbJsonContainer = 'json-container';
-
-    static #idSidebar = 'sidebar';
-
-    static #idArea = 'area';
-
-    static #fbAreaCls = 'fb-design-area';
-
-    static #jsonschema = 'json-schema';
-
     get builderPane() {
-        return this.#buildertTabPanes[Builder.#fbContainerId];
+        return this.#buildertTabPanes[this.#containerId];
     }
 
     get formPane() {
-        return this.#buildertTabPanes[Builder.#fbFormContainerId];
+        return this.#buildertTabPanes[this.#formContainerId];
     }
 
     get jsonPane() {
-        return this.#buildertTabPanes[Builder.#fbJsonContainer];
+        return this.#buildertTabPanes[this.#jsonContainerId];
     }
 
     buildBuilder() {
@@ -90,33 +65,89 @@ export default class Builder {
         }
     }
 
+    #makeUniqueId(id) {
+        return `${id}-${this.#guid}`;
+    }
+
+    get #containerId() {
+        return this.#makeUniqueId('design-container');
+    }
+
+    get #formContainerId() {
+        return this.#makeUniqueId('form-container');
+    }
+
+    get #jsonContainerId() {
+        return this.#makeUniqueId('json-container');
+    }
+
+    get #builderId() {
+        return this.#makeUniqueId('fb-builder');
+    }
+
+    get #sideCompId() {
+        return this.#makeUniqueId('sidebar-comps');
+    }
+
+    get #designAreaId() {
+        return this.#makeUniqueId('design-area');
+    }
+
+    get #propertyId() {
+        return this.#makeUniqueId('propbar');
+    }
+
+    get #editbarId() {
+        return this.#makeUniqueId('editbar');
+    }
+
+    get #sidebarId() {
+        return this.#makeUniqueId('compbar');
+    }
+
+    get #areaId() {
+        return this.#makeUniqueId('area');
+    }
+
+
+    get #mainTabId() {
+        return this.#makeUniqueId('main-tab');
+    }
+
+    get #jsonSchemaId() {
+        return this.#makeUniqueId('json-schema');
+    }
+
     #createBed() {
+
+
         //clear the placeholder
         this.#builderContainer.innerHTML = '';
 
-        //create main div
-        let buildermain = this.#createElement('div', Builder.#fbMainId);
-
         //creat tabobjects
         let tabs = {};
-        tabs[Builder.#fbContainerId] = 'Builder';
-        tabs[Builder.#fbFormContainerId] = 'Form';
-        tabs[Builder.#fbJsonContainer] = 'Json';
+        tabs[this.#containerId] = 'Builder';
+        tabs[this.#formContainerId] = 'Form';
+        tabs[this.#jsonContainerId] = 'Json';
 
-        //add tabs
-        this.#buildertTabPanes = this.#addTabPanel(buildermain, Builder.#fbPanelId, tabs, Builder.#fbContainerId);
+        let tabcontrol = new TabControl(this.#mainTabId, tabs, this.#containerId);
+        let buildermain = tabcontrol.tabControl;
+
+        //tab panes
+        this.#buildertTabPanes = tabcontrol.tabPanes;
 
         //main builder
-        let builder = this.#createElement('div', Builder.#floudsBuilderlId, { class: `fb-builder row` });
+        let builder = this.#createElement('div', this.#builderId, { class: `fb-builder row p-0` });
+
 
         //components bar
-        let componentBar = this.#createElement('div', Builder.#fbSidebarComponentsId, { class: `col-xs-3 col-sm-3 col-md-2 fb-component-bar` });
+        let componentBar = this.#createElement('div', this.#sideCompId, { class: `col-xs-3 col-sm-3 col-md-2 p-0 fb-component-bar` });
 
         //form design area
-        let formArea = this.#createElement('div', Builder.#fbAreaId, { class: `col-xs-6 col-sm-6 col-md-8 fb-form-area`, ref: Builder.#floudsBuilderlId });
+        let formArea = this.#createElement('div', this.#designAreaId, { class: `col-xs-6 col-sm-6 col-md-8 p-0 fb-form-area`, ref: this.#builderId });
 
         //property bar
-        let propertyBar = this.#createElement('div', Builder.#fbPropertyBarId, { class: `col-xs-3 col-sm-3 col-md-2 fb-property-bar`, ref: Builder.#floudsBuilderlId });
+        let propertyBar = this.#createElement('div', this.#propertyId, { class: `col-xs-3 col-sm-3 col-md-2 p-0 fb-property-bar`, ref: this.#builderId });
 
         //append components bar
         builder.appendChild(componentBar);
@@ -129,13 +160,13 @@ export default class Builder {
 
         //add designer
         //add container holder
-        let formContainerHolder = this.#createElement('div', Builder.#idArea, { class: Builder.#fbAreaCls, ref: Builder.#fbAreaId });
+        let formContainerHolder = this.#createElement('div', this.#areaId, { class: 'fb-design-area m-2', ref: this.#designAreaId });
 
         //add form container
-        this.#theFormContainer = new Form(this.#formschema, new Observer(this, this.#listener), true);
+        this.#theFormContainer = new FormContainer(this.#formschema, new Observer(this, this.#listener), true);
 
         //append the contaioner
-        formContainerHolder.appendChild(this.#theFormContainer.control);
+        formContainerHolder.appendChild(this.#theFormContainer.formControl);
 
         //add form
         let form = this.#createElement('form', this.#formname);
@@ -145,7 +176,7 @@ export default class Builder {
 
         //add side bar
 
-        let sidebar = ComponentsBar.get(Builder.#idSidebar, Builder.#fbSidebarComponentsId, (source, type) => {
+        let sidebar = ComponentsBar.get(this.#sidebarId, this.#sideCompId, (source, type) => {
             this.#theFormContainer.addComponent(type, true);
         });
 
@@ -153,28 +184,10 @@ export default class Builder {
 
         formArea.appendChild(formContainerHolder);
 
-        //add edit bar
-        this.#editBar = PropertiesBar.get(Builder.#idEditbar, Builder.#fbPropertyBarId, (e, mappedCompProp) => {
-            if (this.#currentComponent) {
-                let val = mappedCompProp['mappedElement'].value;
-                let oldval = mappedCompProp['mappedElement']['oldvalue'];
-                let type = mappedCompProp['mappedType'];
-                let prop = mappedCompProp['mappedProp'];
-                this.#currentComponent.control.setComponentProperty(type, prop, val, (msg) => {
-                    if (!CommonUtils.isNullOrEmpty(msg)) {
-                        Modal.commonModalWindow.setModal(this, "Invalid Component", msg, Modal.Ok, function (source, which) {
-                            if (e.target) {
-                                e.target.value = oldval;
-                                e.target.focus();
-                            }
-                        }, 'text-danger', true);
-                        Modal.commonModalWindow.show();
-                    }
-                });
-            }
-        });
+        //property bar
+        this.#editBar = new PropertiesBar(this.#formschema, this.#propertyId);
 
-        propertyBar.appendChild(this.#editBar);
+        propertyBar.appendChild(this.#editBar.tabControl);
 
         //append the main to placeholder
         this.#builderContainer.appendChild(buildermain);
@@ -184,7 +197,7 @@ export default class Builder {
 
         //append json schema
 
-        this.#jsonHolder = this.#createElement('pre', Builder.#jsonschema, { class: `fb-json-holder` });
+        this.#jsonHolder = this.#createElement('pre', this.#jsonSchemaId, { class: `fb-json-holder` });
 
         this.jsonPane.appendChild(this.#jsonHolder);
 
@@ -204,7 +217,7 @@ export default class Builder {
         if (target instanceof Builder) {
             switch (event) {
                 case 'currentComponentChanged':
-                    PropertiesBar.refreshEditBar(args);
+                    target.#editBar.refreshComponent(args);
                     target.#currentComponent = args;
                     break;
                 case 'schemachanged':
@@ -219,48 +232,5 @@ export default class Builder {
 
     #createElement(tag, id, attributes) {
         return HtmlUtils.createElement(tag, id, attributes);
-    }
-
-    #addTabPanel(parentEl, panelid, tabs, defaultselected) {
-        let tabPanes = {}
-        if (HtmlUtils.isElement(parentEl)) {
-            if (CommonUtils.isString(parentEl)) {
-                parentEl = HtmlUtils.getElement(parentEl);
-            }
-            //navigation
-            let nav = this.#createElement('ul', panelid + '-tab', { class: `nav nav-tabs`, role: `tablist` });
-
-            //content
-            let content = this.#createElement('div', panelid + '-content', { class: `tab-content` });
-
-            //create tabs
-            if (CommonUtils.isObjcetButNotArray(tabs)) {
-                for (let [key, value] of Object.entries(tabs)) {
-                    let linkclass = `nav-link`;
-                    let paneclass = `tab-pane fade`;
-                    if (key === defaultselected) {
-                        linkclass = linkclass + ' active';
-                        paneclass = paneclass + ' active show'
-                    }
-                    //tab nav
-                    let navlink = this.#createElement('li', key + '-li', { class: `nav-item`, role: `presentation` });
-                    let tabid = key + '-tab';
-                    let link = this.#createElement('a', tabid, { href: `#${key}`, class: linkclass, role: `tab`, 'data-bs-toggle': `tab`, });
-                    link.innerHTML = value;
-                    navlink.appendChild(link);
-                    nav.appendChild(navlink);
-
-                    //content
-                    let panel = this.#createElement('div', key, { class: paneclass, role: `tabpanel`, 'area-labelledb': tabid, tabindex: '0' });
-                    tabPanes[key] = panel;
-                    content.appendChild(panel);
-                }
-            }
-
-            //add to panel
-            parentEl.appendChild(nav);
-            parentEl.appendChild(content);
-        }
-        return tabPanes;
     }
 }

@@ -5,7 +5,7 @@ export default class Accordion {
 
     }
 
-    static getAccordionItem(accordianid, coreid, itemProps, ref, items, createItems) {
+    static getAccordionItem(accordianid, coreid, itemProps, ref, items, caller, createItems) {
         let itemdesc = itemProps['text'] || 'Missing Item Desc';
         let def = itemProps['default'] || false;
         let visibleFor = itemProps['visibleFor'];
@@ -17,11 +17,17 @@ export default class Accordion {
         if (visibleFor) {
             itemAttr['visiblefor'] = visibleFor;
         }
+        //item
         let accordionItem = HtmlUtils.createElement('div', itempanel, itemAttr);
         if (visibleFor) {
             accordionItem.style.display = "none";
         }
+
+        //header
         let headerItem = HtmlUtils.createElement('h2', itemheader, { class: `accordion-header` });
+
+        accordionItem.appendChild(headerItem);
+
         let btnAttrs = {};
         let grpItemCls = 'accordion-collapse collapse';
         let btnCls = 'accordion-button';
@@ -36,53 +42,51 @@ export default class Accordion {
         btnAttrs['aria-expanded'] = def;
         btnAttrs['data-bs-target'] = `#${container}`;
         btnAttrs['data-bs-toggle'] = 'collapse';
-        btnAttrs['data-bs-parent'] = accordianid;
-
+        //button
 
         let headerbtn = HtmlUtils.createElement('button', `header-button-${coreid}`, btnAttrs);
         headerbtn.textContent = itemdesc;
         headerItem.appendChild(headerbtn);
 
-        //sidebar group
-        let groupAttrs = {};
-        groupAttrs['class'] = grpItemCls;
-        groupAttrs['aria-labelledby'] = itemheader;
+        //body wrapper
+        let wrapperAttrs = {};
+        wrapperAttrs['class'] = grpItemCls;
+        wrapperAttrs['aria-labelledby'] = itemheader;
+        wrapperAttrs['data-bs-parent'] = `#${accordianid}`;;
 
         if (CommonUtils.isString(ref)) {
-            groupAttrs['ref'] = `${ref}-group`;
+            wrapperAttrs['ref'] = `${ref}-group`;
         }
 
-        let groupItem = HtmlUtils.createElement('div', container, groupAttrs);
+        let bodyWrapper = HtmlUtils.createElement('div', container, wrapperAttrs);
 
         //sidebar container
         //sidebar group
-        let containerAttrs = {};
-        containerAttrs['class'] = 'accordion-body d-grid gap-1 no-drop p-2 w-100';
+        let bodyAttrs = {};
+        bodyAttrs['class'] = 'accordion-body d-grid gap-1 no-drop p-2 w-100';
 
         if (CommonUtils.isString(ref)) {
-            containerAttrs['ref'] = `${ref}-container`;
+            bodyAttrs['ref'] = `${ref}-container`;
         }
 
 
-        let groupBody = HtmlUtils.createElement('div', containerid, containerAttrs);
+        let accordionBody = HtmlUtils.createElement('div', containerid, bodyAttrs);
 
         //create tabs
         if (CommonUtils.isFunction(createItems)) {
-            createItems(groupBody, items);
+            createItems(caller, accordionBody, items);
         }
         else if (CommonUtils.isArray(items)) {
             for (let item of items) {
                 if (HtmlUtils.isNode(item) || CommonUtils.isString(item)) {
-                    groupBody.appendChild(item);
+                    accordionBody.appendChild(item);
                 }
             }
         }
 
-        groupItem.appendChild(groupBody);
+        bodyWrapper.appendChild(accordionBody);
 
-        accordionItem.appendChild(headerItem);
-
-        accordionItem.appendChild(groupItem);
+        accordionItem.appendChild(bodyWrapper);
 
         return accordionItem;
     }

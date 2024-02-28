@@ -20,8 +20,9 @@ export default class Container extends Observable {
     #hasParentContainer = false;
     stopdrag = false;
     observer;
-
+    formName;
     schema;
+    name;
 
     static #clsDesign = "fb-design-mode";
 
@@ -59,6 +60,14 @@ export default class Container extends Observable {
 
         this.containingContainer = containingContainer || this
 
+        this.name = schema['name'];
+
+        if (this.containingContainer === this) {
+            this.formName = schema['name'];
+        } else {
+            this.formName = this.containingContainer.formName;
+        }
+
         this.observer = observer;
 
         this.setObserver(observer);
@@ -81,9 +90,7 @@ export default class Container extends Observable {
         for (let [name, compschema] of Object.entries(
             this.compContainer || {}
         )) {
-            let newComponent = new Component(this, compschema);
-            this.components[name] = newComponent;
-            this.allComponentNames.push(name);
+            this.setComponent(compschema);
         }
     }
 
@@ -116,7 +123,7 @@ export default class Container extends Observable {
         }
         if (this.designmode) {
             let len = this.length;
-            if (len === 1) {
+            if (len >= 1) {
                 if (this.#containerControl.contains(this.dragControl)) {
                     this.#containerControl.removeChild(this.dragControl);
                 }
@@ -143,7 +150,7 @@ export default class Container extends Observable {
             this.#containerControl = HtmlUtils.createElement("div", "noid", {
                 novalidate: ``,
                 class: this.containerClass,
-                ref: this.containerName,
+                ref: this.name,
             });
             this.#mutationObserver = new MutationObserver(this.#nodeChanged);
             this.#mutationObserver.observe(this.#containerControl, this.#config);
@@ -417,19 +424,27 @@ export default class Container extends Observable {
         componentSchema.name = this.#generateName(type);
         componentSchema.type = type;
         this.tryAddSchema(componentSchema.name, componentSchema);
+
+        let newComponent = this.setComponent(componentSchema);
+
+        if (setCurrent) {
+            this.setCurrentComponent(newComponent);
+        }
+        return newComponent;
+    }
+
+    setComponent(componentSchema) {
+
         let newComponent = new Component(this, componentSchema);
 
         if (this.designmode) {
             this.setDesignMode(newComponent);
         }
 
-
         this.components[componentSchema.name] = newComponent;
+
         this.allComponentNames.push(newComponent.name);
 
-        if (setCurrent) {
-            this.setCurrentComponent(newComponent);
-        }
         return newComponent;
     }
 
