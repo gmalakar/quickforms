@@ -1,7 +1,6 @@
 import CommonUtils from '../utils/common-utils.js';
 import ErrorHandler from '../utils/error-handler.js';
 import HtmlUtils from '../utils/html-utils.js';
-import Modal from '../utils/modal.js';
 import FormContainer from '../components/form-container.js';
 import ComponentsBar from './components-bar.js';
 import PropertiesBar from './properties-bar.js';
@@ -15,6 +14,7 @@ export default class Builder {
     #theFormContainer;
     #buildertTabPanes = {};
     #editBar;
+    #compBar;
     #currentComponent;
     #formschema = {}
     #jsonHolder;
@@ -97,14 +97,6 @@ export default class Builder {
         return this.#makeUniqueId('propbar');
     }
 
-    get #editbarId() {
-        return this.#makeUniqueId('editbar');
-    }
-
-    get #sidebarId() {
-        return this.#makeUniqueId('compbar');
-    }
-
     get #areaId() {
         return this.#makeUniqueId('area');
     }
@@ -163,10 +155,12 @@ export default class Builder {
         let formContainerHolder = this.#createElement('div', this.#areaId, { class: 'fb-design-area m-2', ref: this.#designAreaId });
 
         //add form container
-        this.#theFormContainer = new FormContainer(this.#formschema, new Observer(this, this.#listener), true);
+        this.#theFormContainer = new FormContainer(this.#formschema, new Observer(this, Builder.#listener), true);
 
         //append the contaioner
         formContainerHolder.appendChild(this.#theFormContainer.formControl);
+
+        formArea.appendChild(formContainerHolder);
 
         //add form
         let form = this.#createElement('form', this.#formname);
@@ -174,18 +168,14 @@ export default class Builder {
         //append form to form pane
         this.formPane.appendChild(form);
 
-        //add side bar
+        //component bar
+        this.#compBar = new ComponentsBar(this.#theFormContainer, this.#sideCompId);
 
-        let sidebar = ComponentsBar.get(this.#sidebarId, this.#sideCompId, (source, type) => {
-            this.#theFormContainer.addComponent(type, true);
-        });
 
-        componentBar.appendChild(sidebar);
-
-        formArea.appendChild(formContainerHolder);
+        componentBar.appendChild(this.#compBar.control);
 
         //property bar
-        this.#editBar = new PropertiesBar(this.#formschema, this.#propertyId);
+        this.#editBar = new PropertiesBar(this.#theFormContainer, this.#propertyId);
 
         propertyBar.appendChild(this.#editBar.tabControl);
 
@@ -212,12 +202,12 @@ export default class Builder {
         }
     }
 
-    #listener(target, event, args) {
-        //here this means callee
+    static #listener(target, event, args) {
         if (target instanceof Builder) {
             switch (event) {
                 case 'currentComponentChanged':
                     target.#editBar.refreshComponent(args);
+                    target.#compBar.setCurrentContainer(args ? target.#theFormContainer : args.container);
                     target.#currentComponent = args;
                     break;
                 case 'schemachanged':

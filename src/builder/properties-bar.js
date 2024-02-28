@@ -2,6 +2,7 @@ import CommonUtils from '../utils/common-utils.js';
 import HtmlUtils from '../utils/html-utils.js';
 import Accordion from './accordion.js';
 import ColumnsEditor from '../editors/columns-editor.js';
+import AttributesEditor from '../editors/attributes-editor.js';
 import TabControl from '../utils/tab-control.js';
 import Modal from '../utils/modal.js';
 export default class PropertiesBar {
@@ -16,13 +17,13 @@ export default class PropertiesBar {
     #compAcordID;
     #formAccordID;
     #tabPanes;
-    #formschema;
+    #formcontainer;
     formPropElements = [];
     compPropElements = [];
     #selectedComponent;
 
-    constructor(formschema, ref) {
-        this.#formschema = formschema;
+    constructor(formcontainer, ref) {
+        this.#formcontainer = formcontainer;
         this.ref = ref;
         this.#guid = CommonUtils.ShortGuid();
         this.controlId = `pbar-${this.#guid}`;
@@ -31,6 +32,7 @@ export default class PropertiesBar {
         this.#compAcordID = `caccord-${this.#guid}`;
         this.#formAccordID = `faccord-${this.#guid}`;
         this.#create();
+        this.refreshForm();
     }
     get formTab() {
         return this.#tabPanes[this.#formTabID];
@@ -40,7 +42,7 @@ export default class PropertiesBar {
         return this.#tabPanes[this.#compTabID];
     }
 
-    onCompPropChanged(target, e, mappedCompProp) {
+    static onCompPropChanged(target, e, mappedCompProp) {
         if (target.#selectedComponent) {
             let val = mappedCompProp['mappedElement'].value;
             let oldval = mappedCompProp['mappedElement']['oldvalue'];
@@ -60,9 +62,23 @@ export default class PropertiesBar {
         }
     }
 
-    onFormPropChanged(target, e, mappedCompProp) {
-        if (target.#formschema) {
-            alert('here');
+    static onFormPropChanged(target, e, mappedCompProp) {
+        if (target.#formcontainer) {
+            let val = mappedCompProp['mappedElement'].value;
+            let oldval = mappedCompProp['mappedElement']['oldvalue'];
+            let type = mappedCompProp['mappedType'];
+            let prop = mappedCompProp['mappedProp'];
+            target.#formcontainer.setFormProperty(type, prop, val, (msg) => {
+                if (!CommonUtils.isNullOrEmpty(msg)) {
+                    Modal.commonModalWindow.setModal(target, "Invalid Component", msg, Modal.Ok, function (source, which) {
+                        if (e.target) {
+                            e.target.value = oldval;
+                            e.target.focus();
+                        }
+                    }, 'text-danger', true);
+                    Modal.commonModalWindow.show();
+                }
+            });
         }
     }
 
@@ -91,36 +107,14 @@ export default class PropertiesBar {
     }
 
     refreshForm() {
-        if (this.#formschema) {
+        if (this.#formcontainer) {
             for (let mappedPorpEl of this.formPropElements) {
-                let val = '';
-                if (currentComponent) {
-                    val = currentComponent.control.getComponentProperty(mappedPorpEl['mappedType'], mappedPorpEl['mappedProp']);
-                }
+                let val = this.#formcontainer.getFormProperty(mappedPorpEl['mappedType'], mappedPorpEl['mappedProp']);
                 mappedPorpEl['mappedElement'].value = val;
                 mappedPorpEl['mappedElement']['oldvalue'] = val;
             }
         }
-        for (let mappedPorpEl of this.compPropElements) {
-            let val = '';
-            if (currentComponent) {
-                val = currentComponent.control.getComponentProperty(mappedPorpEl['mappedType'], mappedPorpEl['mappedProp']);
-            }
-            mappedPorpEl['mappedElement'].value = val;
-            mappedPorpEl['mappedElement']['oldvalue'] = val;
-        }
-        //select all visible for
-        if (currentComponent) {
-            let visibleForELs = this.compTab.querySelectorAll('[visiblefor]')
-            for (let el of visibleForELs) {
-                if (el.getAttribute('visiblefor').includes(currentComponent.type)) {
-                    HtmlUtils.show(el);
-                } else {
-                    HtmlUtils.hide(el);
-                }
-            }
-        }
-        this.#tab.show(this.#compTabID);
+        this.#tab.show(this.#formTabID);
     }
 
     static #createProp(propFor, propObjects, propElements, caller, onPropertyChanged) {
@@ -163,8 +157,16 @@ export default class PropertiesBar {
                 let btn = HtmlUtils.createIconButton({ class: 'btn btn-primary', type: 'button' }, { class: 'bi bi-three-dots-vertical' }, `btn-${propId}`);
                 btn.textContent = '...';
                 btn.addEventListener("click", (e) => {
-                    //let params = { properties: editorEl.value, numcolumns: 3 }
-                    ColumnsEditor.getEditor(editorEl).show();
+                    switch (propObjects.popupname) {
+                        case "columns":
+                            ColumnsEditor.getEditor(editorEl).show();
+                            break;
+                        case "attributes":
+                            AttributesEditor.getEditor(editorEl).show();
+                            break;
+                        default:
+                            break;
+                    }
                 });
                 groupEl.appendChild(editorEl);
                 groupEl.appendChild(btn);
@@ -236,7 +238,7 @@ export default class PropertiesBar {
                 formAccordion.appendChild(Accordion.getAccordionItem(this.#formAccordID, key, value, this.ref, props, this, function (caller, container, props) {
                     if (CommonUtils.isArray(props)) {
                         for (let item of props) {
-                            let propItem = PropertiesBar.#createProp(caller.formAccordID, item, caller.formPropElements, caller, caller.onFormPropChanged);
+                            let propItem = PropertiesBar.#createProp(caller.formAccordID, item, caller.formPropElements, caller, PropertiesBar.onFormPropChanged);
                             container.appendChild(propItem);
                         }
                     }
@@ -261,7 +263,7 @@ export default class PropertiesBar {
                 compAccordian.appendChild(Accordion.getAccordionItem(this.#compAcordID, key, value, this.ref, props, this, function (caller, container, props) {
                     if (CommonUtils.isArray(props)) {
                         for (let item of props) {
-                            let propItem = PropertiesBar.#createProp(caller.compAcordID, item, caller.compPropElements, caller, caller.onCompPropChanged);
+                            let propItem = PropertiesBar.#createProp(caller.compAcordID, item, caller.compPropElements, caller, PropertiesBar.onCompPropChanged);
                             container.appendChild(propItem);
                         }
                     }
@@ -273,8 +275,8 @@ export default class PropertiesBar {
     }
 
     static componentProperties = {
-        "display": {
-            text: "Display",
+        "design": {
+            text: "Design",
             default: true,
             props: [
                 {
@@ -344,7 +346,18 @@ export default class PropertiesBar {
         },
         "attributes": {
             text: "HTML Attributes",
-            default: false
+            default: false,
+            props: [
+                {
+                    mappedType: "htmlattr",
+                    mappedProp: "",
+                    name: "Attributes",
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true
+                }
+
+            ]
         }
     };
 
@@ -390,9 +403,113 @@ export default class PropertiesBar {
 
             ]
         },
+        "class": {
+            text: "Class",
+            default: false,
+            props: [
+                {
+                    mappedType: "class",
+                    mappedProp: "form",
+                    name: "Form Class",
+                    type: "textfield",
+                    maxlength: 50
+                },
+                {
+                    mappedType: "class",
+                    mappedProp: "header",
+                    name: "Header Class",
+                    type: "textfield",
+                    maxlength: 50
+                },
+                {
+                    mappedType: "class",
+                    mappedProp: "body",
+                    name: "Body Class",
+                    type: "textfield",
+                    maxlength: 50
+                },
+                {
+                    mappedType: "class",
+                    mappedProp: "title",
+                    name: "Title Class",
+                    type: "textfield",
+                    maxlength: 50
+                },
+
+            ]
+        },
+        "styles": {
+            text: "Styles",
+            default: false,
+            props: [
+                {
+                    mappedType: "style",
+                    mappedProp: "form",
+                    name: "Form Style",
+                    type: "textfield",
+                    maxlength: 50
+                },
+                {
+                    mappedType: "style",
+                    mappedProp: "header",
+                    name: "Header Style",
+                    type: "textfield",
+                    maxlength: 50
+                },
+                {
+                    mappedType: "style",
+                    mappedProp: "body",
+                    name: "Body Style",
+                    type: "textfield",
+                    maxlength: 50
+                },
+                {
+                    mappedType: "style",
+                    mappedProp: "title",
+                    name: "Title Style",
+                    type: "textfield",
+                    maxlength: 50
+                },
+            ]
+        },
         "attributes": {
             text: "HTML Attributes",
-            default: false
+            default: false,
+            props: [
+                {
+                    mappedType: "attr",
+                    mappedProp: "form",
+                    name: "Form Attributes",
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true
+                },
+                {
+                    mappedType: "attr",
+                    mappedProp: "header",
+                    name: "Header Attributes",
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true
+                },
+                {
+                    mappedType: "attr",
+                    mappedProp: "body",
+                    name: "Body Attributes",
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true
+                },
+                {
+                    mappedType: "attr",
+                    mappedProp: "title",
+                    name: "Title Attributes",
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true
+                },
+
+            ]
         }
     };
 }

@@ -2,10 +2,20 @@ import CommonUtils from '../utils/common-utils.js';
 import HtmlUtils from '../utils/html-utils.js';
 import Accordion from './accordion.js';
 export default class ComponentsBar {
-    constructor() {
+
+    ref;
+    #compbarId;
+    selectedContainer;
+    control;
+
+    constructor(formcontainer, ref) {
+        this.selectedContainer = formcontainer;
+        this.ref = ref;
+        this.#compbarId = `compbar-${CommonUtils.ShortGuid()}`;
+        this.#create();
     }
 
-    static #createOption(type, group, text, iconcls, ref, optionOnClick) {
+    static #createOption(type, group, text, iconcls, componentsBar) {
         let attrs = {};
         attrs['tabindex'] = '0'
         attrs['class'] = `btn btn-outline-primary btn-sm m-0`;
@@ -15,8 +25,8 @@ export default class ComponentsBar {
         attrs['comp-type'] = type;
         attrs['draggable'] = true;
 
-        if (CommonUtils.isString(ref)) {
-            attrs['ref'] = `${ref}-component`;
+        if (CommonUtils.isString(componentsBar.ref)) {
+            attrs['ref'] = `${componentsBar.ref}-component`;
         }
         let element = HtmlUtils.createElement('span', 'noid', attrs);
         let icon = HtmlUtils.createElement('i', 'noid', { class: iconcls, style: `margin-right: 5px;` });
@@ -30,37 +40,48 @@ export default class ComponentsBar {
         element.onclick = (e) => {
             let btn = e.currentTarget;
             if (btn) {
-                optionOnClick(btn, btn.attributes['comp-type'].value);
+                if (componentsBar) {
+                    componentsBar.addComponent(btn.attributes['comp-type'].value);
+                }
             }
         };
         return element;
     }
 
-    static get(barId, ref, optionOnClick) {
-        let sidebarAttrs = {};
-        sidebarAttrs['class'] = 'accordion px-2 py-1';
-        if (CommonUtils.isString(ref)) {
-            sidebarAttrs['ref'] = ref;
+    addComponent(type) {
+        if (this.selectedContainer) {
+            this.selectedContainer.addComponent(type, true);
+        }
+    }
+
+    setCurrentContainer(container) {
+        this.selectedContainer = container;
+    }
+
+    #create() {
+        let compbarAttrs = {};
+        compbarAttrs['class'] = 'accordion px-2 py-1';
+        if (CommonUtils.isString(this.ref)) {
+            compbarAttrs['ref'] = this.ref;
         }
         //sidebar
-        var accordian = HtmlUtils.createElement('div', barId, sidebarAttrs);
+        this.control = HtmlUtils.createElement('div', this.#compbarId, compbarAttrs);
 
         //create tabs
         if (CommonUtils.isObjcetButNotArray(ComponentsBar.componentTypes)) {
             for (let [key, value] of Object.entries(ComponentsBar.componentTypes)) {
                 let compButtons = value['btns'];
                 delete value['btns'];
-                accordian.appendChild(Accordion.getAccordionItem(barId, key, value, ref, compButtons, function (container, props) {
+                this.control.appendChild(Accordion.getAccordionItem(this.#compbarId, key, value, this.ref, compButtons, this, function (componentsBar, container, props) {
                     if (CommonUtils.isArray(props)) {
                         for (let item of props) {
-                            let propItem = ComponentsBar.#createOption(item['type'], key, item['text'], item['iconCls'], ref, optionOnClick);
+                            let propItem = ComponentsBar.#createOption(item['type'], key, item['text'], item['iconCls'], componentsBar);
                             container.appendChild(propItem);
                         }
                     }
                 }));
             }
         }
-        return accordian;
     }
 
     static componentTypes = {
