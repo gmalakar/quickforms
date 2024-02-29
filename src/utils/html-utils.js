@@ -1,4 +1,3 @@
-import ColumnEditors from '../editors/columns-editor.js';
 import CommonUtils from './common-utils.js';
 
 export default class HtmlUtils {
@@ -20,8 +19,11 @@ export default class HtmlUtils {
             for (let [key, val] of Object.entries(styles)) {
                 style = `${style}${key}:${val};`;
             }
-        }
-        return style;
+        } else if (CommonUtils.isArray(styles)) {
+            for (let s of styles) {
+                style = `${style}${s['name']}:${s['value']};`;
+            }
+        } return style;
     }
 
     static isValidName(token) {

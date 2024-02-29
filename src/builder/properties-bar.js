@@ -2,7 +2,7 @@ import CommonUtils from '../utils/common-utils.js';
 import HtmlUtils from '../utils/html-utils.js';
 import Accordion from './accordion.js';
 import ColumnsEditor from '../editors/columns-editor.js';
-import AttributesEditor from '../editors/attributes-editor.js';
+import NameValueEditor from '../editors/name-value-editor.js';
 import TabControl from '../utils/tab-control.js';
 import Modal from '../utils/modal.js';
 export default class PropertiesBar {
@@ -162,7 +162,10 @@ export default class PropertiesBar {
                             ColumnsEditor.getEditor(editorEl).show();
                             break;
                         case "attributes":
-                            AttributesEditor.getEditor(editorEl).show();
+                            NameValueEditor.getEditor(editorEl, 'Attributes').show();
+                            break;
+                        case "styles":
+                            NameValueEditor.getEditor(editorEl, 'Styles').show();
                             break;
                         default:
                             break;
@@ -328,6 +331,33 @@ export default class PropertiesBar {
                 }
             ]
         },
+        "class": {
+            text: "Class",
+            default: false,
+            props: [
+                {
+                    mappedType: "class",
+                    mappedProp: "component",
+                    name: "Component",
+                    type: "textfield",
+                    maxlength: 50
+                },
+                {
+                    mappedType: "class",
+                    mappedProp: "label",
+                    name: "Caption",
+                    type: "textfield",
+                    maxlength: 50
+                },
+                {
+                    mappedType: "class",
+                    mappedProp: "control",
+                    name: "Element",
+                    type: "textfield",
+                    maxlength: 50
+                }
+            ]
+        },
         "columns": {
             text: "Columns Props",
             default: false,
@@ -344,14 +374,60 @@ export default class PropertiesBar {
                 }
             ]
         },
-        "attributes": {
-            text: "HTML Attributes",
+        "styles": {
+            text: "Styles",
             default: false,
             props: [
                 {
-                    mappedType: "htmlattr",
-                    mappedProp: "",
-                    name: "Attributes",
+                    mappedType: "style",
+                    mappedProp: "component",
+                    name: "Component",
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true
+                },
+                {
+                    mappedType: "style",
+                    mappedProp: "label",
+                    name: "Caption",
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true
+                },
+                {
+                    mappedType: "style",
+                    mappedProp: "control",
+                    name: "Element",
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true
+                }
+            ]
+        },
+        "attributes": {
+            text: "Attributes",
+            default: false,
+            props: [
+                {
+                    mappedType: "attr",
+                    mappedProp: "component",
+                    name: "Component",
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true
+                },
+                {
+                    mappedType: "attr",
+                    mappedProp: "label",
+                    name: "Caption",
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true
+                },
+                {
+                    mappedType: "attr",
+                    mappedProp: "control",
+                    name: "Element",
                     type: "popup",
                     popupname: 'attributes',
                     readonly: true
@@ -446,34 +522,38 @@ export default class PropertiesBar {
                     mappedType: "style",
                     mappedProp: "form",
                     name: "Form Style",
-                    type: "textfield",
-                    maxlength: 50
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true
                 },
                 {
                     mappedType: "style",
                     mappedProp: "header",
                     name: "Header Style",
-                    type: "textfield",
-                    maxlength: 50
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true
                 },
                 {
                     mappedType: "style",
                     mappedProp: "body",
                     name: "Body Style",
-                    type: "textfield",
-                    maxlength: 50
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true
                 },
                 {
                     mappedType: "style",
                     mappedProp: "title",
                     name: "Title Style",
-                    type: "textfield",
-                    maxlength: 50
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true
                 },
             ]
         },
         "attributes": {
-            text: "HTML Attributes",
+            text: "Attributes",
             default: false,
             props: [
                 {

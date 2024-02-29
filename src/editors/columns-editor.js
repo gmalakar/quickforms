@@ -37,7 +37,7 @@ export default class ColumnsEditor extends BaseEditor {
             rowcount = Object.keys(props).length;
         }
         let tableJson = {
-            name: 'table-COLUMN_EDITOR_ID',
+            name: `table-${this.COLUMN_EDITOR_ID}`,
             class: 'datagrid-table table-bordered table-fit',
             addrowbutton: {
                 text: 'Add',

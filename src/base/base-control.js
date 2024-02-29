@@ -9,12 +9,6 @@ export default class BaseControl {
 
     elementControl;
 
-    componentClass = "mb-2 fb-form-component";
-
-    labelClass = "form-label fb-form-label";
-
-    elementClass = "form-control fb-form-control";
-
     containingComponent;
 
     schema = {};
@@ -35,13 +29,27 @@ export default class BaseControl {
         this.containingComponent = containingComponent;
         this.schema = containingComponent.schema || {};
         this.designmode = this.containingComponent.designmode || false;
-        if (this.designmode) {
-            this.componentClass = this.componentClass + " fb-design-mode";
-        }
         this.schema.columns = this.schema.columns || {};
         this.columns = this.schema.columns;
+        this.#initForm();
     }
 
+    #initForm() {
+
+        //set default class
+        if (!this.#getClassSchema('component')) {
+            this.#setClassSchema('component', 'mb-2 fb-form-component');
+        }
+
+        if (!this.#getClassSchema('control')) {
+            this.#setClassSchema('control', 'form-control fb-form-control');
+        }
+
+        if (!this.#getClassSchema('label')) {
+            this.#setClassSchema('label', 'form-label fb-form-label');
+        }
+
+    }
     get name() {
         this.schema.name || "";
     }
@@ -77,78 +85,6 @@ export default class BaseControl {
         if (this.elementControl) {
             this.elementControl.value = value;
         }
-    }
-
-    get placeholder() {
-        this.schema.placeholder || "";
-    }
-
-    set placeholder(value) {
-        this.schema.placeholder = value;
-        if (this.elementControl) {
-            this.elementControl.setAttribute("placeholder", value);
-        }
-    }
-
-    get styles() {
-        return this.schema.styles || {};
-    }
-
-    setStyle(key, value) {
-        if (this.schema.styles === undefined) {
-            this.schema.styles = {};
-        }
-        this.schema.styles[key] = value;
-        if (this.elementControl) {
-            this.elementControl.setAttribute("style", HtmlUtils.joinStyles(value));
-        }
-    }
-
-    getStyle(key) {
-        let val = "";
-        if (this.styles[key] !== undefined) {
-            val = this.styles[key];
-        }
-    }
-
-    get properties() {
-        return this.schema.properties || {};
-    }
-
-    setProperty(key, value) {
-        if (this.schema.properties === undefined) {
-            this.schema.properties = {};
-        }
-        this.schema.properties[key] = value;
-    }
-
-    getProperty(key) {
-        let val = "";
-        if (this.properties[key] !== undefined) {
-            val = this.propertiess[key];
-        }
-    }
-
-    get attributes() {
-        return this.schema.attributes || {};
-    }
-
-    setAttribute(key, value) {
-        if (this.schema.attributes === undefined) {
-            this.schema.attributes = {};
-        }
-        this.schema.attributes[key] = value;
-        if (this.elementControl) {
-            this.elementControl.setAttribute(key, value);
-        }
-    }
-
-    getAttribute(key) {
-        let val = "";
-        if (this.attributes[key] !== undefined) {
-            val = this.attributes[key];
-        }
-        return val;
     }
 
     get type() {
@@ -196,57 +132,279 @@ export default class BaseControl {
     setComponentPropertyLocal(type, name, val) {
     }
 
-    //invalidProp is a callback with message
+    #getControl(name) {
+        let crtl;
+        switch (name) {
+            case "label":
+                crtl = this.captionControl;
+                break;
+            case "control":
+                crtl = this.elementControl;
+                break;
+            case "component":
+                crtl = this.componentControl;
+                break;
+            default:
+                break;
+        }
+        return crtl;
+    }
+
+    #clearAttrs(name) {
+        let attrs = this.schema.attributes[name];
+        if (attrs) {
+            let crtl = this.#getControl(name);
+
+            if (crtl && CommonUtils.isArray(attrs)) {
+                for (let attr of attrs) {
+                    crtl.removeAttribute(attr.name);
+                }
+            }
+            delete this.schema.attributes[name];
+        }
+    }
+
+    #setAttrSchema(key, value) {
+        if (!this.schema.hasOwnProperty('attributes')) {
+            this.schema['attributes'] = {};
+        }
+        //delete 
+        this.#clearAttrs(key);
+        let attrs = JSON.parse(value);
+        if (attrs && Object.keys(attrs).length > 0) {
+            let attrsArray = [];
+            for (let [key, attr] of Object.entries(attrs)) {
+                attrsArray.push(attr);
+            }
+            this.schema.attributes[key] = attrsArray;
+        }
+    }
+
+    #getAttributeObj(key) {
+        let val = [];
+        if (this.schema.hasOwnProperty('attributes')) {
+            val = this.schema['attributes'][key];
+            if (val === undefined) {
+                val = [];
+            }
+        }
+        return val;
+    }
+
+    #getAttribute(key) {
+        let val = "";
+        if (this.schema.hasOwnProperty('attributes')) {
+            val = this.schema['attributes'][key];
+            if (val === undefined) {
+                val = '';
+            } else if (CommonUtils.isArray(val)) {
+                let attrs = {};
+                let counter = 0;
+                for (let attr of val) {
+                    attrs[counter++] = attr
+                }
+                val = JSON.stringify(attrs);
+            }
+            return val;
+        }
+    }
+
+    #resetAttrs(name) {
+        let crtl = this.#getControl(name);
+        let attrs = this.schema?.attributes[name];
+        if (crtl && CommonUtils.isArray(attrs)) {
+            for (let attr of attrs) {
+                crtl.setAttribute(attr.name, attr.value);
+            }
+        }
+    }
+
+    #resetGen(name) {
+        let val = this.schema[name]
+    }
+
+    #setStyleSchema(key, value) {
+        if (!this.schema.hasOwnProperty('styles')) {
+            this.schema['styles'] = {};
+        }
+        //delete 
+        this.#clearStyle(key);
+
+        let styles = JSON.parse(value);
+        if (styles && Object.keys(styles).length > 0) {
+            let styleArr = [];
+            for (let [key, attr] of Object.entries(styles)) {
+                styleArr.push(attr);
+            }
+            this.schema.styles[key] = styleArr;
+        }
+    }
+
+    #resetStyle(name) {
+        let crtl = this.#getControl(name);
+        if (crtl) {
+            let styleArr = this.schema?.styles[name];
+            for (let style of styleArr) {
+                crtl.style.setProperty(style.name, style.value);
+            }
+        }
+    }
+
+    #clearStyle(name) {
+        let styles = this.schema.styles[name];
+        if (styles) {
+            let crtl = this.#getControl(name);
+            if (crtl && CommonUtils.isArray(styles)) {
+                for (let attr of styles) {
+                    crtl.style.removeProperty(attr.name);
+                }
+            }
+            delete this.schema.styles[name];
+        }
+    }
+
+    #getStyleSchema(key) {
+        let val = "";
+        if (this.schema.hasOwnProperty('styles')) {
+            val = this.schema['styles'][key];
+            if (val === undefined) {
+                val = '';
+            } else if (CommonUtils.isArray(val)) {
+                let attrs = {};
+                let counter = 0;
+                for (let attr of val) {
+                    attrs[counter++] = attr
+                }
+                val = JSON.stringify(attrs);
+            }
+            return val;
+        }
+    }
+
+    #setClassSchema(key, value) {
+        if (!this.schema.hasOwnProperty('class')) {
+            this.schema['class'] = {};
+        }
+        this.schema.class[key] = value;
+        //to do for controls
+    }
+
+    #getClassSchema(key) {
+        let val = "";
+        if (this.schema.hasOwnProperty('class')) {
+            val = this.schema['class'][key];
+            if (val === undefined) {
+                val = '';
+            }
+        }
+        return val;
+    }
+
+    #resetClass(name) {
+        let crtl = this.#getControl(name);
+        if (crtl) {
+            let cls = this.#getClassSchema(name);
+            if (this.designmode && name === 'conponent') {
+                cls = cls + " fb-design-mode";
+            }
+            if (cls) {
+                crtl.class = cls;
+            }
+        }
+    }
+
     setComponentProperty(type, name, val, invalidProp) {
         let useLocal = name === 'col-props' && this.type === 'columns';
         let invalidMsg = "";
         if (!useLocal) {
-            switch (name) {
-                case "name":
-                    if (this.schema.name !== val) {
-                        //changed
-                        if (!HtmlUtils.isValidName(val)) {
-                            invalidMsg = ErrorHandler.errorCode.Component.INVALID_NAME;
-                        } else if (this.#checkIfUsedByOtherComponent(val)) {
-                            invalidMsg = ErrorHandler.errorCode.Component.USED_NAME;
-                        } else {
-                            this.name = val;
-                        }
-                    }
+            switch (type) {
+                case "attribute":
+                case "attr":
+                    this.#setAttrSchema(name, val);
                     break;
-                case "caption":
-                    this.caption = val;
+                case "style":
+                    this.#setStyleSchema(name, val);
                     break;
-                default:
-                    switch (type) {
-                        case "attribute":
-                        case "attr":
-                            this.setAttribute(name, val);
+                case "class":
+                    this.#setClassSchema(name, val);
+                    break;
+                case "prop":
+                case "property":
+                    this.#setPropSchema(name, val);
+                    break;
+                case "general":
+                case "gen":
+                    switch (name) {
+                        case "name":
+                            if (this.schema.name !== val) {
+                                //changed
+                                if (!HtmlUtils.isValidName(val)) {
+                                    invalidMsg = ErrorHandler.errorCode.Component.INVALID_NAME;
+                                } else if (this.#checkIfUsedByOtherComponent(val)) {
+                                    invalidMsg = ErrorHandler.errorCode.Component.USED_NAME;
+                                } else {
+                                    this.name = val;
+                                }
+                            }
                             break;
-                        case "style":
-                            this.setStyle(name, val);
-                            break;
-                        case "prop":
-                        case "property":
-                            this.setProperty(name, val);
+                        case "caption":
+                            this.caption = val;
                             break;
                         default:
-                            this[name] = val;
                             break;
                     }
+                    break;
+                default:
+                    this.schema[name] = val;
                     break;
             }
         }
-
         if (!CommonUtils.isNullOrEmpty(invalidMsg)) {
             if (invalidProp && invalidProp === typeof 'fuction') {
                 invalidProp(invalidMsg);
             }
         } else {
             //raise property changed
+            this.setPropertyToControl(type, name);
             this.setComponentPropertyLocal(type, name, val);
             this.containingContainer.propertyChanged(name);
         }
+        this.setPropertyToControl(type, name);
+    }
+
+    setPropertyToControl(type, name) {
+        switch (type) {
+            case "gen":
+                this.#resetGen(name)
+                break;
+            case "class":
+                this.#resetClass(name)
+                break;
+            case "style":
+                this.#resetStyle(name,)
+                break;
+            case "attrs":
+                this.#resetAttrs(name)
+                break;
+        }
+    }
+
+    #setPropSchema(key, value) {
+        if (!this.schema.hasOwnProperty('properties')) {
+            this.schema['properties'] = {};
+        }
+        this.schema.properties[key] = value;
+    }
+
+    #getPropSchema(key) {
+        let val = "";
+        if (this.schema.hasOwnProperty('properties')) {
+            val = this.schema['properties'][key];
+            if (val === undefined) {
+                val = '';
+            }
+        }
+        return val;
     }
 
     getComponentProperty(type, name) {
@@ -254,46 +412,76 @@ export default class BaseControl {
         switch (type) {
             case "attribute":
             case "attr":
-                val = this.getAttribute(name);
+                val = this.#getAttribute(name);
+                break;
+            case "class":
+                val = this.#getClassSchema(name);
                 break;
             case "style":
-                val = this.getStyle(name);
+                val = this.#getStyleSchema(name);
                 break;
             case "prop":
             case "property":
-                this.getProperty(name);
+                this.#getPropSchema(name);
                 break;
             default:
-                val = this[name];
+                val = this.schema[name];
                 break;
         }
-        return this.getComponentPropertyLocal(type, name, val);
+        if (val === undefined) {
+            val = '';
+        }
+        return val;
     }
 
     getComponentPropertyLocal(type, name, val) {
         return val;
     }
 
+    #setAttrs(type, attrArr) {
+        if (attrArr && CommonUtils.isArray(attrArr)) {
+            for (let attr of this.#getAttributeObj(type)) {
+                attrArr[attr['name']] = attr['value'];
+            }
+        }
+    }
+
+    #setStyle(type, styleArr) {
+        if (styleArr && CommonUtils.isArray(styleArr)) {
+            let style = HtmlUtils.joinStyles(this.#getAttributeObj(type));
+            if (!CommonUtils.isNullOrEmpty(style)) {
+                styleArr['style'] = style;
+            }
+        }
+    }
+
     setCompControl() {
+        let compAttrs = {};
+        let cls = this.#getClassSchema('component')
+        if (this.designmode && name === 'conponent') {
+            cls = cls + " fb-design-mode";
+        }
+        compAttrs.class = cls;
+        this.#setStyle('component', compAttrs);
+        this.#setAttrs('component', compAttrs);
+        compAttrs['tabindex'] = -1;
+        compAttrs['draggable'] = true;
+        compAttrs['ref'] = this.parentComponent?.name || this.name
+
         this.componentControl = HtmlUtils.createElement(
             "div",
             this.name,
-            {
-                class: this.componentClass,
-                tabindex: -1,
-                draggable: true,
-                ref: this.parentComponent?.name || this.name
-            }
+            compAttrs
         );
     }
 
     setLabelControl() {
-        let lblProps = {
-            for: this.name,
-            class: this.labelClass,
-        };
-
-        this.captionControl = HtmlUtils.createElement("label", "noid", lblProps);
+        let lblAttrs = {};
+        lblAttrs.class = this.#getClassSchema('lable');
+        this.#setStyle('lable', lblAttrs);
+        this.#setAttrs('lable', lblAttrs);
+        lblAttrs['for'] = this.name;
+        this.captionControl = HtmlUtils.createElement("label", "noid", lblAttrs);
         if (CommonUtils.isNullOrEmpty(this.schema.caption)) {
             this.caption = this.defaultCaptionn;
         } else {
@@ -302,38 +490,19 @@ export default class BaseControl {
     }
 
     setElementControl() {
-        //set class
-        //default class
-        let cls = this.elementClass;
-        //default attributes
-        let compProps = {
-            type: ComponentUtils.getType(this.type),
-            placeholder: this.placeholder || "",
-        };
-        //set attribute
-        for (let [key, attr] of Object.entries(this.attributes)) {
-            switch (key.toLowerCase()) {
-                case "class":
-                    cls = `${cls} ${attr}`;
-                    break;
-                default:
-                    compProps[key] = attr;
-                    break;
-            }
-        }
-        compProps["class"] = cls;
+        let elAttrs = {};
+        elAttrs['type'] = ComponentUtils.getType(this.type);
+        elAttrs.class = this.#getClassSchema('control');
+        this.#setStyle('control', elAttrs);
+        this.#setAttrs('control', elAttrs);
 
-        //set style
-        let style = HtmlUtils.joinStyles(this.styles);
-
-        compProps["style"] = style;
 
         let controlId = `${this.containingContainer.formName}[${this.name}]`;
 
         this.elementControl = HtmlUtils.createElement(
             ComponentUtils.getControlType(this.type),
             controlId,
-            compProps
+            elAttrs
         );
 
         for (let [event, fn] of Object.entries(this.eventlisteners)) {
