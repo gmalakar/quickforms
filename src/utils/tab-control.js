@@ -32,17 +32,21 @@ export default class TabControl {
         if (CommonUtils.isObjcetButNotArray(this.tabs)) {
             for (let [key, value] of Object.entries(this.tabs)) {
                 let linkclass = `nav-link`;
-                let paneclass = `tab-pane fade`;
+                let paneclass = `tab-pane fade container-fluid`;
                 if (key === this.defaultTab) {
                     linkclass = linkclass + ' active';
                     paneclass = paneclass + ' active show'
                 }
                 //tab nav
+                let caption = value.caption ?? 'No Caption';
                 let navlink = HtmlUtils.createElement('li', key + '-li', { class: `nav-item`, role: `presentation` });
                 let tabid = key + '-tab';
                 let link = HtmlUtils.createElement('a', tabid, { href: `#${key}`, class: linkclass, role: `tab`, 'data-bs-toggle': `tab`, });
                 this.#tabLinks[key] = link;
-                link.innerHTML = value;
+                link.innerHTML = caption;
+                if (value.click) {
+                    link.addEventListener('click', value.click);
+                }
                 navlink.appendChild(link);
                 nav.appendChild(navlink);
 

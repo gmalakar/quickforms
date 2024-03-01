@@ -174,8 +174,10 @@ export default class HtmlUtils {
     }
 
     static removeChilds(parent) {
-        while (parent.lastChild) {
-            parent.removeChild(parent.lastChild);
+        if (parent) {
+            while (parent.lastChild) {
+                parent.removeChild(parent.lastChild);
+            }
         }
     };
 

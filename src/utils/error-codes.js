@@ -35,5 +35,6 @@ export default class ErrorCode {
         INVALID_INSTANCE: 'Invalid Form instance.',
         MISSING_PLACEHOLDER: 'Missing or invalid form placeholder.',
         MISING_LISTENER: 'Missing listener from caller.',
+        INVALID_NAME: 'Invalid Form Name.',
     }
 }

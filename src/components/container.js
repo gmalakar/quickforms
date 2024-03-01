@@ -55,32 +55,44 @@ export default class Container extends Observable {
 
         this.schema = schema;
 
-
-        this.containerSchema = schema['components'];
-
         this.containingContainer = containingContainer || this
-
-        this.name = schema['name'];
-
-        if (this.containingContainer === this) {
-            this.formName = schema['name'];
-        } else {
-            this.formName = this.containingContainer.formName;
-        }
-
-        this.observer = observer;
-
-        this.setObserver(observer);
 
         this.designmode = designmode;
 
-        this.#dragName = `drag-component-${this.#guid}`;
+        if (this.designmode) {
+            this.observer = observer;
 
-        this.#compDeleteBtn = HtmlUtils.createElement(
-            "button",
-            `delete-component-${this.#guid}`,
-            { class: "btn-close fb-delete-comp-btn" }
-        );
+            this.setObserver(observer);
+
+            this.#compDeleteBtn = HtmlUtils.createElement(
+                "button",
+                `delete-component-${this.#guid}`,
+                { class: "btn-close fb-delete-comp-btn" }
+            );
+
+            this.#dragName = `drag-component-${this.#guid}`;
+
+        }
+        this.initContainer();
+    }
+
+    refreshContainer() {
+        HtmlUtils.removeChilds(this.#containerControl);
+        this.allComponentNames = [];
+        this.components = {};
+        this.initContainer();
+    }
+
+    initContainer() {
+        this.containerSchema = this.schema['components'];
+
+        this.name = this.schema['name'];
+
+        if (this.containingContainer === this) {
+            this.formName = this.schema['name'];
+        } else {
+            this.formName = this.containingContainer.formName;
+        }
 
         if (this.containingContainer !== this) {
             this.#hasParentContainer = true;
@@ -152,8 +164,6 @@ export default class Container extends Observable {
                 class: this.containerClass,
                 ref: this.name,
             });
-            this.#mutationObserver = new MutationObserver(this.#nodeChanged);
-            this.#mutationObserver.observe(this.#containerControl, this.#config);
             if (this.designmode) {
                 //drag drop
                 this.#containerControl.ondragover = (e) => {
@@ -193,6 +203,8 @@ export default class Container extends Observable {
                     }, null, true);
                     Modal.commonModalWindow.show();
                 });
+                this.#mutationObserver = new MutationObserver(this.#nodeChanged);
+                this.#mutationObserver.observe(this.#containerControl, this.#config);
             }
         }
         return this.#containerControl;

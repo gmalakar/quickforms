@@ -10,6 +10,7 @@ import TabControl from '../utils/tab-control.js';
 export default class Builder {
 
     #builderContainer;
+    #diaplayContainer;
     #formname;
     #theFormContainer;
     #buildertTabPanes = {};
@@ -110,6 +111,10 @@ export default class Builder {
         return this.#makeUniqueId('json-schema');
     }
 
+    #refreshDisplay() {
+        this.#diaplayContainer.resetForm();
+    }
+
     #createBed() {
 
 
@@ -118,9 +123,13 @@ export default class Builder {
 
         //creat tabobjects
         let tabs = {};
-        tabs[this.#containerId] = 'Builder';
-        tabs[this.#formContainerId] = 'Form';
-        tabs[this.#jsonContainerId] = 'Json';
+        tabs[this.#containerId] = { caption: 'Builder' };
+        tabs[this.#formContainerId] = {
+            caption: 'Form', click: () => {
+                this.#refreshDisplay();
+            }
+        };
+        tabs[this.#jsonContainerId] = { caption: 'Json' };
 
         let tabcontrol = new TabControl(this.#mainTabId, tabs, this.#containerId);
         let buildermain = tabcontrol.tabControl;
@@ -133,13 +142,13 @@ export default class Builder {
 
 
         //components bar
-        let componentBar = this.#createElement('div', this.#sideCompId, { class: `col-xs-3 col-sm-3 col-md-2 p-0 fb-component-bar` });
+        let componentBar = this.#createElement('div', this.#sideCompId, { class: `col-xs-3 col-sm-3 col-md-2 p-2 fb-component-bar` });
 
         //form design area
         let formArea = this.#createElement('div', this.#designAreaId, { class: `col-xs-6 col-sm-6 col-md-8 p-0 fb-form-area`, ref: this.#builderId });
 
         //property bar
-        let propertyBar = this.#createElement('div', this.#propertyId, { class: `col-xs-3 col-sm-3 col-md-2 p-0 fb-property-bar`, ref: this.#builderId });
+        let propertyBar = this.#createElement('div', this.#propertyId, { class: `col-xs-3 col-sm-3 col-md-2 p-2 fb-property-bar`, ref: this.#builderId });
 
         //append components bar
         builder.appendChild(componentBar);
@@ -164,6 +173,12 @@ export default class Builder {
 
         //add form
         let form = this.#createElement('form', this.#formname);
+
+        //add form container
+        this.#diaplayContainer = new FormContainer(this.#formschema);
+
+        //append the contaioner
+        form.appendChild(this.#diaplayContainer.formControl);
 
         //append form to form pane
         this.formPane.appendChild(form);

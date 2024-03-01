@@ -1,5 +1,4 @@
 import CommonUtils from '../utils/common-utils.js';
-import ComponentUtils from '../utils/comp-utils.js';
 import ErrorHandler from '../utils/error-handler.js';
 import HtmlUtils from '../utils/html-utils.js';
 import Container from './container.js';
@@ -7,6 +6,7 @@ import Container from './container.js';
 export default class FormContainer extends Container {
 
     formSchema;
+    formMain;
     formControl;
     formid;
     formHeader;
@@ -33,22 +33,33 @@ export default class FormContainer extends Container {
             schema['type'] = "form";
         }
 
-
         super(schema, observer, null, designmode);
 
         this.formSchema = schema;
-
-        this.initForm();
 
         this.#guid = CommonUtils.ShortGuid();
         if (!schema.hasOwnProperty('caption')) {
             schema['caption'] = this.name;
         }
+        this.formControl = HtmlUtils.createElement(
+            "div",
+            'noid',
+            { class: 'container-fluid' }
+        );
+        this.initForm();
 
-        this.formCaption = schema['caption'];
-        this.#buildForm();
     }
+    resetForm() {
 
+        HtmlUtils.removeChilds(this.formControl);
+        HtmlUtils.removeChilds(this.formMain);
+        HtmlUtils.removeChilds(this.formBody);
+        HtmlUtils.removeChilds(this.formHeader);
+        HtmlUtils.removeChilds(this.formFooter);
+        this.refreshContainer();
+        this.initForm();
+        console.log('form has reset');
+    }
     initForm() {
 
         //set default class
@@ -68,6 +79,8 @@ export default class FormContainer extends Container {
             this.#setClassSchema('header', 'fb-form-header bg-defaul');
         }
 
+        this.formCaption = this.schema['caption'];
+        this.#buildForm();
     }
 
     #makeUniqueId(id) {
@@ -161,7 +174,7 @@ export default class FormContainer extends Container {
         this.#setAttrs('form', formAttrs);
 
         formAttrs['tabindex'] = -1;
-        this.formControl = HtmlUtils.createElement(
+        this.formMain = HtmlUtils.createElement(
             "div",
             this.formid,
             formAttrs
@@ -172,12 +185,13 @@ export default class FormContainer extends Container {
         this.#setformFooter();
         this.formBody.appendChild(this.control);
         if (this.formHeader) {
-            this.formControl.appendChild(this.formHeader);
+            this.formMain.appendChild(this.formHeader);
         }
-        this.formControl.appendChild(this.formBody);
+        this.formMain.appendChild(this.formBody);
         if (this.formFooter) {
-            this.formControl.appendChild(this.formFooter);
+            this.formMain.appendChild(this.formFooter);
         }
+        this.formControl.appendChild(this.formMain);
     }
 
     getJSONSchema() {
@@ -224,7 +238,7 @@ export default class FormContainer extends Container {
         let crtl;
         switch (name) {
             case "form":
-                crtl = this.formControl;
+                crtl = this.formMain;
                 break;
             case "body":
                 crtl = this.formBody;
@@ -369,8 +383,49 @@ export default class FormContainer extends Container {
         }
     }
 
+    #clearLayouts(name) {
+        if (this.schema.hasOwnProperty('styles') &&
+            this.schema.styles.hasOwnProperty('data') &&
+            this.schema.styles.data.hasOwnProperty(name)) {
+            delete this.schema.styles.data[name];
+        }
+    }
+
+    #setLayoutSchema(key, value) {
+
+        if (!this.schema.hasOwnProperty('styles')) {
+            this.schema['styles'] = {};
+        }
+        if (!this.schema.styles.hasOwnProperty('data')) {
+            this.schema.styles['data'] = {};
+        }
+
+        //delete 
+        this.#clearLayouts(key);
+
+        if (!CommonUtils.isNullOrEmpty(value)) {
+            this.schema.styles.data[key] = value;
+        }
+    }
+
+    #getLayoutSchema(key) {
+        let val = "";
+        if (this.schema.hasOwnProperty('styles') &&
+            this.schema.styles.hasOwnProperty('data') &&
+            this.schema.styles.data.hasOwnProperty(key)) {
+            val = this.schema.styles.data[key];
+        }
+        return val;
+    }
+
+    #resetLayouts(name) {
+        if (this.formMain) {
+            this.formMain.style.setProperty(name, this.schema?.styles?.data[name]);
+        }
+    }
     //invalidProp is a callback with message
     setFormProperty(type, name, val, invalidProp) {
+        let invalidMsg = "";
         switch (type) {
             case "attribute":
             case "attr":
@@ -386,12 +441,41 @@ export default class FormContainer extends Container {
             case "property":
                 this.#setPropSchema(name, val);
                 break;
+            case "layout":
+                this.#setLayoutSchema(name, val);
+                break;
+            case "general":
+            case "gen":
+                switch (name) {
+                    case "name":
+                        if (this.formSchema.name !== val) {
+                            //changed
+                            if (!HtmlUtils.isValidName(val)) {
+                                invalidMsg = ErrorHandler.errorCode.Form.INVALID_NAME;
+                            } else {
+                                this.name = val;
+                            }
+                        }
+                        break;
+                    case "caption":
+                        this.caption = val;
+                        break;
+                    default:
+                        break;
+                }
+                break;
             default:
                 this.formSchema[name] = val;
                 break;
         }
-        this.setPropertyToControl(type, name);
-        this.propertyChanged(name);
+        if (!CommonUtils.isNullOrEmpty(invalidMsg)) {
+            if (invalidProp) {
+                invalidProp(invalidMsg);
+            }
+        } else {
+            this.setPropertyToControl(type, name);
+            this.propertyChanged(name);
+        }
     }
 
 
@@ -407,7 +491,11 @@ export default class FormContainer extends Container {
                 this.#resetStyle(name,)
                 break;
             case "attrs":
+            case "attribute":
                 this.#resetAttrs(name)
+                break;
+            case "layout":
+                this.#resetLayouts(name)
                 break;
         }
     }
@@ -469,6 +557,9 @@ export default class FormContainer extends Container {
             case "prop":
             case "property":
                 this.#getPropSchema(name);
+                break;
+            case "layout":
+                this.#getLayoutSchema(name, val);
                 break;
             default:
                 val = this.formSchema[name];

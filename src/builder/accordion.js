@@ -24,13 +24,13 @@ export default class Accordion {
         }
 
         //header
-        let headerItem = HtmlUtils.createElement('h2', itemheader, { class: `accordion-header` });
+        let headerItem = HtmlUtils.createElement('h2', itemheader, { class: `accordion-header ` });
 
         accordionItem.appendChild(headerItem);
 
         let btnAttrs = {};
         let grpItemCls = 'accordion-collapse collapse';
-        let btnCls = 'accordion-button';
+        let btnCls = 'accordion-button fb-accordian-button';
         if (def) {
             grpItemCls = grpItemCls + ' show';
         } else {

@@ -60,7 +60,7 @@ export default class ComponentsBar {
 
     #create() {
         let compbarAttrs = {};
-        compbarAttrs['class'] = 'accordion px-2 py-1';
+        compbarAttrs['class'] = 'accordion accordion-flush px-2';
         if (CommonUtils.isString(this.ref)) {
             compbarAttrs['ref'] = this.ref;
         }

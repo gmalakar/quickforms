@@ -70,7 +70,7 @@ export default class PropertiesBar {
             let prop = mappedCompProp['mappedProp'];
             target.#formcontainer.setFormProperty(type, prop, val, (msg) => {
                 if (!CommonUtils.isNullOrEmpty(msg)) {
-                    Modal.commonModalWindow.setModal(target, "Invalid Component", msg, Modal.Ok, function (source, which) {
+                    Modal.commonModalWindow.setModal(target, "Invalid Form Property", msg, Modal.Ok, function (source, which) {
                         if (e.target) {
                             e.target.value = oldval;
                             e.target.focus();
@@ -132,7 +132,7 @@ export default class PropertiesBar {
         if (!CommonUtils.isNullOrUndefined(propObjects['maxlength']) && Number.isInteger(propObjects['maxlength'])) {
             length = propObjects['maxlength'];
         }
-        let cls = 'editor-property';
+        let cls = 'fb-editor-property';
         let elAttributes = {};
         if (propObjects.hasOwnProperty('attributes')) {
             elAttributes = propObjects['attributes'] || {};
@@ -154,8 +154,8 @@ export default class PropertiesBar {
                 elAttributes.class = elAttributes.class + ' form-control'
                 elAttributes['maxlength'] = length;
                 editorEl = HtmlUtils.createElement('input', propId, elAttributes);
-                let btn = HtmlUtils.createIconButton({ class: 'btn btn-primary', type: 'button' }, { class: 'bi bi-three-dots-vertical' }, `btn-${propId}`);
-                btn.textContent = '...';
+                let btn = HtmlUtils.createIconButton({ class: 'btn btn-primary btn-sm m-0 fb-editor-property-btn', type: 'button' }, { class: 'bi bi-three-dots-vertical' }, `btn-${propId}`);
+                //btn.textContent = '...';
                 btn.addEventListener("click", (e) => {
                     switch (propObjects.popupname) {
                         case "columns":
@@ -216,8 +216,8 @@ export default class PropertiesBar {
     #create() {
         //creat tabobjects
         let tabs = {};
-        tabs[this.#formTabID] = 'Form';
-        tabs[this.#compTabID] = 'Components';
+        tabs[this.#formTabID] = { caption: 'Form' };
+        tabs[this.#compTabID] = { caption: 'Component' };
 
         this.#tab = new TabControl(this.controlId, tabs, this.#formTabID);
         this.tabControl = this.#tab.tabControl;
@@ -227,7 +227,7 @@ export default class PropertiesBar {
 
         //form accordian      
         let formAttrs = {};
-        formAttrs['class'] = 'accordion px-2 py-1';
+        formAttrs['class'] = 'accordion accordion-flush px-2 py-1';
         if (CommonUtils.isString(this.ref)) {
             formAttrs['ref'] = this.ref;
         }
@@ -237,11 +237,10 @@ export default class PropertiesBar {
             for (let [key, value] of Object.entries(PropertiesBar.formProperties)) {
                 let props = value['props'];
                 delete value['props'];
-                let me = this;
                 formAccordion.appendChild(Accordion.getAccordionItem(this.#formAccordID, key, value, this.ref, props, this, function (caller, container, props) {
                     if (CommonUtils.isArray(props)) {
                         for (let item of props) {
-                            let propItem = PropertiesBar.#createProp(caller.formAccordID, item, caller.formPropElements, caller, PropertiesBar.onFormPropChanged);
+                            let propItem = PropertiesBar.#createProp(`${caller.#formAccordID}-${key}`, item, caller.formPropElements, caller, PropertiesBar.onFormPropChanged);
                             container.appendChild(propItem);
                         }
                     }
@@ -252,7 +251,7 @@ export default class PropertiesBar {
 
         //components tab
         let compAttrs = {};
-        compAttrs['class'] = 'accordion px-2 py-1';
+        compAttrs['class'] = 'accordion accordion-flush py-2';
         if (CommonUtils.isString(this.ref)) {
             compAttrs['ref'] = this.ref;
         }
@@ -266,7 +265,7 @@ export default class PropertiesBar {
                 compAccordian.appendChild(Accordion.getAccordionItem(this.#compAcordID, key, value, this.ref, props, this, function (caller, container, props) {
                     if (CommonUtils.isArray(props)) {
                         for (let item of props) {
-                            let propItem = PropertiesBar.#createProp(caller.compAcordID, item, caller.compPropElements, caller, PropertiesBar.onCompPropChanged);
+                            let propItem = PropertiesBar.#createProp(`${caller.#compAcordID}-${key}`, item, caller.compPropElements, caller, PropertiesBar.onCompPropChanged);
                             container.appendChild(propItem);
                         }
                     }
@@ -312,14 +311,14 @@ export default class PropertiesBar {
             default: false,
             props: [
                 {
-                    mappedType: "attr",
+                    mappedType: "data",
                     mappedProp: "data-key",
                     name: "Binding",
                     type: "textfield",
                     maxlength: 30
                 },
                 {
-                    mappedType: "attr",
+                    mappedType: "data",
                     mappedProp: "required",
                     name: "Required",
                     type: "select",
@@ -463,18 +462,18 @@ export default class PropertiesBar {
             default: false,
             props: [
                 {
-                    mappedType: "style",
+                    mappedType: "layout",
                     mappedProp: "height",
                     name: "Height",
-                    type: "number",
-                    maxlength: 3
+                    type: "textfield",
+                    maxlength: 6
                 },
                 {
-                    mappedType: "style",
+                    mappedType: "layout",
                     mappedProp: "width",
                     name: "With",
-                    type: "number",
-                    maxlength: 3
+                    type: "textfield",
+                    maxlength: 6
                 },
 
             ]

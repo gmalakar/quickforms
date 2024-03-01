@@ -37,3 +37,16 @@ table.table-fit tfoot td {
 .fb-json-holder {
   height: 100%;
 }
+
+.fb-accordian-button {
+  height: 18px;
+}
+
+.fb-editor-property {
+  height: 28px;
+}
+
+.fb-editor-property-btn {
+  height: 28px;
+  width: 28px;
+}

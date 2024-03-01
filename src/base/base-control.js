@@ -21,6 +21,14 @@ export default class BaseControl {
 
     designmode = false;
 
+    controlId;
+
+    static #defaultCompClass = 'mb-2 fb-form-component';
+
+    static #defaultCaptionClass = 'form-label fb-form-label';
+
+    static #defaultControlClass = 'form-control fb-form-control';
+
     constructor(containingComponent, defaultCaption = "Base Element") {
         if (this.constructor === BaseControl) {
             throw new Error("Abstract classes can't be instantiated.");
@@ -32,22 +40,10 @@ export default class BaseControl {
         this.schema.columns = this.schema.columns || {};
         this.columns = this.schema.columns;
         this.#initForm();
+        this.controlId = `${this.containingContainer.formName}[${this.name}]`;
     }
 
     #initForm() {
-
-        //set default class
-        if (!this.#getClassSchema('component')) {
-            this.#setClassSchema('component', 'mb-2 fb-form-component');
-        }
-
-        if (!this.#getClassSchema('control')) {
-            this.#setClassSchema('control', 'form-control fb-form-control');
-        }
-
-        if (!this.#getClassSchema('label')) {
-            this.#setClassSchema('label', 'form-label fb-form-label');
-        }
 
     }
     get name() {
@@ -191,7 +187,7 @@ export default class BaseControl {
         return val;
     }
 
-    #getAttribute(key) {
+    #getAttrSchema(key) {
         let val = "";
         if (this.schema.hasOwnProperty('attributes')) {
             val = this.schema['attributes'][key];
@@ -205,8 +201,8 @@ export default class BaseControl {
                 }
                 val = JSON.stringify(attrs);
             }
-            return val;
         }
+        return val;
     }
 
     #resetAttrs(name) {
@@ -216,6 +212,47 @@ export default class BaseControl {
             for (let attr of attrs) {
                 crtl.setAttribute(attr.name, attr.value);
             }
+        }
+    }
+
+    #clearDataAttrs(name) {
+        if (this.schema.hasOwnProperty('attributes') &&
+            this.schema.attributes.hasOwnProperty('data') &&
+            this.schema.attributes.data.hasOwnProperty(name)) {
+            delete this.schema.attributes.data[name];
+        }
+    }
+
+    #setDataAttrSchema(key, value) {
+
+        if (!this.schema.hasOwnProperty('attributes')) {
+            this.schema['attributes'] = {};
+        }
+        if (!this.schema.attributes.hasOwnProperty('data')) {
+            this.schema.attributes['data'] = {};
+        }
+
+        //delete 
+        this.#clearDataAttrs(key);
+
+        if (!CommonUtils.isNullOrEmpty(value)) {
+            this.schema.attributes.data[key] = value;
+        }
+    }
+
+    #getDataAttrSchema(key) {
+        let val = "";
+        if (this.schema.hasOwnProperty('attributes') &&
+            this.schema.attributes.hasOwnProperty('data') &&
+            this.schema.attributes.data.hasOwnProperty(key)) {
+            val = this.schema.attributes.data[key];
+        }
+        return val;
+    }
+
+    #resetDataAttrs(name) {
+        if (this.elementControl) {
+            this.elementControl.setAttribute(name, this.schema?.attributes?.data[name]);
         }
     }
 
@@ -277,8 +314,8 @@ export default class BaseControl {
                 }
                 val = JSON.stringify(attrs);
             }
-            return val;
         }
+        return val;
     }
 
     #setClassSchema(key, value) {
@@ -325,6 +362,10 @@ export default class BaseControl {
                 case "style":
                     this.#setStyleSchema(name, val);
                     break;
+                case "data":
+                case "dataattr":
+                    this.#setDataAttrSchema(name, val);
+                    break;
                 case "class":
                     this.#setClassSchema(name, val);
                     break;
@@ -360,7 +401,7 @@ export default class BaseControl {
             }
         }
         if (!CommonUtils.isNullOrEmpty(invalidMsg)) {
-            if (invalidProp && invalidProp === typeof 'fuction') {
+            if (invalidProp) {
                 invalidProp(invalidMsg);
             }
         } else {
@@ -368,8 +409,8 @@ export default class BaseControl {
             this.setPropertyToControl(type, name);
             this.setComponentPropertyLocal(type, name, val);
             this.containingContainer.propertyChanged(name);
+            this.setPropertyToControl(type, name);
         }
-        this.setPropertyToControl(type, name);
     }
 
     setPropertyToControl(type, name) {
@@ -383,8 +424,16 @@ export default class BaseControl {
             case "style":
                 this.#resetStyle(name,)
                 break;
+            case "style":
+                this.#resetStyle(name,)
+                break;
             case "attrs":
+            case "attribute":
                 this.#resetAttrs(name)
+                break;
+            case "data":
+            case "dataattr":
+                this.#resetDataAttrs(name);
                 break;
         }
     }
@@ -412,7 +461,7 @@ export default class BaseControl {
         switch (type) {
             case "attribute":
             case "attr":
-                val = this.#getAttribute(name);
+                val = this.#getAttrSchema(name);
                 break;
             case "class":
                 val = this.#getClassSchema(name);
@@ -422,7 +471,11 @@ export default class BaseControl {
                 break;
             case "prop":
             case "property":
-                this.#getPropSchema(name);
+                val = this.#getPropSchema(name);
+                break;
+            case "data":
+            case "dataattr":
+                val = this.#getDataAttrSchema(name);
                 break;
             default:
                 val = this.schema[name];
@@ -457,10 +510,20 @@ export default class BaseControl {
 
     setCompControl() {
         let compAttrs = {};
-        let cls = this.#getClassSchema('component')
-        if (this.designmode && name === 'conponent') {
+
+        let cls = BaseControl.#defaultCompClass;
+
+        let compcls = this.#getClassSchema('component')
+
+        if (!CommonUtils.isNullOrEmpty(compcls)) {
+            cls = `${cls} ${compcls}`;
+        }
+
+
+        if (this.designmode) {
             cls = cls + " fb-design-mode";
         }
+
         compAttrs.class = cls;
         this.#setStyle('component', compAttrs);
         this.#setAttrs('component', compAttrs);
@@ -477,10 +540,19 @@ export default class BaseControl {
 
     setLabelControl() {
         let lblAttrs = {};
-        lblAttrs.class = this.#getClassSchema('lable');
+        let cls = BaseControl.#defaultCaptionClass;
+
+        let lblcls = this.#getClassSchema('label')
+
+        if (!CommonUtils.isNullOrEmpty(lblcls)) {
+            cls = `${cls} ${lblcls}`;
+        }
+
+        lblAttrs.class = cls;
+
         this.#setStyle('lable', lblAttrs);
         this.#setAttrs('lable', lblAttrs);
-        lblAttrs['for'] = this.name;
+        lblAttrs['for'] = this.controlId;
         this.captionControl = HtmlUtils.createElement("label", "noid", lblAttrs);
         if (CommonUtils.isNullOrEmpty(this.schema.caption)) {
             this.caption = this.defaultCaptionn;
@@ -492,16 +564,26 @@ export default class BaseControl {
     setElementControl() {
         let elAttrs = {};
         elAttrs['type'] = ComponentUtils.getType(this.type);
-        elAttrs.class = this.#getClassSchema('control');
+        let cls = BaseControl.#defaultControlClass;
+
+        let elcls = this.#getClassSchema('control')
+
+        if (!CommonUtils.isNullOrEmpty(elcls)) {
+            cls = `${cls} ${elcls}`;
+        }
+
+        elAttrs.class = cls;
+
+        if (CommonUtils.isNullOrEmpty(elAttrs.class)) {
+            elAttrs.class = BaseControl.#defaultControlClass;
+        }
+
         this.#setStyle('control', elAttrs);
         this.#setAttrs('control', elAttrs);
-
-
-        let controlId = `${this.containingContainer.formName}[${this.name}]`;
-
+        this.#setAttrs('data', elAttrs);
         this.elementControl = HtmlUtils.createElement(
             ComponentUtils.getControlType(this.type),
-            controlId,
+            this.controlId,
             elAttrs
         );
 
