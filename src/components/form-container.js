@@ -44,7 +44,7 @@ export default class FormContainer extends Container {
         this.formControl = HtmlUtils.createElement(
             "div",
             'noid',
-            { class: 'container-fluid' }
+            { class: 'container-fluid px-2' }
         );
         this.initForm();
 

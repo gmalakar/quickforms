@@ -39,14 +39,27 @@ table.table-fit tfoot td {
 }
 
 .fb-accordian-button {
-  height: 18px;
+  height: 24px;
+  padding: 2px;
 }
 
 .fb-editor-property {
   height: 28px;
 }
 
+.fb-editor-property-check {
+  height: 1.5em;
+  width: 1.5em;
+}
+
 .fb-editor-property-btn {
-  height: 28px;
-  width: 28px;
+  height: 20px;
+  width: 20px;
+}
+.fb-form-body {
+  height: 100%;
+}
+.fb-form-checkbox {
+  height: 1.5em;
+  width: 1.5em;
 }

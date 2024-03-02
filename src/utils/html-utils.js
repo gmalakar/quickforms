@@ -93,6 +93,21 @@ export default class HtmlUtils {
             }
         }
     }
+
+    static populateDatalist(targetElement, options) {
+        if (HtmlUtils.isHTMLElement(targetElement) && options) {
+            if (CommonUtils.isJson(options)) {
+                options = CommonUtils.jsonToObject(options);
+            }
+            if (CommonUtils.isArray(options)) {
+                for (let value of options) {
+                    var opt = document.createElement('option');
+                    opt.value = value;
+                    targetElement.appendChild(opt);
+                }
+            }
+        }
+    }
     static removeClassByPrefix(el, prefix) {
         let regx = new RegExp('\\b' + prefix + '.*?\\b', 'g');
         el.className = el.className.replace(regx, '');

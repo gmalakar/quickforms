@@ -63,7 +63,7 @@ export default class Accordion {
         //sidebar container
         //sidebar group
         let bodyAttrs = {};
-        bodyAttrs['class'] = 'accordion-body d-grid gap-1 no-drop p-2 w-100';
+        bodyAttrs['class'] = 'accordion-body d-grid gap-1 p-2';
 
         if (CommonUtils.isString(ref)) {
             bodyAttrs['ref'] = `${ref}-container`;

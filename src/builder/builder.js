@@ -138,17 +138,17 @@ export default class Builder {
         this.#buildertTabPanes = tabcontrol.tabPanes;
 
         //main builder
-        let builder = this.#createElement('div', this.#builderId, { class: `fb-builder row p-0` });
+        let builder = this.#createElement('div', this.#builderId, { class: `fb-builder row p-2 g-1` });
 
 
         //components bar
-        let componentBar = this.#createElement('div', this.#sideCompId, { class: `col-xs-3 col-sm-3 col-md-2 p-2 fb-component-bar` });
+        let componentBar = this.#createElement('div', this.#sideCompId, { class: `col-xs-3 col-sm-3 col-md-2 p-0 fb-component-bar` });
 
         //form design area
-        let formArea = this.#createElement('div', this.#designAreaId, { class: `col-xs-6 col-sm-6 col-md-8 p-0 fb-form-area`, ref: this.#builderId });
+        let formArea = this.#createElement('div', this.#designAreaId, { class: `col-xs-6 col-sm-6 col-md-8  p-0 fb-form-area`, ref: this.#builderId });
 
         //property bar
-        let propertyBar = this.#createElement('div', this.#propertyId, { class: `col-xs-3 col-sm-3 col-md-2 p-2 fb-property-bar`, ref: this.#builderId });
+        let propertyBar = this.#createElement('div', this.#propertyId, { class: `col-xs-3 col-sm-3 col-md-2  p-0 fb-property-bar`, ref: this.#builderId });
 
         //append components bar
         builder.appendChild(componentBar);
@@ -161,7 +161,7 @@ export default class Builder {
 
         //add designer
         //add container holder
-        let formContainerHolder = this.#createElement('div', this.#areaId, { class: 'fb-design-area m-2', ref: this.#designAreaId });
+        let formContainerHolder = this.#createElement('div', this.#areaId, { class: 'fb-design-area p-0', ref: this.#designAreaId });
 
         //add form container
         this.#theFormContainer = new FormContainer(this.#formschema, new Observer(this, Builder.#listener), true);

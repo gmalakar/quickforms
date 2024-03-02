@@ -2,8 +2,12 @@ import CommonUtils from "../utils/common-utils.js";
 import ErrorHandler from "../utils/error-handler.js";
 import HtmlUtils from "../utils/html-utils.js";
 import TextField from "../elements/textfield.js";
+import PasswordField from "../elements/password.js";
+import NumberField from "../elements/number.js";
 import TextArea from "../elements/textarea.js";
 import Columns from "../elements/columns.js";
+import CheckboxField from "../elements/checkbox.js";
+import SelectField from "../elements/select.js";
 import Container from "./container.js";
 export default class Component {
     //public members
@@ -71,12 +75,20 @@ export default class Component {
 
     static getComponentControl(type, containgComponent) {
         switch (type) {
-            case "textfield":
+            case "text":
                 return new TextField(containgComponent);
+            case "number":
+                return new NumberField(containgComponent);
+            case "password":
+                return new PasswordField(containgComponent);
+            case "checkbox":
+                return new CheckboxField(containgComponent);
             case "textarea":
                 return new TextArea(containgComponent);
             case "columns":
                 return new Columns(containgComponent);
+            case "select":
+                return new SelectField(containgComponent);
             default:
                 return ErrorHandler.throwError(
                     ErrorHandler.errorCode.Component.INVALID_TYPE

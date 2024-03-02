@@ -160,7 +160,6 @@ export default class Container extends Observable {
     get control() {
         if (!this.#containerControl) {
             this.#containerControl = HtmlUtils.createElement("div", "noid", {
-                novalidate: ``,
                 class: this.containerClass,
                 ref: this.name,
             });

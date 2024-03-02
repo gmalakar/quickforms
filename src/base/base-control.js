@@ -1,7 +1,8 @@
 import CommonUtils from "../utils/common-utils.js";
 import HtmlUtils from "../utils/html-utils.js";
-import ComponentUtils from "../utils/comp-utils.js";
-import ErrorHandler from "../utils/error-handler.js";
+import ComponentUtils from "../utils/component-utils.js";
+import BootstrapUtils from "../utils/boostrap-utils.js";
+
 export default class BaseControl {
     captionControl;
 
@@ -23,11 +24,40 @@ export default class BaseControl {
 
     controlId;
 
-    static #defaultCompClass = 'mb-2 fb-form-component';
+    static #defaultCompClass(type) {
+        return 'mb-2 fb-form-component';;
+    }
 
-    static #defaultCaptionClass = 'form-label fb-form-label';
+    static #defaultCaptionClass(type) {
+        let cls = 'fb-form-label';
+        switch (type) {
+            case "checkbox":
+                cls = 'fb-form-label-checkbox';
+                break;
+            case "radio":
+                cls = 'fb-form-label-radio';
+                break;
+            default:
+                break;
+        }
+        return cls;
+    }
 
-    static #defaultControlClass = 'form-control fb-form-control';
+    static #defaultControlClass(type) {
+        let cls = 'fb-form-control';
+        switch (type) {
+            case "checkbox":
+                cls = 'fb-form-checkbox';
+                break;
+            case "radio":
+                cls = 'fb-form-radio';
+                break;
+            default:
+                break;
+        }
+        return cls;
+    }
+
 
     constructor(containingComponent, defaultCaption = "Base Element") {
         if (this.constructor === BaseControl) {
@@ -494,7 +524,16 @@ export default class BaseControl {
     #setAttrs(type, attrArr) {
         if (attrArr && CommonUtils.isArray(attrArr)) {
             for (let attr of this.#getAttributeObj(type)) {
-                attrArr[attr['name']] = attr['value'];
+                let attrName = attr['name'];
+                let attrVal = attr['value'];
+                let set = !ComponentUtils.blankAttribure(attrName); //set if not blank attr
+                if (!set && attrVal === 'true') {
+                    attrVal = ''
+                    set = true;
+                }
+                if (set) {
+                    attrArr[attrName] = attrVal;
+                }
             }
         }
     }
@@ -511,14 +550,19 @@ export default class BaseControl {
     setCompControl() {
         let compAttrs = {};
 
-        let cls = BaseControl.#defaultCompClass;
+        let cls = BaseControl.#defaultCompClass(this.type);
+
+        let bsClass = BootstrapUtils.getBSComponentClass(this.type);
+
+        if (!CommonUtils.isNullOrEmpty(bsClass)) {
+            cls = `${cls} ${bsClass}`;
+        }
 
         let compcls = this.#getClassSchema('component')
 
         if (!CommonUtils.isNullOrEmpty(compcls)) {
             cls = `${cls} ${compcls}`;
         }
-
 
         if (this.designmode) {
             cls = cls + " fb-design-mode";
@@ -540,7 +584,13 @@ export default class BaseControl {
 
     setLabelControl() {
         let lblAttrs = {};
-        let cls = BaseControl.#defaultCaptionClass;
+        let cls = BaseControl.#defaultCaptionClass(this.type);
+
+        let bsClass = BootstrapUtils.getBSlabelClass(this.type);
+
+        if (!CommonUtils.isNullOrEmpty(bsClass)) {
+            cls = `${cls} ${bsClass}`;
+        }
 
         let lblcls = this.#getClassSchema('label')
 
@@ -563,8 +613,14 @@ export default class BaseControl {
 
     setElementControl() {
         let elAttrs = {};
-        elAttrs['type'] = ComponentUtils.getType(this.type);
-        let cls = BaseControl.#defaultControlClass;
+        elAttrs['type'] = this.type;//ComponentUtils.getType(this.type);
+        let cls = BaseControl.#defaultControlClass(this.type);
+
+        let bsClass = BootstrapUtils.getBSElementClass(this.type);
+
+        if (!CommonUtils.isNullOrEmpty(bsClass)) {
+            cls = `${cls} ${bsClass}`;
+        }
 
         let elcls = this.#getClassSchema('control')
 
@@ -581,6 +637,7 @@ export default class BaseControl {
         this.#setStyle('control', elAttrs);
         this.#setAttrs('control', elAttrs);
         this.#setAttrs('data', elAttrs);
+        elAttrs['type'] = this.type;
         this.elementControl = HtmlUtils.createElement(
             ComponentUtils.getControlType(this.type),
             this.controlId,
@@ -592,16 +649,18 @@ export default class BaseControl {
         }
     }
 
-    setColumnsControl() { }
+    setOtherControl() { }
+
+    buildOtherControl() { }
 
     buildControl() {
         this.setCompControl();
 
         this.setLabelControl();
 
-        this.setColumnsControl();
-
         this.setElementControl();
+
+        this.setOtherControl();
 
         if (this.captionControl) {
             this.componentControl.appendChild(this.captionControl);
@@ -615,6 +674,9 @@ export default class BaseControl {
             this.componentControl.appendChild(this.elementControl);
         }
 
+        this.buildOtherControl();
+
         this.containerControl.appendChild(this.componentControl);
     }
+
 }

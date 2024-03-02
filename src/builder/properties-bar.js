@@ -5,6 +5,7 @@ import ColumnsEditor from '../editors/columns-editor.js';
 import NameValueEditor from '../editors/name-value-editor.js';
 import TabControl from '../utils/tab-control.js';
 import Modal from '../utils/modal.js';
+import BootstrapUtils from '../utils/boostrap-utils.js';
 export default class PropertiesBar {
 
     ref;
@@ -117,35 +118,52 @@ export default class PropertiesBar {
         this.#tab.show(this.#formTabID);
     }
 
+    static #getEditorClass(type) {
+        let cls = 'fb-editor-property';
+        switch (type) {
+            case "checkbox":
+            case "radio":
+                cls = 'fb-editor-property-check';
+                break;
+            default:
+                break;
+        }
+        return cls;
+    }
+
     static #createProp(propFor, propObjects, propElements, caller, onPropertyChanged) {
+        let datatype = 'text'
+        if (propObjects.hasOwnProperty('datatype')) {
+            datatype = propObjects['datatype'];
+        }
         let propId = `${propFor}-prop-${propObjects.mappedProp}`;
         let mappedType = propObjects['mappedType'];
         let mappedProp = propObjects['mappedProp'];
-        let propPane = HtmlUtils.createElement('div', 'noid', { class: 'editor-property-pane row' });
-        let nameCol = HtmlUtils.createElement('div', 'noid', { class: 'editor-property-row' });
-        let valueCol = HtmlUtils.createElement('div', 'noid', { class: 'editor-property-row' });
-        let propName = HtmlUtils.createElement('label', 'noid', { class: 'editor-property-label', for: propId });
+        let compClass = BootstrapUtils.getBSComponentClass(datatype);
+        let labelClass = BootstrapUtils.getBSlabelClass(datatype);
+        let elClass = BootstrapUtils.getBSElementClass(datatype);
+        let propPane = HtmlUtils.createElement('div', 'noid', { class: `editor-property-pane ${BootstrapUtils.getBSRowOrColClass(datatype)}` });
+        let valueCol = HtmlUtils.createElement('div', 'noid', { class: `editor-property-row p-1 ${compClass}` });
+        let propName = HtmlUtils.createElement('label', 'noid', { class: `editor-property-label ${labelClass}`, for: propId });
         propName.textContent = propObjects.name;
+        valueCol.appendChild(propName);
         let editorEl;
         let groupEl;
         let length = 20;
         if (!CommonUtils.isNullOrUndefined(propObjects['maxlength']) && Number.isInteger(propObjects['maxlength'])) {
             length = propObjects['maxlength'];
         }
-        let cls = 'fb-editor-property';
+        let cls = `${elClass} ${PropertiesBar.#getEditorClass(datatype)}`;
         let elAttributes = {};
         if (propObjects.hasOwnProperty('attributes')) {
             elAttributes = propObjects['attributes'] || {};
         }
-        let datatype = 'text'
-        if (propObjects.hasOwnProperty('datatype')) {
-            datatype = propObjects['datatype'];
-        }
+
         elAttributes['type'] = datatype;
         elAttributes.class = cls;
         switch (propObjects.type) {
-            case 'textfield':
-                elAttributes.class = elAttributes.class + ' form-control'
+            case 'input':
+                elAttributes.class = cls;
                 elAttributes['maxlength'] = length;
                 editorEl = HtmlUtils.createElement('input', propId, elAttributes);
                 break;
@@ -201,13 +219,13 @@ export default class PropertiesBar {
                 onPropertyChanged(caller, e, mappedCompProp);
             }
         };
-        nameCol.appendChild(propName);
+
         if (groupEl) {
             valueCol.appendChild(groupEl);
         } else {
             valueCol.appendChild(editorEl);
         }
-        propPane.appendChild(nameCol);
+
         propPane.appendChild(valueCol);
         propElements.push(mappedCompProp);
         return propPane;
@@ -216,8 +234,8 @@ export default class PropertiesBar {
     #create() {
         //creat tabobjects
         let tabs = {};
-        tabs[this.#formTabID] = { caption: 'Form' };
-        tabs[this.#compTabID] = { caption: 'Component' };
+        tabs[this.#formTabID] = { caption: 'Form', 'paneclass': 'p-1' };
+        tabs[this.#compTabID] = { caption: 'Component', 'paneclass': 'p-1' };
 
         this.#tab = new TabControl(this.controlId, tabs, this.#formTabID);
         this.tabControl = this.#tab.tabControl;
@@ -227,7 +245,7 @@ export default class PropertiesBar {
 
         //form accordian      
         let formAttrs = {};
-        formAttrs['class'] = 'accordion accordion-flush px-2 py-1';
+        formAttrs['class'] = 'accordion accordion-flush p-0';
         if (CommonUtils.isString(this.ref)) {
             formAttrs['ref'] = this.ref;
         }
@@ -285,21 +303,21 @@ export default class PropertiesBar {
                     mappedType: "gen",
                     mappedProp: "name",
                     name: "Name",
-                    type: "textfield",
+                    type: "input",
                     maxlength: 50
                 },
                 {
                     mappedType: "gen",
                     mappedProp: "caption",
                     name: "Description",
-                    type: "textfield",
+                    type: "input",
                     maxlength: 50
                 },
                 {
                     mappedType: "gen",
                     mappedProp: "type",
                     name: "Type",
-                    type: "textfield",
+                    type: "input",
                     attributes: {
                         readonly: true
                     }
@@ -314,8 +332,17 @@ export default class PropertiesBar {
                     mappedType: "data",
                     mappedProp: "data-key",
                     name: "Binding",
-                    type: "textfield",
+                    type: "input",
                     maxlength: 30
+                },
+                {
+                    mappedType: "data",
+                    mappedProp: "required",
+                    name: "Required",
+                    type: "input",
+                    datatype: "checkbox",
+                    default: 'false',
+
                 },
                 {
                     mappedType: "data",
@@ -338,21 +365,21 @@ export default class PropertiesBar {
                     mappedType: "class",
                     mappedProp: "component",
                     name: "Component",
-                    type: "textfield",
+                    type: "input",
                     maxlength: 50
                 },
                 {
                     mappedType: "class",
                     mappedProp: "label",
                     name: "Caption",
-                    type: "textfield",
+                    type: "input",
                     maxlength: 50
                 },
                 {
                     mappedType: "class",
                     mappedProp: "control",
                     name: "Element",
-                    type: "textfield",
+                    type: "input",
                     maxlength: 50
                 }
             ]
@@ -445,14 +472,14 @@ export default class PropertiesBar {
                     mappedType: "gen",
                     mappedProp: "name",
                     name: "Name",
-                    type: "textfield",
+                    type: "input",
                     maxlength: 50
                 },
                 {
                     mappedType: "gen",
                     mappedProp: "caption",
                     name: "Caption",
-                    type: "textfield",
+                    type: "input",
                     maxlength: 50
                 }
             ]
@@ -465,14 +492,14 @@ export default class PropertiesBar {
                     mappedType: "layout",
                     mappedProp: "height",
                     name: "Height",
-                    type: "textfield",
+                    type: "input",
                     maxlength: 6
                 },
                 {
                     mappedType: "layout",
                     mappedProp: "width",
                     name: "With",
-                    type: "textfield",
+                    type: "input",
                     maxlength: 6
                 },
 
@@ -486,28 +513,28 @@ export default class PropertiesBar {
                     mappedType: "class",
                     mappedProp: "form",
                     name: "Form Class",
-                    type: "textfield",
+                    type: "input",
                     maxlength: 50
                 },
                 {
                     mappedType: "class",
                     mappedProp: "header",
                     name: "Header Class",
-                    type: "textfield",
+                    type: "input",
                     maxlength: 50
                 },
                 {
                     mappedType: "class",
                     mappedProp: "body",
                     name: "Body Class",
-                    type: "textfield",
+                    type: "input",
                     maxlength: 50
                 },
                 {
                     mappedType: "class",
                     mappedProp: "title",
                     name: "Title Class",
-                    type: "textfield",
+                    type: "input",
                     maxlength: 50
                 },
 

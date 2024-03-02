@@ -354,7 +354,7 @@ export default class Table {
         }
         let tdChild;
         switch (col.type) {
-            case "textfield":
+            case "text":
                 tdChild = HtmlUtils.createElement('input', editName, colAttributes);
                 break;
 

@@ -20,7 +20,7 @@ export default class TabControl {
 
     #createTab() {
         //tabcontrol
-        this.tabControl = HtmlUtils.createElement('div', this.tabControlID);
+        this.tabControl = HtmlUtils.createElement('div', this.tabControlID, { class: 'container-fluid p-0' });
 
         //navigation
         let nav = HtmlUtils.createElement('ul', this.panelid + '-tab', { class: `nav nav-tabs`, role: `tablist` });
@@ -32,7 +32,10 @@ export default class TabControl {
         if (CommonUtils.isObjcetButNotArray(this.tabs)) {
             for (let [key, value] of Object.entries(this.tabs)) {
                 let linkclass = `nav-link`;
-                let paneclass = `tab-pane fade container-fluid`;
+                let paneclass = `tab-pane fade container-fluid p-0`;
+                if (value.paneclass) {
+                    paneclass = `${paneclass} ${value.paneclass}`
+                }
                 if (key === this.defaultTab) {
                     linkclass = linkclass + ' active';
                     paneclass = paneclass + ' active show'

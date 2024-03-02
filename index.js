@@ -22,7 +22,7 @@ let formMetaData = {
                     "components": {
                         "textfield1": {
                             "name": "textfield1",
-                            "type": "textfield",
+                            "type": "text",
                             "columns": {},
                             "caption": "Text Field"
                         }
@@ -60,7 +60,7 @@ let formMetaData = {
         },
         "textfield2": {
             "name": "textfield2",
-            "type": "textfield",
+            "type": "text",
             "columns": {},
             "caption": "Text Field"
         },

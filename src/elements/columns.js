@@ -84,7 +84,7 @@ export default class Columns extends BaseControl {
                     column['properties']['push'] = dataRow['push'] || 0;
                 }
             }
-            this.setColumnsControl(true);
+            this.setOtherControl(true);
         }
     }
 
@@ -114,7 +114,7 @@ export default class Columns extends BaseControl {
 
     setElementControl() { }
 
-    setColumnsControl(reset) {
+    setOtherControl(reset) {
         if (this.#columnLength > 0) {
             let parentContainer = this.containingComponent.container;
             //create row

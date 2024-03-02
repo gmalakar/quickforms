@@ -54,7 +54,7 @@ export default class NameValueEditor extends BaseEditor {
                 columns: [
                     {
                         header: 'Name',
-                        type: 'textfield',
+                        type: 'text',
                         class: 'form-control',
                         attributes: {
                             maxlength: 50,
@@ -63,7 +63,7 @@ export default class NameValueEditor extends BaseEditor {
                     },
                     {
                         header: 'Value',
-                        type: 'textfield',
+                        type: 'text',
                         class: 'form-control',
                         attributes: {
                             maxlength: 50,

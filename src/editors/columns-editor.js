@@ -69,7 +69,7 @@ export default class ColumnsEditor extends BaseEditor {
                     },
                     {
                         header: 'With',
-                        type: 'textfield',
+                        type: 'text',
                         class: 'form-control',
                         attributes: {
                             maxlength: 3,
@@ -82,7 +82,7 @@ export default class ColumnsEditor extends BaseEditor {
                     },
                     {
                         header: 'Offset',
-                        type: 'textfield',
+                        type: 'text',
                         class: 'form-control',
                         attributes: {
                             maxlength: 2,
@@ -95,7 +95,7 @@ export default class ColumnsEditor extends BaseEditor {
                     },
                     {
                         header: 'Push',
-                        type: 'textfield',
+                        type: 'text',
                         class: 'form-control',
                         attributes: {
                             maxlength: 2,
@@ -108,7 +108,7 @@ export default class ColumnsEditor extends BaseEditor {
                     },
                     {
                         header: 'Pull',
-                        type: 'textfield',
+                        type: 'text',
                         class: 'form-control',
                         attributes: {
                             maxlength: 2,

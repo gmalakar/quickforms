@@ -15,13 +15,19 @@ export default class ComponentsBar {
         this.#create();
     }
 
-    static #createOption(type, group, text, iconcls, componentsBar) {
+    static #createOption(item, componentsBar) {
+        let type = item['type'];
+        let datatype = 'text';
+        if (item.hasOwnProperty('datatype')) {
+            datatype = item['datatype'];
+        }
+        let caption = item['text'];
+        let iconCls = item['iconCls'];
+
         let attrs = {};
         attrs['tabindex'] = '0'
-        attrs['class'] = `btn btn-outline-primary btn-sm m-0`;
-        attrs['data-type'] = type;
-        attrs['data-group'] = group;
-        attrs['data-key'] = type;
+        attrs['class'] = `btn btn-outline-secondary btn-sm`;
+        attrs['data-type'] = datatype;
         attrs['comp-type'] = type;
         attrs['draggable'] = true;
 
@@ -29,12 +35,11 @@ export default class ComponentsBar {
             attrs['ref'] = `${componentsBar.ref}-component`;
         }
         let element = HtmlUtils.createElement('span', 'noid', attrs);
-        let icon = HtmlUtils.createElement('i', 'noid', { class: iconcls, style: `margin-right: 5px;` });
-        element.textContent = ` ${text} `;
+        let icon = HtmlUtils.createElement('i', 'noid', { class: iconCls, style: 'margin-right: 5px;' });
         element.appendChild(icon);
+        element.appendChild(document.createTextNode(` ${caption} `));
         element.ondragstart = (e) => {
             let compType = e.target.attributes['comp-type'].value;
-            console.log(compType);
             HtmlUtils.dataTransferSetData(e, 'add-comp', compType);
         };
         element.onclick = (e) => {
@@ -60,7 +65,7 @@ export default class ComponentsBar {
 
     #create() {
         let compbarAttrs = {};
-        compbarAttrs['class'] = 'accordion accordion-flush px-2';
+        compbarAttrs['class'] = 'accordion';
         if (CommonUtils.isString(this.ref)) {
             compbarAttrs['ref'] = this.ref;
         }
@@ -75,7 +80,7 @@ export default class ComponentsBar {
                 this.control.appendChild(Accordion.getAccordionItem(this.#compbarId, key, value, this.ref, compButtons, this, function (componentsBar, container, props) {
                     if (CommonUtils.isArray(props)) {
                         for (let item of props) {
-                            let propItem = ComponentsBar.#createOption(item['type'], key, item['text'], item['iconCls'], componentsBar);
+                            let propItem = ComponentsBar.#createOption(item, componentsBar);
                             container.appendChild(propItem);
                         }
                     }
@@ -91,7 +96,7 @@ export default class ComponentsBar {
             btns: [
                 {
                     "default": true,
-                    "type": "textfield",
+                    "type": "text",
                     "text": "Text Field",
                     "iconCls": "bi bi-terminal",
                 },
@@ -99,7 +104,31 @@ export default class ComponentsBar {
                     "type": "textarea",
                     "text": "Text Area",
                     "iconCls": "bi bi-type",
-                }
+                },
+                {
+                    "type": "number",
+                    "text": "Number",
+                    "iconCls": "bi bi-hash",
+                    "datatype": "number"
+                },
+                {
+                    "type": "password",
+                    "text": "Password",
+                    "iconCls": "bi bi-asterisk",
+                    "datatype": "password"
+                },
+                {
+                    "type": "checkbox",
+                    "text": "Checkbox",
+                    "iconCls": "bi-check-square",
+                    "datatype": "checkbox"
+                },
+                {
+                    "type": "select",
+                    "text": "select",
+                    "iconCls": "bi bi-menu-button-wide",
+                    "datatype": "select"
+                },
             ]
         },
         "advanced": {
