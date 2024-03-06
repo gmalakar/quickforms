@@ -2,29 +2,28 @@ import HtmlUtils from '../utils/html-utils.js';
 import CommonUtils from '../utils/common-utils.js';
 export default class Accordion {
     constructor() {
-
     }
 
-    static getAccordionItem(accordianid, coreid, itemProps, ref, items, caller, createItems) {
+    static getAccordionItem(id, coreid, itemProps, ref, items, caller, createItems, bodycls) {
         let itemdesc = itemProps['text'] || 'Missing Item Desc';
         let def = itemProps['default'] || false;
-        let visibleFor = itemProps['visibleFor'];
-        let itempanel = `${accordianid}-panel-${coreid}`;
-        let itemheader = `${accordianid}-header-${coreid}`;
-        let containerid = `${accordianid}-components-${coreid}`;
-        let container = `${accordianid}-container-${coreid}`;
+        let visiblefor = itemProps['visibleFor'];
+        let itempanel = `${id}-panel-${coreid}`;
+        let itemheader = `${id}-header-${coreid}`;
+        let containerid = `${id}-components-${coreid}`;
+        let container = `${id}-container-${coreid}`;
         let itemAttr = { class: 'accordion-item' };
-        if (visibleFor) {
-            itemAttr['visiblefor'] = visibleFor;
+        if (visiblefor) {
+            itemAttr['visiblefor'] = visiblefor;
         }
         //item
         let accordionItem = HtmlUtils.createElement('div', itempanel, itemAttr);
-        if (visibleFor) {
+        if (visiblefor) {
             accordionItem.style.display = "none";
         }
 
         //header
-        let headerItem = HtmlUtils.createElement('h2', itemheader, { class: `accordion-header ` });
+        let headerItem = HtmlUtils.createElement('span', itemheader, { class: `accordion-header ` });
 
         accordionItem.appendChild(headerItem);
 
@@ -52,7 +51,7 @@ export default class Accordion {
         let wrapperAttrs = {};
         wrapperAttrs['class'] = grpItemCls;
         wrapperAttrs['aria-labelledby'] = itemheader;
-        wrapperAttrs['data-bs-parent'] = `#${accordianid}`;;
+        wrapperAttrs['data-bs-parent'] = `#${id}`;;
 
         if (CommonUtils.isString(ref)) {
             wrapperAttrs['ref'] = `${ref}-group`;
@@ -63,7 +62,10 @@ export default class Accordion {
         //sidebar container
         //sidebar group
         let bodyAttrs = {};
-        bodyAttrs['class'] = 'accordion-body d-grid gap-1 p-2';
+        if (CommonUtils.isNullOrEmpty(bodycls)) {
+            bodycls = 'd-grid gap-1 p-2';
+        }
+        bodyAttrs['class'] = `accordion-body ${bodycls}`;
 
         if (CommonUtils.isString(ref)) {
             bodyAttrs['ref'] = `${ref}-container`;

@@ -57,6 +57,18 @@ export default class CommonUtils {
         return typeof obj === "string" || obj instanceof String;
     }
 
+    static convertToBoolean(val) {
+        let ret = false;
+        if (CommonUtils.isBoolean(val)) {
+            ret = val;
+        }
+        else if (CommonUtils.isString(val)) {
+            val = val.toLowerCase();
+            ret = val === 'true' || val === '1' || val === 'y' || val === '1';
+        }
+        return ret;
+    }
+
     static deleteFromArray(arr, item) {
         if (CommonUtils.isArray(arr) && arr.includes(item)) {
             arr.splice(arr.indexOf(item), 1);
@@ -68,5 +80,14 @@ export default class CommonUtils {
                 arr.splice(arr.indexOf(oldItem), 1);
             }
         arr.push(newItem);
+    }
+
+    static domReady(fn) {
+        // If we're early to the party
+        document.addEventListener("DOMContentLoaded", fn);
+        // If late; I mean on time.
+        if (document.readyState === "interactive" || document.readyState === "complete") {
+            fn();
+        }
     }
 }

@@ -16,9 +16,7 @@ export default class BaseControl {
 
     defaultCaptionn;
 
-    columnsControl;
-
-    columns = {};
+    otherControl;
 
     designmode = false;
 
@@ -67,8 +65,6 @@ export default class BaseControl {
         this.containingComponent = containingComponent;
         this.schema = containingComponent.schema || {};
         this.designmode = this.containingComponent.designmode || false;
-        this.schema.columns = this.schema.columns || {};
-        this.columns = this.schema.columns;
         this.#initForm();
         this.controlId = `${this.containingContainer.formName}[${this.name}]`;
     }
@@ -439,7 +435,6 @@ export default class BaseControl {
             this.setPropertyToControl(type, name);
             this.setComponentPropertyLocal(type, name, val);
             this.containingContainer.propertyChanged(name);
-            this.setPropertyToControl(type, name);
         }
     }
 
@@ -649,9 +644,9 @@ export default class BaseControl {
         }
     }
 
-    setOtherControl() { }
+    setOtherControls() { }
 
-    buildOtherControl() { }
+    buildOtherControls() { }
 
     buildControl() {
         this.setCompControl();
@@ -660,21 +655,21 @@ export default class BaseControl {
 
         this.setElementControl();
 
-        this.setOtherControl();
+        this.setOtherControls();
 
         if (this.captionControl) {
             this.componentControl.appendChild(this.captionControl);
         }
 
-        if (this.columnsControl) {
-            this.componentControl.appendChild(this.columnsControl);
+        if (this.otherControl) {
+            this.componentControl.appendChild(this.otherControl);
         }
 
         if (this.elementControl) {
             this.componentControl.appendChild(this.elementControl);
         }
 
-        this.buildOtherControl();
+        this.buildOtherControls();
 
         this.containerControl.appendChild(this.componentControl);
     }

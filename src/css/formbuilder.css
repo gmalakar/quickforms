@@ -1,0 +1,119 @@
+.fb-design-mode {
+  border: 1px;
+}
+.fb-design-area {
+  height: 100%;
+}
+.fb-delete-comp-btn {
+  float: right;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+}
+.fb-drag-drop-indication {
+  background-color: bisque;
+  height: auto;
+  width: auto;
+}
+.fb-editor {
+  width: fit-content;
+}
+.fb-selected-comp {
+  border: dotted thin;
+}
+
+table.table-fit {
+  width: auto !important;
+  table-layout: auto !important;
+}
+table.table-fit thead th,
+table.table-fit tbody td,
+table.table-fit tfoot th,
+table.table-fit tfoot td {
+  width: auto !important;
+}
+
+.fb-json-holder {
+  height: 100%;
+}
+
+.fb-accordian-button {
+  height: 24px;
+  padding: 2px;
+}
+
+.fb-editor-input {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+}
+.fb-editor-label {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+}
+.fb-editor-check {
+  border: 1;
+  border-radius: 0;
+  border-color: gray;
+  height: 1.5em;
+  width: 1.5em;
+  padding: 0;
+  margin: 0;
+}
+
+.fb-editor-btn {
+  border: 0;
+  border-radius: 1;
+  height: 2em;
+  width: 2em;
+  padding: 0;
+  margin: 0;
+}
+
+.fb-editor-td-label {
+  padding: 0;
+  margin: 0;
+}
+
+.fb-editor-td-edit {
+  padding: 0;
+  margin: 0;
+  align-items: center;
+}
+
+.fb-form-body {
+  height: 100%;
+}
+
+.fb-form-checkbox {
+  height: 1.5em;
+  width: 1.5em;
+  padding: 0;
+  margin: 0px 0.5em 0 0;
+}
+
+.fb-accordian-button {
+  background-color: lightgrey;
+  height: 28px;
+}
+
+.fb-accordian-button:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.fb-editor-input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.accordion-button:after {
+  order: -1;
+  margin-left: 0;
+  margin-right: 0.5em;
+}

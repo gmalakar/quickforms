@@ -2,19 +2,15 @@ import CommonUtils from '../utils/common-utils.js';
 import ErrorHandler from '../utils/error-handler.js';
 import HtmlUtils from '../utils/html-utils.js';
 import Container from './container.js';
+import PanelControl from '../utils/panel-control.js';
 
 export default class FormContainer extends Container {
 
-    formSchema;
-    formMain;
     formControl;
-    formid;
-    formHeader;
-    formBody;
-    formTitle;
-    formFooter;
+    formSchema;
     formCaption;
     #guid;
+    formPanel;
 
     constructor(schema, observer, designmode = false) {
         schema = schema || {};
@@ -41,21 +37,13 @@ export default class FormContainer extends Container {
         if (!schema.hasOwnProperty('caption')) {
             schema['caption'] = this.name;
         }
-        this.formControl = HtmlUtils.createElement(
-            "div",
-            'noid',
-            { class: 'container-fluid px-2' }
-        );
+        this.formPanel = new PanelControl(this.#panelId, schema['caption']);
+        this.formControl = this.formPanel.control;
+
         this.initForm();
 
     }
     resetForm() {
-
-        HtmlUtils.removeChilds(this.formControl);
-        HtmlUtils.removeChilds(this.formMain);
-        HtmlUtils.removeChilds(this.formBody);
-        HtmlUtils.removeChilds(this.formHeader);
-        HtmlUtils.removeChilds(this.formFooter);
         this.refreshContainer();
         this.initForm();
         console.log('form has reset');
@@ -79,7 +67,6 @@ export default class FormContainer extends Container {
             this.#setClassSchema('header', 'fb-form-header bg-defaul');
         }
 
-        this.formCaption = this.schema['caption'];
         this.#buildForm();
     }
 
@@ -87,111 +74,104 @@ export default class FormContainer extends Container {
         return `${id}-${this.#guid}`;
     }
 
-    #setAttrs(type, attrArr) {
-        if (attrArr && CommonUtils.isArray(attrArr)) {
-            for (let attr of this.#getAttributeObj(type)) {
-                attrArr[attr['name']] = attr['value'];
+    #setAttrs(type) {
+        if (this.formPanel) {
+            switch (type) {
+                case "form":
+                    this.formPanel.setPanelAttributes(this.#getAttributeObj(type), true);
+                    break;
+                case "header":
+                    this.formPanel.setHeaderAttributes(this.#getAttributeObj(type), true);
+                    break;
+                case "title":
+                    this.formPanel.setTitleAttributes(this.#getAttributeObj(type), true);
+                    break;
+                case "body":
+                    this.formPanel.setBodyAttributes(this.#getAttributeObj(type), true);
+                    break;
+                case "footer":
+                    this.formPanel.setFooterAttributes(this.#getAttributeObj(type), true);
+                    break;
+                default:
+                    break;
             }
         }
     }
 
-    #setStyle(type, styleArr) {
-        if (styleArr && CommonUtils.isArray(styleArr)) {
-            let style = HtmlUtils.joinStyles(this.#getAttributeObj(type));
-            if (!CommonUtils.isNullOrEmpty(style)) {
-                styleArr['style'] = style;
+    #setStyle(type) {
+        if (this.formPanel) {
+            switch (type) {
+                case "form":
+                    this.formPanel.setPanelStyles(this.#getStylesObj(type), true);
+                    break;
+                case "header":
+                    this.formPanel.setHeaderStyles(this.#getStylesObj(type), true);
+                    break;
+                case "title":
+                    this.formPanel.setTitleStyles(this.#getStylesObj(type), true);
+                    break;
+                case "body":
+                    this.formPanel.setBodyStyles(this.#getStylesObj(type), true);
+                    break;
+                case "footer":
+                    this.formPanel.setFooterStyles(this.#getStylesObj(type), true);
+                    break;
+                default:
+                    break;
             }
         }
     }
 
-    get formid() {
-        return this.#makeUniqueId(this.name);
+    #setClass(type) {
+        if (this.formPanel) {
+            switch (type) {
+                case "form":
+                    this.formPanel.setPanelClass(this.#getClassSchema(type), true);
+                    break;
+                case "header":
+                    this.formPanel.setHeaderClass(this.#getClassSchema(type), true);
+                    break;
+                case "title":
+                    this.formPanel.setTitleClass(this.#getClassSchema(type), true);
+                    break;
+                case "body":
+                    this.formPanel.setBodyClass(this.#getClassSchema(type), true);
+                    break;
+                case "footer":
+                    this.formPanel.setFooterClass(this.#getClassSchema(type), true);
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 
     get #panelId() {
         return this.#makeUniqueId('panel');
     }
-
-    #setFromHeader() {
-        let hdrAttrs = {};
-        hdrAttrs.class = `card-header ${this.#getClassSchema('header')}`;
-
-        this.#setStyle('header', hdrAttrs);
-
-        this.#setAttrs('header', hdrAttrs);
-
-        this.formHeader = HtmlUtils.createElement(
-            "div",
-            'noid',
-            hdrAttrs
-        );
-
-        let ttlAttrs = {};
-        ttlAttrs.class = `card-title ${this.#getClassSchema('title')}`;
-
-        this.#setStyle('title', ttlAttrs);
-
-        this.#setAttrs('title', ttlAttrs);
-
-        ttlAttrs['aria-controls'] = this.#panelId;
-        ttlAttrs['aria-expanded'] = true;
-        ttlAttrs['role'] = 'button';
-
-        let title = `card-title ${this.#getClassSchema('title')}`;
-
-        this.formTitle = HtmlUtils.createElement(
-            "span",
-            'noid',
-            ttlAttrs
-        );
-
-        this.formTitle.textContent = this.formCaption;
-
-        this.formHeader.appendChild(this.formTitle);
-
-    }
-
-    #setFormBody() {
-        let bodyAttrs = {};
-        bodyAttrs.class = `card-body ${this.#getClassSchema('body')}`;
-        this.#setStyle('body', bodyAttrs);
-        this.#setAttrs('body', bodyAttrs);
-        this.formBody = HtmlUtils.createElement(
-            "div",
-            this.#panelId,
-            bodyAttrs
-        );
-    }
-
-    #setformFooter() {
-
-    }
-
     #buildForm() {
-        let formAttrs = {};
-        formAttrs.class = `card ${this.#getClassSchema('form')}`;
-        this.#setStyle('form', formAttrs);
-        this.#setAttrs('form', formAttrs);
-
-        formAttrs['tabindex'] = -1;
-        this.formMain = HtmlUtils.createElement(
-            "div",
-            this.formid,
-            formAttrs
-        );
-
-        this.#setFromHeader();
-        this.#setFormBody();
-        this.#setformFooter();
-        this.formBody.appendChild(this.control);
-        if (this.formHeader) {
-            this.formMain.appendChild(this.formHeader);
+        //set caption
+        if (this.formPanel) {
+            this.formPanel.setCaption(this.schema['caption'])
+            if (this.formPanel.body && this.control) {
+                this.formPanel.body.appendChild(this.control);
+            }
+            if (this.formSchema.hasOwnProperty('styles')) {
+                for (let key of Object.keys(this.formSchema.hasOwnProperty('styles'))) {
+                    this.#setStyle(key);
+                }
+            }
+            if (this.formSchema.hasOwnProperty('attributes')) {
+                for (let key of Object.keys(this.formSchema.hasOwnProperty('attributes'))) {
+                    this.#setAttrs(key);
+                }
+            }
+            if (this.formSchema.hasOwnProperty('class')) {
+                for (let key of Object.keys(this.formSchema.hasOwnProperty('class'))) {
+                    this.#setClass(key);
+                }
+            }
         }
-        this.formMain.appendChild(this.formBody);
-        if (this.formFooter) {
-            this.formMain.appendChild(this.formFooter);
-        }
-        this.formControl.appendChild(this.formMain);
     }
 
     getJSONSchema() {
@@ -203,7 +183,6 @@ export default class FormContainer extends Container {
             this.formSchema['class'] = {};
         }
         this.formSchema.class[key] = value;
-        //to do for controls
     }
 
     #getClassSchema(key) {
@@ -221,9 +200,6 @@ export default class FormContainer extends Container {
         if (!this.formSchema.hasOwnProperty('styles')) {
             this.formSchema['styles'] = {};
         }
-        //delete 
-        this.#clearStyle(key);
-
         let styles = JSON.parse(value);
         if (styles && Object.keys(styles).length > 0) {
             let styleArr = [];
@@ -234,51 +210,21 @@ export default class FormContainer extends Container {
         }
     }
 
-    #getControl(name) {
-        let crtl;
-        switch (name) {
-            case "form":
-                crtl = this.formMain;
-                break;
-            case "body":
-                crtl = this.formBody;
-                break;
-            case "header":
-                crtl = this.formHeader;
-                break;
-            case "title":
-                crtl = this.formTitle;
-                break;
-            default:
-                break;
-        }
-        return crtl;
-    }
-
     #resetStyle(name) {
-        let crtl = this.#getControl(name);
-        if (crtl) {
-            let styleArr = this.formSchema?.styles[name];
-            for (let style of styleArr) {
-                crtl.style.setProperty(style.name, style.value);
-            }
-        }
+        this.#setStyle(name);
     }
 
 
-    #clearStyle(name) {
-        let styles = this.formSchema.styles[name];
-        if (styles) {
-            let crtl = this.#getControl(name);
-            if (crtl && CommonUtils.isArray(styles)) {
-                for (let attr of styles) {
-                    crtl.style.removeProperty(attr.name);
-                }
+    #getStylesObj(key) {
+        let val = [];
+        if (this.formSchema.hasOwnProperty('styles')) {
+            val = this.formSchema['styles'][key];
+            if (val === undefined) {
+                val = [];
             }
-            delete this.formSchema.styles[name];
         }
+        return val;
     }
-
     #getStyleSchema(key) {
         let val = "";
         if (this.formSchema.hasOwnProperty('styles')) {
@@ -315,27 +261,8 @@ export default class FormContainer extends Container {
         return val;
     }
 
-    #clearAttrs(name) {
-        let attrs = this.formSchema.attributes[name];
-        if (attrs) {
-            let crtl = this.#getControl(name);
-            if (crtl && CommonUtils.isArray(attrs)) {
-                for (let attr of attrs) {
-                    crtl.removeAttribute(attr.name);
-                }
-            }
-            delete this.formSchema.attributes[name];
-        }
-    }
-
     #resetAttrs(name) {
-        let crtl = this.#getControl(name);
-        let attrs = this.formSchema?.attributes[name];
-        if (crtl && CommonUtils.isArray(attrs)) {
-            for (let attr of attrs) {
-                crtl.setAttribute(attr.name, attr.value);
-            }
-        }
+        this.#setAttrs(name);
     }
 
     #setAttrSchema(key, value) {
@@ -343,7 +270,6 @@ export default class FormContainer extends Container {
             this.formSchema['attributes'] = {};
         }
         //delete 
-        this.#clearAttrs(key);
         let attrs = JSON.parse(value);
         if (attrs && Object.keys(attrs).length > 0) {
             let attrsArray = [];
@@ -383,14 +309,6 @@ export default class FormContainer extends Container {
         }
     }
 
-    #clearLayouts(name) {
-        if (this.schema.hasOwnProperty('styles') &&
-            this.schema.styles.hasOwnProperty('data') &&
-            this.schema.styles.data.hasOwnProperty(name)) {
-            delete this.schema.styles.data[name];
-        }
-    }
-
     #setLayoutSchema(key, value) {
 
         if (!this.schema.hasOwnProperty('styles')) {
@@ -399,9 +317,6 @@ export default class FormContainer extends Container {
         if (!this.schema.styles.hasOwnProperty('data')) {
             this.schema.styles['data'] = {};
         }
-
-        //delete 
-        this.#clearLayouts(key);
 
         if (!CommonUtils.isNullOrEmpty(value)) {
             this.schema.styles.data[key] = value;
@@ -419,8 +334,8 @@ export default class FormContainer extends Container {
     }
 
     #resetLayouts(name) {
-        if (this.formMain) {
-            this.formMain.style.setProperty(name, this.schema?.styles?.data[name]);
+        if (this.formPanel) {
+            this.formPanel.setPanelStyles([{ name: name, value: this.schema?.styles?.data[name] }]);
         }
     }
     //invalidProp is a callback with message
@@ -454,13 +369,12 @@ export default class FormContainer extends Container {
                                 invalidMsg = ErrorHandler.errorCode.Form.INVALID_NAME;
                             } else {
                                 this.name = val;
+                                this.formSchema[name] = val;
                             }
                         }
                         break;
-                    case "caption":
-                        this.caption = val;
-                        break;
                     default:
+                        this.formSchema[name] = val;
                         break;
                 }
                 break;
@@ -501,32 +415,8 @@ export default class FormContainer extends Container {
     }
 
     #resetClass(name) {
-        let crtl = this.#getControl(name);
-        if (crtl) {
-            let val = this.#getClassSchema(name);
-            let cls;
-            switch (name) {
-                case "class":
-                    cls = `card ${val}`
-                    break;
-                case "body":
-                    cls = `card-body ${val}`
-                    break;
-                case "header":
-                    cls = `card-header ${val}`
-                    break;
-                case "title":
-                    cls = `card-title ${val}`
-                    break;
-                default:
-                    break;
-            }
-            if (cls) {
-                crtl.class = cls;
-            }
-        }
+        this.#setClass(name);
     }
-
 
     #resetGen(name) {
         let val = this.formSchema[name]
@@ -535,9 +425,14 @@ export default class FormContainer extends Container {
                 this.formName = val;
                 break;
             case "caption":
-                this.formTitle.textContent = val;
-                this.formCaption = val;
+                this.formPanel.setCaption(val)
                 break;
+        }
+    }
+
+    setCurrentFormComponent(name) {
+        if (this.allComponents.hasOwnProperty(name)) {
+            this.setCurrentComponent(this.allComponents[name]);
         }
     }
 

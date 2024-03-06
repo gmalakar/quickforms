@@ -69,45 +69,38 @@ export default class HtmlUtils {
         return ret;
     }
 
-    static populateOptionsFormJson(targetElement, json) {
-        if (HtmlUtils.isHTMLElement(targetElement)) {
-            let options = CommonUtils.jsonToObject(json);
-            if (options) {
-                for (let [text, value] of Object.entries(options)) {
-                    var opt = document.createElement('option');
-                    opt.value = value;
-                    opt.innerHTML = text;
-                    targetElement.appendChild(opt);
-                }
-            }
-        }
-    }
-
     static populateOptions(targetElement, options) {
-        if (HtmlUtils.isHTMLElement(targetElement) && options) {
-            for (let [text, value] of Object.entries(options)) {
-                var opt = document.createElement('option');
-                opt.value = value;
-                opt.innerHTML = text;
-                targetElement.appendChild(opt);
-            }
-        }
-    }
-
-    static populateDatalist(targetElement, options) {
-        if (HtmlUtils.isHTMLElement(targetElement) && options) {
+        if (targetElement && options) {
             if (CommonUtils.isJson(options)) {
                 options = CommonUtils.jsonToObject(options);
             }
-            if (CommonUtils.isArray(options)) {
-                for (let value of options) {
-                    var opt = document.createElement('option');
-                    opt.value = value;
-                    targetElement.appendChild(opt);
+            if (targetElement instanceof SlimSelect) {
+                targetElement.setData(options);
+            } else if (HtmlUtils.isHTMLElement(targetElement)) {
+                if (CommonUtils.isArray(options)) {
+                    for (let option of options) {
+                        var opt = document.createElement('option');
+                        if (CommonUtils.isString(option)) {
+                            opt.value = option;
+                            opt.innerHTML = option;
+                        } else {
+                            opt.value = value;
+                            opt.innerHTML = text;
+                        }
+                        targetElement.appendChild(opt);
+                    }
+                } else {
+                    for (let [text, value] of Object.entries(options)) {
+                        var opt = document.createElement('option');
+                        opt.value = value;
+                        opt.innerHTML = text;
+                        targetElement.appendChild(opt);
+                    }
                 }
             }
         }
     }
+
     static removeClassByPrefix(el, prefix) {
         let regx = new RegExp('\\b' + prefix + '.*?\\b', 'g');
         el.className = el.className.replace(regx, '');
@@ -124,7 +117,7 @@ export default class HtmlUtils {
         }
     };
 
-    static replaceClass(el, clsToReplace, replaceBy) {
+    static replaceClasses(el, clsToReplace, replaceBy) {
         if (el) {
             me.removeClasses(el, clsToReplace);
             me.addClasses(el, replaceBy);
@@ -212,4 +205,51 @@ export default class HtmlUtils {
         }
         return btn;
     }
+
+    static getElementValue(el) {
+        let val = '';
+        if (CommonUtils.isString(el)) {//check by id
+            el = document.getElementById(el);
+        }
+        if (!CommonUtils.isNullOrUndefined(el) && el instanceof HTMLElement) {
+            let type = el.type;
+            if (type) {
+                switch (type) {
+                    case "checkbox":
+                    case "radio":
+                        val = el.checked;
+                        break;
+                    default:
+                        val = el.value;
+                        break;
+                }
+            } else {
+                val = el.value;
+            }
+        }
+        return val;
+    }
+
+    static setElementValue(el, val) {
+        if (CommonUtils.isString(el)) {//check by id
+            el = document.getElementById(el);
+        }
+        if (!CommonUtils.isNullOrUndefined(el) && el instanceof HTMLElement) {
+            let type = el.type;
+            if (type) {
+                switch (type) {
+                    case "checkbox":
+                    case "radio":
+                        el.checked = CommonUtils.convertToBoolean(val);
+                        break;
+                    default:
+                        el.value = val;
+                        break;
+                }
+            } else {
+                el.value = val;
+            }
+        }
+    }
+
 }

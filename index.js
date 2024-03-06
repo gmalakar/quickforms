@@ -1,4 +1,5 @@
-import Builder from './src/builder/builder.js'
+import FormBuilder from './src/fbuilder.js'
+
 let formMetaData = {
     "name": "testform",
     "type": "form",
@@ -69,9 +70,29 @@ let formMetaData = {
             "type": "textarea",
             "columns": {},
             "caption": "Text Area"
+        },
+        "select1": {
+            "name": "select1",
+            "type": "select",
+            "columns": {},
+            "caption": "Select Field"
+        },
+        "checkbox2": {
+            "name": "checkbox2",
+            "type": "checkbox",
+            "columns": {},
+            "caption": "Checkbox Field"
         }
+    },
+    "caption": "testform",
+    "class": {
+        "form": "fb-form mb-2 border",
+        "body": "fb-form-body",
+        "title": "fb-form-title mb-0",
+        "header": "fb-form-header bg-defaul"
     }
 }
 formMetaData['name'] = 'testform';
-let formBuilder = new Builder('builder-container', formMetaData);
-formBuilder.buildBuilder();
+let formBuilder = new FormBuilder('builder-container');
+
+formBuilder.loadFormInBuilder(formMetaData);

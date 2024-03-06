@@ -8,6 +8,7 @@ import TextArea from "../elements/textarea.js";
 import Columns from "../elements/columns.js";
 import CheckboxField from "../elements/checkbox.js";
 import SelectField from "../elements/select.js";
+import Panel from "../elements/panel.js";
 import Container from "./container.js";
 export default class Component {
     //public members
@@ -89,6 +90,8 @@ export default class Component {
                 return new Columns(containgComponent);
             case "select":
                 return new SelectField(containgComponent);
+            case "panel":
+                return new Panel(containgComponent);
             default:
                 return ErrorHandler.throwError(
                     ErrorHandler.errorCode.Component.INVALID_TYPE

@@ -1,28 +1,25 @@
 import BaseControl from '../base/base-control.js';
+import CommonUtils from '../utils/common-utils.js';
 import HtmlUtils from '../utils/html-utils.js';
 
 export default class SelectField extends BaseControl {
-    datalist;
-    listid;
 
+    slimSelectFilter;
     constructor(containingComponent) {
         super(containingComponent, 'Select Field');
-        this.listid = `list-${this.containingContainer.formName}-${this.name}`;
         this.buildControl();
     }
 
-    setOtherControl() {
-        if (this.elementControl) {
-            this.elementControl.setAttribute("list", this.listid);
-        }
-        this.datalist = HtmlUtils.createElement('datalist', this.listid);
-        let option = ['set options to select']
-        HtmlUtils.populateDatalist(this.datalist, option);
+    setOtherControls() {
     }
 
-    buildOtherControl() {
-        if (this.componentControl) {
-            this.componentControl.appendChild(this.datalist);
+    buildOtherControls() {
+        if (this.elementControl) {
+            let option = { 'Set Options': 'S', 'Set Options2': 'S2' }
+            HtmlUtils.populateOptions(this.elementControl, option);
+            this.slimSelectFilter = new SlimSelect({
+                select: this.elementControl
+            })
         }
     }
 }

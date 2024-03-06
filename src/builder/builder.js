@@ -27,20 +27,12 @@ export default class Builder {
      * @param {string} formname form name
      * @param {string} formschema form metadata
      */
-    constructor(placeholder, formschema) {
+    constructor(placeholder) {
         if (CommonUtils.isNullOrEmpty(placeholder)) {
             return ErrorHandler.throwError(ErrorHandler.errorCode.Builder.MISSING_PLACEHOLDER);
-        } else if (CommonUtils.isNullOrUndefined(formschema)) {
-            return ErrorHandler.throwError(ErrorHandler.errorCode.Builder.MISSING_FORM_METADATA);
-        } else if (CommonUtils.isNullOrEmpty(formschema.name)) {
-            return ErrorHandler.throwError(ErrorHandler.errorCode.Form.MISSING_NAME);
         }
         else {
             this.#guid = CommonUtils.ShortGuid();
-            //defaut form name
-            this.#formname = formschema.name;
-
-            this.#formschema = formschema;
             //builder container
             this.#builderContainer = document.getElementById(placeholder);
         }
@@ -58,7 +50,17 @@ export default class Builder {
         return this.#buildertTabPanes[this.#jsonContainerId];
     }
 
-    buildBuilder() {
+    buildBuilder(formschema) {
+        if (CommonUtils.isNullOrUndefined(formschema)) {
+            return ErrorHandler.throwError(ErrorHandler.errorCode.Builder.MISSING_FORM_METADATA);
+        } else if (CommonUtils.isNullOrEmpty(formschema.name)) {
+            return ErrorHandler.throwError(ErrorHandler.errorCode.Form.MISSING_NAME);
+        } else {
+            //defaut form name
+            this.#formname = formschema.name;
+
+            this.#formschema = formschema;
+        }
         if (this.#builderContainer) {
             this.#createBed();
         } else {

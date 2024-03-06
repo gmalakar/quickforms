@@ -23,8 +23,9 @@ export default class ComponentUtils {
             case 'password':
             case 'number':
             case 'checkbox':
-            case 'select':
                 return 'input';
+            case 'select':
+                return 'select';
             case 'textarea':
                 return 'textarea';
             case 'columns':

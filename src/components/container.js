@@ -14,6 +14,7 @@ export default class Container extends Observable {
     containingContainer;
     containerSchema;
     allComponentNames = [];
+    allComponents = {}
     components = {};
     #guid;
     #currentComponent;
@@ -79,6 +80,7 @@ export default class Container extends Observable {
     refreshContainer() {
         HtmlUtils.removeChilds(this.#containerControl);
         this.allComponentNames = [];
+        this.allComponents = {};
         this.components = {};
         this.initContainer();
     }
@@ -97,6 +99,7 @@ export default class Container extends Observable {
         if (this.containingContainer !== this) {
             this.#hasParentContainer = true;
             this.allComponentNames = this.containingContainer.allComponentNames;
+            this.allComponents = this.containingContainer.allComponents;
         }
 
         for (let [name, compschema] of Object.entries(
@@ -389,6 +392,10 @@ export default class Container extends Observable {
                 this.tryRemoveSchema(component.name);
                 CommonUtils.deleteFromArray(this.allComponentNames, component.name);
 
+                if (this.allComponent.hasOwnProperty(component.name)) {
+                    delete this.allComponent[component.name];
+                }
+
                 let curComponent;
 
                 if (compToSelect && this.components.hasOwnProperty(compToSelect)) {
@@ -456,6 +463,8 @@ export default class Container extends Observable {
 
         this.allComponentNames.push(newComponent.name);
 
+        this.allComponents[newComponent.name] = newComponent;
+
         return newComponent;
     }
 
@@ -475,6 +484,16 @@ export default class Container extends Observable {
         this.tryChangeSchemaName(oldname, newname);
 
         CommonUtils.replaceInArray(this.allComponentNames, oldname, newname);
+
+
+        if (this.allComponents.hasOwnProperty(oldname)) {
+            let comp = this.allComponents[oldname];
+            delete this.allComponents[oldname];
+            this.allComponents[oldname]
+            //add new one
+            this.allComponents[newname] = comp;
+        }
+
     }
 
     propertyChanged(name) {

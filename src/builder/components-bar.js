@@ -143,6 +143,11 @@ export default class ComponentsBar {
                     "default": true,
                     "type": "columns",
                     "text": "Columns",
+                    "iconCls": "bi-layout-three-columns",
+                },
+                {
+                    "type": "panel",
+                    "text": "Panel",
                     "iconCls": "bi bi-window",
                 },
                 {

@@ -22,6 +22,8 @@ export default class PropertiesBar {
     formPropElements = [];
     compPropElements = [];
     #selectedComponent;
+    searchcontrol;
+    slimSelectFilter;
 
     constructor(formcontainer, ref) {
         this.#formcontainer = formcontainer;
@@ -45,7 +47,7 @@ export default class PropertiesBar {
 
     static onCompPropChanged(target, e, mappedCompProp) {
         if (target.#selectedComponent) {
-            let val = mappedCompProp['mappedElement'].value;
+            let val = HtmlUtils.getElementValue(mappedCompProp['mappedElement']);
             let oldval = mappedCompProp['mappedElement']['oldvalue'];
             let type = mappedCompProp['mappedType'];
             let prop = mappedCompProp['mappedProp'];
@@ -53,7 +55,8 @@ export default class PropertiesBar {
                 if (!CommonUtils.isNullOrEmpty(msg)) {
                     Modal.commonModalWindow.setModal(target, "Invalid Component", msg, Modal.Ok, function (source, which) {
                         if (e.target) {
-                            e.target.value = oldval;
+                            HtmlUtils.setElementValue(e.target, oldval);
+                            //e.target.value = oldval;
                             e.target.focus();
                         }
                     }, 'text-danger', true);
@@ -65,7 +68,7 @@ export default class PropertiesBar {
 
     static onFormPropChanged(target, e, mappedCompProp) {
         if (target.#formcontainer) {
-            let val = mappedCompProp['mappedElement'].value;
+            let val = HtmlUtils.getElementValue(mappedCompProp['mappedElement']);
             let oldval = mappedCompProp['mappedElement']['oldvalue'];
             let type = mappedCompProp['mappedType'];
             let prop = mappedCompProp['mappedProp'];
@@ -73,7 +76,8 @@ export default class PropertiesBar {
                 if (!CommonUtils.isNullOrEmpty(msg)) {
                     Modal.commonModalWindow.setModal(target, "Invalid Form Property", msg, Modal.Ok, function (source, which) {
                         if (e.target) {
-                            e.target.value = oldval;
+                            HtmlUtils.setElementValue(e.target, oldval);
+                            //e.target.value = oldval;
                             e.target.focus();
                         }
                     }, 'text-danger', true);
@@ -90,8 +94,9 @@ export default class PropertiesBar {
             if (currentComponent) {
                 val = currentComponent.control.getComponentProperty(mappedPorpEl['mappedType'], mappedPorpEl['mappedProp']);
             }
-            mappedPorpEl['mappedElement'].value = val;
-            mappedPorpEl['mappedElement']['oldvalue'] = val;
+            let el = mappedPorpEl['mappedElement'];
+            HtmlUtils.setElementValue(el, val);
+            el['oldvalue'] = val;
         }
         //select all visible for
         if (currentComponent) {
@@ -104,6 +109,8 @@ export default class PropertiesBar {
                 }
             }
         }
+        //set the serach control value
+        this.slimSelectFilter.setSelected(currentComponent.name, false)
         this.#tab.show(this.#compTabID);
     }
 
@@ -114,16 +121,27 @@ export default class PropertiesBar {
                 mappedPorpEl['mappedElement'].value = val;
                 mappedPorpEl['mappedElement']['oldvalue'] = val;
             }
+            this.#populateSearchControl();
         }
         this.#tab.show(this.#formTabID);
     }
 
+    #populateSearchControl() {
+        if (this.slimSelectFilter) {
+            let options = [];
+            for (let c of this.#formcontainer.allComponentNames) {
+                options.push({ text: c, value: c });
+            }
+            HtmlUtils.populateOptions(this.slimSelectFilter, options);
+        }
+    }
+
     static #getEditorClass(type) {
-        let cls = 'fb-editor-property';
+        let cls = 'fb-editor-input';
         switch (type) {
             case "checkbox":
             case "radio":
-                cls = 'fb-editor-property-check';
+                cls = 'fb-editor-check';
                 break;
             default:
                 break;
@@ -131,6 +149,20 @@ export default class PropertiesBar {
         return cls;
     }
 
+    static #createProperties(key, propType, props, caller, container, onPropChanged) {
+        if (CommonUtils.isArray(props)) {
+            let propfor = propType === 'form' ? `${caller.#formAccordID}-${key}` : `${caller.#compAcordID}-${key}`;
+            let propElements = propType === 'form' ? caller.formPropElements : caller.compPropElements;
+            let propTable = HtmlUtils.createElement('table', 'noid', { class: 'table table-bordered table-sm fb-editor-table' });
+            let tBody = HtmlUtils.createElement('tbody', 'noid');
+            for (let item of props) {
+                let propItem = PropertiesBar.#createProp(propfor, item, propElements, caller, onPropChanged);
+                tBody.appendChild(propItem);
+            }
+            propTable.appendChild(tBody);
+            container.appendChild(propTable);
+        }
+    }
     static #createProp(propFor, propObjects, propElements, caller, onPropertyChanged) {
         let datatype = 'text'
         if (propObjects.hasOwnProperty('datatype')) {
@@ -139,14 +171,14 @@ export default class PropertiesBar {
         let propId = `${propFor}-prop-${propObjects.mappedProp}`;
         let mappedType = propObjects['mappedType'];
         let mappedProp = propObjects['mappedProp'];
-        let compClass = BootstrapUtils.getBSComponentClass(datatype);
         let labelClass = BootstrapUtils.getBSlabelClass(datatype);
         let elClass = BootstrapUtils.getBSElementClass(datatype);
-        let propPane = HtmlUtils.createElement('div', 'noid', { class: `editor-property-pane ${BootstrapUtils.getBSRowOrColClass(datatype)}` });
-        let valueCol = HtmlUtils.createElement('div', 'noid', { class: `editor-property-row p-1 ${compClass}` });
-        let propName = HtmlUtils.createElement('label', 'noid', { class: `editor-property-label ${labelClass}`, for: propId });
-        propName.textContent = propObjects.name;
-        valueCol.appendChild(propName);
+
+        let tRow = HtmlUtils.createElement('tr', 'noid');
+        let ltd = HtmlUtils.createElement('th', 'noid', { class: 'fb-editor-label', scope: 'row' });
+        ltd.innerHTML = `${propObjects.name}&nbsp;`;
+
+        tRow.appendChild(ltd);
         let editorEl;
         let groupEl;
         let length = 20;
@@ -160,6 +192,7 @@ export default class PropertiesBar {
         }
 
         elAttributes['type'] = datatype;
+        elAttributes['data-type'] = datatype;
         elAttributes.class = cls;
         switch (propObjects.type) {
             case 'input':
@@ -172,7 +205,7 @@ export default class PropertiesBar {
                 elAttributes.class = elAttributes.class + ' form-control'
                 elAttributes['maxlength'] = length;
                 editorEl = HtmlUtils.createElement('input', propId, elAttributes);
-                let btn = HtmlUtils.createIconButton({ class: 'btn btn-primary btn-sm m-0 fb-editor-property-btn', type: 'button' }, { class: 'bi bi-three-dots-vertical' }, `btn-${propId}`);
+                let btn = HtmlUtils.createIconButton({ class: 'btn btn-primary btn-sm m-0 fb-editor-btn', type: 'button' }, { class: 'bi bi-three-dots-vertical' }, `btn-${propId}`);
                 //btn.textContent = '...';
                 btn.addEventListener("click", (e) => {
                     switch (propObjects.popupname) {
@@ -220,15 +253,19 @@ export default class PropertiesBar {
             }
         };
 
-        if (groupEl) {
-            valueCol.appendChild(groupEl);
-        } else {
-            valueCol.appendChild(editorEl);
-        }
+        let vtd = HtmlUtils.createElement('td', 'noid', { class: 'fb-editor-td-edit' });
 
-        propPane.appendChild(valueCol);
+        if (groupEl) {
+            vtd.appendChild(groupEl);
+        } else {
+            vtd.appendChild(editorEl);
+        }
+        tRow.appendChild(vtd);
+
         propElements.push(mappedCompProp);
-        return propPane;
+
+        //return propPane;
+        return tRow;
     }
 
     #create() {
@@ -256,13 +293,8 @@ export default class PropertiesBar {
                 let props = value['props'];
                 delete value['props'];
                 formAccordion.appendChild(Accordion.getAccordionItem(this.#formAccordID, key, value, this.ref, props, this, function (caller, container, props) {
-                    if (CommonUtils.isArray(props)) {
-                        for (let item of props) {
-                            let propItem = PropertiesBar.#createProp(`${caller.#formAccordID}-${key}`, item, caller.formPropElements, caller, PropertiesBar.onFormPropChanged);
-                            container.appendChild(propItem);
-                        }
-                    }
-                }));
+                    PropertiesBar.#createProperties(key, `form`, props, caller, container, PropertiesBar.onFormPropChanged);
+                }, 'p-0'));
             }
         }
         this.formTab.appendChild(formAccordion);
@@ -276,22 +308,38 @@ export default class PropertiesBar {
         //property bar
         let compAccordian = HtmlUtils.createElement('div', this.#compAcordID, compAttrs);
 
+        //add search option
+        let srcAttr = { class: 'slim-select form-control mb-2' }
+
+        this.searchcontrol = HtmlUtils.createElement('select', `${this.#compAcordID}-search`, srcAttr);
+
+        compAccordian.appendChild(this.searchcontrol);
+
         if (CommonUtils.isObjcetButNotArray(PropertiesBar.componentProperties)) {
             for (let [key, value] of Object.entries(PropertiesBar.componentProperties)) {
                 let props = value['props'];
                 delete value['props'];
                 compAccordian.appendChild(Accordion.getAccordionItem(this.#compAcordID, key, value, this.ref, props, this, function (caller, container, props) {
-                    if (CommonUtils.isArray(props)) {
-                        for (let item of props) {
-                            let propItem = PropertiesBar.#createProp(`${caller.#compAcordID}-${key}`, item, caller.compPropElements, caller, PropertiesBar.onCompPropChanged);
-                            container.appendChild(propItem);
-                        }
-                    }
-                }));
+                    PropertiesBar.#createProperties(key, `comp`, props, caller, container, PropertiesBar.onCompPropChanged);
+                }, 'p-0'));
             }
         }
 
         this.compTab.appendChild(compAccordian);
+        //select slim select
+        if (this.searchcontrol) {
+            this.slimSelectFilter = new SlimSelect({
+                select: this.searchcontrol,
+                settings: {
+                    placeholderText: 'Components',
+                },
+                events: {
+                    afterChange: (newVal) => {
+                        this.#formcontainer.setCurrentFormComponent(newVal[0].value);
+                    }
+                }
+            })
+        }
     }
 
     static componentProperties = {
@@ -341,19 +389,7 @@ export default class PropertiesBar {
                     name: "Required",
                     type: "input",
                     datatype: "checkbox",
-                    default: 'false',
-
-                },
-                {
-                    mappedType: "data",
-                    mappedProp: "required",
-                    name: "Required",
-                    type: "select",
-                    default: 'false',
-                    options: {
-                        True: 'true',
-                        False: 'false'
-                    }
+                    default: 'false'
                 }
             ]
         },

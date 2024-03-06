@@ -68,7 +68,22 @@ export default class TabControl {
     show(tabid) {
         let tabToShow = this.#tabLinks[tabid];
         if (tabToShow) {
-            tabToShow.click();
+            for (let [k, tp] of Object.entries(this.#tabLinks)) {
+                tp.classList.remove("show");
+                tp.classList.remove("active");
+            }
+            tabToShow.classList.add("show");
+            tabToShow.classList.add("active");
+        }
+
+        let paneToShow = this.tabPanes[tabid];
+        if (paneToShow) {
+            for (let [k, tp] of Object.entries(this.tabPanes)) {
+                tp.classList.remove("show");
+                tp.classList.remove("active");
+            }
+            paneToShow.classList.add("show");
+            paneToShow.classList.add("active");
         }
     }
 }

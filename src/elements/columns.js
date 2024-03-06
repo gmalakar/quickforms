@@ -7,9 +7,13 @@ export default class Columns extends BaseControl {
     defaultColumnClass = "fb-component-column";
     defaultRowClass = "row fb-component-columns";
     #coulmnPrefix = "";
+    columns = {};
+
 
     constructor(containingComponent) {
         super(containingComponent, "Columns");
+        this.schema.columns = this.schema.columns || {};
+        this.columns = this.schema.columns;
 
         this.#coulmnPrefix = `column-${this.name || ""}`;
 
@@ -84,7 +88,7 @@ export default class Columns extends BaseControl {
                     column['properties']['push'] = dataRow['push'] || 0;
                 }
             }
-            this.setOtherControl(true);
+            this.setOtherControls(true);
         }
     }
 
@@ -114,15 +118,15 @@ export default class Columns extends BaseControl {
 
     setElementControl() { }
 
-    setOtherControl(reset) {
+    setOtherControls(reset) {
         if (this.#columnLength > 0) {
             let parentContainer = this.containingComponent.container;
             //create row
-            if (reset && this.columnsControl) {
-                HtmlUtils.removeChilds(this.columnsControl);
+            if (reset && this.otherControl) {
+                HtmlUtils.removeChilds(this.otherControl);
             }
             if (!reset) {
-                this.columnsControl = HtmlUtils.createElement("div", this.#coulmnPrefix, {
+                this.otherControl = HtmlUtils.createElement("div", this.#coulmnPrefix, {
                     class: this.defaultRowClass,
                     ref: this.schema.name,
                 });
@@ -135,7 +139,7 @@ export default class Columns extends BaseControl {
                 });
                 let container = new Container(schema, parentContainer.observer, this.containingComponent?.container, this.designmode);
                 column.appendChild(container.control);
-                this.columnsControl.appendChild(column);
+                this.otherControl.appendChild(column);
             }
         }
     }
