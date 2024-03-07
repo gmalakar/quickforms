@@ -9,6 +9,7 @@ import Columns from "../elements/columns.js";
 import CheckboxField from "../elements/checkbox.js";
 import SelectField from "../elements/select.js";
 import Panel from "../elements/panel.js";
+import ButtonField from "../elements/button.js";
 import Container from "./container.js";
 export default class Component {
     //public members
@@ -92,6 +93,8 @@ export default class Component {
                 return new SelectField(containgComponent);
             case "panel":
                 return new Panel(containgComponent);
+            case "button":
+                return new ButtonField(containgComponent);
             default:
                 return ErrorHandler.throwError(
                     ErrorHandler.errorCode.Component.INVALID_TYPE

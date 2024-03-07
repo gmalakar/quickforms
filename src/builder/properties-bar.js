@@ -100,17 +100,27 @@ export default class PropertiesBar {
         }
         //select all visible for
         if (currentComponent) {
-            let visibleForELs = this.compTab.querySelectorAll('[visiblefor]')
-            for (let el of visibleForELs) {
-                if (el.getAttribute('visiblefor').includes(currentComponent.type)) {
+            let visibleforELs = this.compTab.querySelectorAll('[visiblefor]')
+            for (let el of visibleforELs) {
+                let allTypes = el.getAttribute('visiblefor').split(';');
+                if (allTypes.includes(currentComponent.type)) {
                     HtmlUtils.show(el);
                 } else {
                     HtmlUtils.hide(el);
                 }
             }
+            let notvisibleforELs = this.compTab.querySelectorAll('[notvisiblefor]')
+            for (let el of notvisibleforELs) {
+                let allTypes = el.getAttribute('notvisiblefor').split(';');
+                if (allTypes.includes(currentComponent.type)) {
+                    HtmlUtils.hide(el);
+                } else {
+                    HtmlUtils.show(el);
+                }
+            }
+            //set the serach control value
+            this.slimSelectFilter.setSelected(currentComponent.name, false)
         }
-        //set the serach control value
-        this.slimSelectFilter.setSelected(currentComponent.name, false)
         this.#tab.show(this.#compTabID);
     }
 
@@ -171,10 +181,15 @@ export default class PropertiesBar {
         let propId = `${propFor}-prop-${propObjects.mappedProp}`;
         let mappedType = propObjects['mappedType'];
         let mappedProp = propObjects['mappedProp'];
-        let labelClass = BootstrapUtils.getBSlabelClass(datatype);
         let elClass = BootstrapUtils.getBSElementClass(datatype);
 
         let tRow = HtmlUtils.createElement('tr', 'noid');
+        if (propObjects.hasOwnProperty('visiblefor')) {
+            tRow.setAttribute('visiblefor', propObjects['visiblefor']);
+        }
+        if (propObjects.hasOwnProperty('notvisiblefor')) {
+            tRow.setAttribute('notvisiblefor', propObjects['notvisiblefor']);
+        }
         let ltd = HtmlUtils.createElement('th', 'noid', { class: 'fb-editor-label', scope: 'row' });
         ltd.innerHTML = `${propObjects.name}&nbsp;`;
 
@@ -216,6 +231,9 @@ export default class PropertiesBar {
                             NameValueEditor.getEditor(editorEl, 'Attributes').show();
                             break;
                         case "styles":
+                            NameValueEditor.getEditor(editorEl, 'Styles').show();
+                            break;
+                        case "panel":
                             NameValueEditor.getEditor(editorEl, 'Styles').show();
                             break;
                         default:
@@ -402,28 +420,71 @@ export default class PropertiesBar {
                     mappedProp: "component",
                     name: "Component",
                     type: "input",
-                    maxlength: 50
+                    maxlength: 50,
+                    notvisiblefor: 'panel'
                 },
                 {
                     mappedType: "class",
                     mappedProp: "label",
                     name: "Caption",
                     type: "input",
-                    maxlength: 50
+                    maxlength: 50,
+                    notvisiblefor: 'panel'
                 },
                 {
                     mappedType: "class",
                     mappedProp: "control",
                     name: "Element",
                     type: "input",
-                    maxlength: 50
+                    maxlength: 50,
+                    notvisiblefor: 'panel'
+                },
+                {
+                    mappedType: "class",
+                    mappedProp: "panel",
+                    name: "Panel",
+                    type: "input",
+                    maxlength: 50,
+                    visiblefor: 'panel'
+                },
+                {
+                    mappedType: "class",
+                    mappedProp: "header",
+                    name: "Header",
+                    type: "input",
+                    maxlength: 50,
+                    visiblefor: 'panel'
+                },
+                {
+                    mappedType: "class",
+                    mappedProp: "Title",
+                    name: "Title",
+                    type: "input",
+                    maxlength: 50,
+                    visiblefor: 'panel'
+                },
+                {
+                    mappedType: "class",
+                    mappedProp: "body",
+                    name: "Body",
+                    type: "input",
+                    maxlength: 50,
+                    visiblefor: 'panel'
+                },
+                {
+                    mappedType: "class",
+                    mappedProp: "footer",
+                    name: "Footer",
+                    type: "input",
+                    maxlength: 50,
+                    visiblefor: 'panel'
                 }
             ]
         },
         "columns": {
             text: "Columns Props",
             default: false,
-            visibleFor: 'columns',
+            visiblefor: 'columns',
             props: [
                 {
                     mappedType: "prop",
@@ -446,7 +507,8 @@ export default class PropertiesBar {
                     name: "Component",
                     type: "popup",
                     popupname: 'attributes',
-                    readonly: true
+                    readonly: true,
+                    notvisiblefor: 'panel'
                 },
                 {
                     mappedType: "style",
@@ -454,7 +516,8 @@ export default class PropertiesBar {
                     name: "Caption",
                     type: "popup",
                     popupname: 'attributes',
-                    readonly: true
+                    readonly: true,
+                    notvisiblefor: 'panel'
                 },
                 {
                     mappedType: "style",
@@ -462,8 +525,54 @@ export default class PropertiesBar {
                     name: "Element",
                     type: "popup",
                     popupname: 'attributes',
-                    readonly: true
-                }
+                    readonly: true,
+                    notvisiblefor: 'panel'
+                },
+                {
+                    mappedType: "style",
+                    mappedProp: "panel",
+                    name: "Panel",
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true,
+                    visiblefor: 'panel'
+                },
+                {
+                    mappedType: "style",
+                    mappedProp: "header",
+                    name: "Header",
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true,
+                    visiblefor: 'panel'
+                },
+                {
+                    mappedType: "style",
+                    mappedProp: "title",
+                    name: "Title",
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true,
+                    visiblefor: 'panel'
+                },
+                {
+                    mappedType: "style",
+                    mappedProp: "body",
+                    name: "Body",
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true,
+                    visiblefor: 'panel'
+                },
+                {
+                    mappedType: "style",
+                    mappedProp: "footer",
+                    name: "Footer",
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true,
+                    visiblefor: 'panel'
+                },
             ]
         },
         "attributes": {
@@ -476,7 +585,8 @@ export default class PropertiesBar {
                     name: "Component",
                     type: "popup",
                     popupname: 'attributes',
-                    readonly: true
+                    readonly: true,
+                    notvisiblefor: 'panel'
                 },
                 {
                     mappedType: "attr",
@@ -484,7 +594,8 @@ export default class PropertiesBar {
                     name: "Caption",
                     type: "popup",
                     popupname: 'attributes',
-                    readonly: true
+                    readonly: true,
+                    notvisiblefor: 'panel'
                 },
                 {
                     mappedType: "attr",
@@ -492,9 +603,54 @@ export default class PropertiesBar {
                     name: "Element",
                     type: "popup",
                     popupname: 'attributes',
-                    readonly: true
+                    readonly: true,
+                    notvisiblefor: 'panel'
+                },
+                {
+                    mappedType: "attr",
+                    mappedProp: "panel",
+                    name: "Panel",
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true,
+                    visiblefor: 'panel'
+                },
+                {
+                    mappedType: "attr",
+                    mappedProp: "header",
+                    name: "Header",
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true,
+                    visiblefor: 'panel'
+                },
+                {
+                    mappedType: "attr",
+                    mappedProp: "title",
+                    name: "Title",
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true,
+                    visiblefor: 'panel'
+                },
+                {
+                    mappedType: "attr",
+                    mappedProp: "body",
+                    name: "Body",
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true,
+                    visiblefor: 'panel'
+                },
+                {
+                    mappedType: "attr",
+                    mappedProp: "footer",
+                    name: "Footer",
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true,
+                    visiblefor: 'panel'
                 }
-
             ]
         }
     };

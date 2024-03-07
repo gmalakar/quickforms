@@ -1,6 +1,7 @@
 import BaseControl from "../base/base-control.js";
 import PanelControl from "../utils/panel-control.js";
 import Container from "../components/container.js";
+import CommonUtils from "../utils/common-utils.js";
 export default class Panel extends BaseControl {
     panel;
     #container;
@@ -11,6 +12,13 @@ export default class Panel extends BaseControl {
         }
         this.buildControl();
     }
+
+    setCaption(value) {
+        this.schema.caption = value;
+        if (this.panel) {
+            this.panel.setCaption(value);
+        }
+    }
     setLabelControl() { }
 
     setElementControl() { }
@@ -18,8 +26,11 @@ export default class Panel extends BaseControl {
     setOtherControls(reset) {
         let parentContainer = this.containingComponent.container;
         this.panel = new PanelControl(this.name, "Panel")
-        this.otherControl = this.panel.body;
-        this.#container = new Container(this.schema, parentContainer.observer, this.containingComponent?.container, this.designmode);
-        this.otherControl.appendChild(this.#container.control);
+        this.panel.setPanelClass(['p-0']);
+
+        this.otherControl = this.panel.panel;
+        this.#container = new Container(this.schema, parentContainer.observer, this.containingComponent, this.designmode);
+        this.panel.body.appendChild(this.#container.control);
+        this.setCaption(this.schema.caption);
     }
 }

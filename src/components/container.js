@@ -12,6 +12,7 @@ export default class Container extends Observable {
     designmode;
     #dragName;
     containingContainer;
+    #containingComponent;
     containerSchema;
     allComponentNames = [];
     allComponents = {}
@@ -31,7 +32,7 @@ export default class Container extends Observable {
 
     #compDeleteBtn;
 
-    constructor(schema, observer, containingContainer, designmode = false) {
+    constructor(schema, observer, containingComponent, designmode = false) {
         super();
         this.#guid = CommonUtils.ShortGuid();
         schema = schema || {};
@@ -46,6 +47,10 @@ export default class Container extends Observable {
             );
         }
 
+        if (!schema.hasOwnProperty('ref')) {
+            schema['ref'] = containingComponent?.name || 'self';
+        }
+
         if (!schema.hasOwnProperty('type')) {
             schema['type'] = "container";
         }
@@ -53,10 +58,11 @@ export default class Container extends Observable {
         if (!schema.hasOwnProperty('components')) {
             schema['components'] = {};
         }
+        this.#containingComponent = containingComponent;
 
         this.schema = schema;
 
-        this.containingContainer = containingContainer || this
+        this.containingContainer = containingComponent?.container || this
 
         this.designmode = designmode;
 
@@ -202,7 +208,7 @@ export default class Container extends Observable {
                                 source.removeComponent(source.currentComponent);
                             }
                         }
-                    }, null, true);
+                    }, null, false);
                     Modal.commonModalWindow.show();
                 });
                 this.#mutationObserver = new MutationObserver(this.#nodeChanged);
@@ -380,7 +386,9 @@ export default class Container extends Observable {
                 }
 
                 if (next) {
-                    compToSelect = next.getAttribute("ref");
+                    compToSelect = next.getAttribute('ref');
+                } else { //try 
+                    compToSelect = this.schema['ref'];
                 }
 
                 this.control.removeChild(compCtl);
@@ -392,15 +400,18 @@ export default class Container extends Observable {
                 this.tryRemoveSchema(component.name);
                 CommonUtils.deleteFromArray(this.allComponentNames, component.name);
 
-                if (this.allComponent.hasOwnProperty(component.name)) {
-                    delete this.allComponent[component.name];
+                if (this.allComponents.hasOwnProperty(component.name)) {
+                    delete this.allComponents[component.name];
                 }
-
                 let curComponent;
 
-                if (compToSelect && this.components.hasOwnProperty(compToSelect)) {
-                    curComponent = this.components[compToSelect];
+                if (compToSelect && this.allComponents.hasOwnProperty(compToSelect)) {
+                    curComponent = this.allComponents[compToSelect];
                 }
+                if (!curComponent) {
+                    curComponent = this.#containingComponent;
+                }
+
                 this.setCurrentComponent(curComponent);
             }
         }

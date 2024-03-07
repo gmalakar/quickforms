@@ -30,6 +30,8 @@ export default class ComponentUtils {
                 return 'textarea';
             case 'columns':
                 return 'div';
+            case 'button':
+                return 'button';
             default:
                 return ErrorHandler.throwError(ErrorHandler.errorCode.Component.INVALID_TYPE);
         }

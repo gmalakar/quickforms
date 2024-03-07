@@ -94,7 +94,7 @@ export default class Columns extends BaseControl {
 
     addcolumn(idx) {
         this.columns[`${this.#coulmnPrefix}-${idx}`] = {
-            refname: this.containingComponent.name,
+            ref: this.containingComponent.name,
             name: `${this.#coulmnPrefix}-${idx}`,
             index: `${idx}`,
             properties: { size: 'md', width: 6, offset: 0, pull: 0, push: 0 }
@@ -135,9 +135,9 @@ export default class Columns extends BaseControl {
                 let cls = this.#buildColumnClass(schema.properties);
                 let column = HtmlUtils.createElement("div", name, {
                     class: this.defaultColumnClass + ' ' + cls,
-                    ref: this.schema.name,
+                    ref: this.containingComponent.name,
                 });
-                let container = new Container(schema, parentContainer.observer, this.containingComponent?.container, this.designmode);
+                let container = new Container(schema, parentContainer.observer, this.containingComponent, this.designmode);
                 column.appendChild(container.control);
                 this.otherControl.appendChild(column);
             }

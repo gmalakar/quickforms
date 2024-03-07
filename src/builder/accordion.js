@@ -7,7 +7,8 @@ export default class Accordion {
     static getAccordionItem(id, coreid, itemProps, ref, items, caller, createItems, bodycls) {
         let itemdesc = itemProps['text'] || 'Missing Item Desc';
         let def = itemProps['default'] || false;
-        let visiblefor = itemProps['visibleFor'];
+        let visiblefor = itemProps['visiblefor'];
+        let notvisiblefor = itemProps['notvisiblefor'];
         let itempanel = `${id}-panel-${coreid}`;
         let itemheader = `${id}-header-${coreid}`;
         let containerid = `${id}-components-${coreid}`;
@@ -16,11 +17,11 @@ export default class Accordion {
         if (visiblefor) {
             itemAttr['visiblefor'] = visiblefor;
         }
+        if (notvisiblefor) {
+            itemAttr['notvisiblefor'] = notvisiblefor;
+        }
         //item
         let accordionItem = HtmlUtils.createElement('div', itempanel, itemAttr);
-        if (visiblefor) {
-            accordionItem.style.display = "none";
-        }
 
         //header
         let headerItem = HtmlUtils.createElement('span', itemheader, { class: `accordion-header ` });

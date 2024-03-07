@@ -9,7 +9,7 @@ let formMetaData = {
             "type": "columns",
             "columns": {
                 "column-columns1-0": {
-                    "refname": "columns1",
+                    "ref": "columns1",
                     "name": "column-columns1-0",
                     "index": "0",
                     "properties": {
@@ -30,7 +30,7 @@ let formMetaData = {
                     }
                 },
                 "column-columns1-1": {
-                    "refname": "columns1",
+                    "ref": "columns1",
                     "name": "column-columns1-1",
                     "index": "1",
                     "properties": {
@@ -44,7 +44,7 @@ let formMetaData = {
                     "components": {}
                 },
                 "column-columns1-2": {
-                    "refname": "columns1",
+                    "ref": "columns1",
                     "name": "column-columns1-2",
                     "index": "2",
                     "properties": {
@@ -82,6 +82,17 @@ let formMetaData = {
             "type": "checkbox",
             "columns": {},
             "caption": "Checkbox Field"
+        },
+        "select2": {
+            "name": "select2",
+            "type": "select",
+            "caption": "Select Field"
+        },
+        "panel1": {
+            "name": "panel1",
+            "type": "panel",
+            "components": {},
+            "caption": "Panel"
         }
     },
     "caption": "testform",

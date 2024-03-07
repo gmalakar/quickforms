@@ -163,7 +163,7 @@ export default class Builder {
 
         //add designer
         //add container holder
-        let formContainerHolder = this.#createElement('div', this.#areaId, { class: 'fb-design-area p-0', ref: this.#designAreaId });
+        let formContainerHolder = this.#createElement('div', this.#areaId, { class: 'fb-design-area mx-2', ref: this.#designAreaId });
 
         //add form container
         this.#theFormContainer = new FormContainer(this.#formschema, new Observer(this, Builder.#listener), true);

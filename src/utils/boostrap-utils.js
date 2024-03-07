@@ -21,6 +21,9 @@ export default class BootstrapUtils {
             case "radio":
                 cls = 'form-check-input align-middle';
                 break;
+            case "button":
+                cls = 'btn';
+                break;
             default:
                 break;
         }

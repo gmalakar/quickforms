@@ -38,18 +38,18 @@ export default class FormContainer extends Container {
             schema['caption'] = this.name;
         }
         this.formPanel = new PanelControl(this.#panelId, schema['caption']);
-        this.formControl = this.formPanel.control;
+        this.formControl = this.formPanel.panel;
 
         this.initForm();
 
     }
     resetForm() {
+        this.formPanel.resetPanel();
         this.refreshContainer();
         this.initForm();
         console.log('form has reset');
     }
     initForm() {
-
         //set default class
         if (!this.#getClassSchema('form')) {
             this.#setClassSchema('form', 'fb-form mb-2 border');
@@ -153,6 +153,7 @@ export default class FormContainer extends Container {
         //set caption
         if (this.formPanel) {
             this.formPanel.setCaption(this.schema['caption'])
+            this.formPanel.setPanelClass(['h-100']);
             if (this.formPanel.body && this.control) {
                 this.formPanel.body.appendChild(this.control);
             }

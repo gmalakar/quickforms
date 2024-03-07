@@ -154,12 +154,12 @@ export default class HtmlUtils {
 
     static show(el) {
         if (el && HtmlUtils.isElement(el)) {
-            el.style.display = "block";
+            el.style.removeProperty('display');
         }
         else if (el && CommonUtils.isString(el)) {
             let el2 = document.getElementById(el);
             if (el2) {
-                el2.style.display = "block";
+                el2.style.removeProperty('display');
             }
         };
     }

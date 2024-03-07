@@ -129,6 +129,12 @@ export default class ComponentsBar {
                     "iconCls": "bi bi-menu-button-wide",
                     "datatype": "select"
                 },
+                {
+                    "type": "button",
+                    "text": "Button",
+                    "iconCls": "bi bi-stop",
+                    "datatype": "submit"
+                }
             ]
         },
         "advanced": {

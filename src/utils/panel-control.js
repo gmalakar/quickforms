@@ -4,7 +4,6 @@ import HtmlUtils from './html-utils.js';
 export default class PanelControl {
 
     panel;
-    control;
     id;
     header;
     body;
@@ -12,7 +11,7 @@ export default class PanelControl {
     footer;
     caption;
 
-    panelClasses = { control: 'px-2' };
+    panelClasses = { panel: ['px-2'] };
 
     panelStyles = {};
 
@@ -60,7 +59,7 @@ export default class PanelControl {
     }
 
     setHeaderClass(cls, reset = false) {
-        this.#setClass('control', cls, reset);
+        this.#setClass('hesder', cls, reset);
     }
 
     setTitleClass(cls, reset = false) {
@@ -77,10 +76,6 @@ export default class PanelControl {
 
     setFooterClass(cls, reset = false) {
         this.#setClass('footer', cls, reset);
-    }
-
-    setControlClass(cls, reset = false) {
-        this.#setClass('control', cls, reset);
     }
 
     setHeaderAttributes(attrsArray, reset = false) {
@@ -122,9 +117,6 @@ export default class PanelControl {
                 break;
             case "title":
                 crtl = this.title;
-                break;
-            case "control":
-                crtl = this.control;
                 break;
             case "panel":
                 crtl = this.panel;
@@ -233,12 +225,6 @@ export default class PanelControl {
     }
 
     buildPanel() {
-        this.control = HtmlUtils.createElement(
-            "div",
-            'noid',
-            { class: 'container-fluid' }
-        );
-
         this.panel = HtmlUtils.createElement(
             "div",
             this.id,
@@ -285,8 +271,6 @@ export default class PanelControl {
         if (this.footer) {
             this.panel.appendChild(this.footer);
         }
-
-        this.control.appendChild(this.panel);
     }
 
     resetPanel() {

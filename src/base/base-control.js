@@ -14,7 +14,7 @@ export default class BaseControl {
 
     schema = {};
 
-    defaultCaptionn;
+    defaultCaption;
 
     otherControl;
 
@@ -50,6 +50,9 @@ export default class BaseControl {
             case "radio":
                 cls = 'fb-form-radio';
                 break;
+            case "button":
+                cls = ' btn-primary fb-form-button';
+                break;
             default:
                 break;
         }
@@ -61,17 +64,20 @@ export default class BaseControl {
         if (this.constructor === BaseControl) {
             throw new Error("Abstract classes can't be instantiated.");
         }
-        this.defaultCaptionn = defaultCaption;
         this.containingComponent = containingComponent;
         this.schema = containingComponent.schema || {};
         this.designmode = this.containingComponent.designmode || false;
-        this.#initForm();
+        //set default caption
+        if (CommonUtils.isNullOrEmpty(this.schema.caption)) {
+            this.schema.caption = defaultCaption;
+        }
         this.controlId = `${this.containingContainer.formName}[${this.name}]`;
+        this.initControl;
     }
 
-    #initForm() {
-
+    initControl() {
     }
+
     get name() {
         this.schema.name || "";
     }
@@ -84,11 +90,7 @@ export default class BaseControl {
         return this.containingComponent.containerControl;
     }
 
-    get caption() {
-        return this.schema.caption || "";
-    }
-
-    set caption(value) {
+    setCaption(value) {
         this.schema.caption = value;
         if (this.captionControl) {
             this.captionControl.textContent = value;
@@ -186,7 +188,7 @@ export default class BaseControl {
         }
     }
 
-    #setAttrSchema(key, value) {
+    setAttrSchema(key, value) {
         if (!this.schema.hasOwnProperty('attributes')) {
             this.schema['attributes'] = {};
         }
@@ -213,7 +215,7 @@ export default class BaseControl {
         return val;
     }
 
-    #getAttrSchema(key) {
+    getAttrSchema(key) {
         let val = "";
         if (this.schema.hasOwnProperty('attributes')) {
             val = this.schema['attributes'][key];
@@ -249,7 +251,7 @@ export default class BaseControl {
         }
     }
 
-    #setDataAttrSchema(key, value) {
+    setDataAttrSchema(key, value) {
 
         if (!this.schema.hasOwnProperty('attributes')) {
             this.schema['attributes'] = {};
@@ -266,7 +268,7 @@ export default class BaseControl {
         }
     }
 
-    #getDataAttrSchema(key) {
+    getDataAttrSchema(key) {
         let val = "";
         if (this.schema.hasOwnProperty('attributes') &&
             this.schema.attributes.hasOwnProperty('data') &&
@@ -286,7 +288,7 @@ export default class BaseControl {
         let val = this.schema[name]
     }
 
-    #setStyleSchema(key, value) {
+    setStyleSchema(key, value) {
         if (!this.schema.hasOwnProperty('styles')) {
             this.schema['styles'] = {};
         }
@@ -326,7 +328,7 @@ export default class BaseControl {
         }
     }
 
-    #getStyleSchema(key) {
+    getStyleSchema(key) {
         let val = "";
         if (this.schema.hasOwnProperty('styles')) {
             val = this.schema['styles'][key];
@@ -344,7 +346,7 @@ export default class BaseControl {
         return val;
     }
 
-    #setClassSchema(key, value) {
+    setClassSchema(key, value) {
         if (!this.schema.hasOwnProperty('class')) {
             this.schema['class'] = {};
         }
@@ -352,7 +354,7 @@ export default class BaseControl {
         //to do for controls
     }
 
-    #getClassSchema(key) {
+    getClassSchema(key) {
         let val = "";
         if (this.schema.hasOwnProperty('class')) {
             val = this.schema['class'][key];
@@ -366,7 +368,7 @@ export default class BaseControl {
     #resetClass(name) {
         let crtl = this.#getControl(name);
         if (crtl) {
-            let cls = this.#getClassSchema(name);
+            let cls = this.getClassSchema(name);
             if (this.designmode && name === 'conponent') {
                 cls = cls + " fb-design-mode";
             }
@@ -383,17 +385,17 @@ export default class BaseControl {
             switch (type) {
                 case "attribute":
                 case "attr":
-                    this.#setAttrSchema(name, val);
+                    this.setAttrSchema(name, val);
                     break;
                 case "style":
-                    this.#setStyleSchema(name, val);
+                    this.setStyleSchema(name, val);
                     break;
                 case "data":
                 case "dataattr":
-                    this.#setDataAttrSchema(name, val);
+                    this.setDataAttrSchema(name, val);
                     break;
                 case "class":
-                    this.#setClassSchema(name, val);
+                    this.setClassSchema(name, val);
                     break;
                 case "prop":
                 case "property":
@@ -415,7 +417,7 @@ export default class BaseControl {
                             }
                             break;
                         case "caption":
-                            this.caption = val;
+                            this.setCaption(val);
                             break;
                         default:
                             break;
@@ -486,13 +488,13 @@ export default class BaseControl {
         switch (type) {
             case "attribute":
             case "attr":
-                val = this.#getAttrSchema(name);
+                val = this.getAttrSchema(name);
                 break;
             case "class":
-                val = this.#getClassSchema(name);
+                val = this.getClassSchema(name);
                 break;
             case "style":
-                val = this.#getStyleSchema(name);
+                val = this.getStyleSchema(name);
                 break;
             case "prop":
             case "property":
@@ -500,7 +502,7 @@ export default class BaseControl {
                 break;
             case "data":
             case "dataattr":
-                val = this.#getDataAttrSchema(name);
+                val = this.getDataAttrSchema(name);
                 break;
             default:
                 val = this.schema[name];
@@ -553,7 +555,7 @@ export default class BaseControl {
             cls = `${cls} ${bsClass}`;
         }
 
-        let compcls = this.#getClassSchema('component')
+        let compcls = this.getClassSchema('component')
 
         if (!CommonUtils.isNullOrEmpty(compcls)) {
             cls = `${cls} ${compcls}`;
@@ -587,7 +589,7 @@ export default class BaseControl {
             cls = `${cls} ${bsClass}`;
         }
 
-        let lblcls = this.#getClassSchema('label')
+        let lblcls = this.getClassSchema('label')
 
         if (!CommonUtils.isNullOrEmpty(lblcls)) {
             cls = `${cls} ${lblcls}`;
@@ -598,12 +600,8 @@ export default class BaseControl {
         this.#setStyle('lable', lblAttrs);
         this.#setAttrs('lable', lblAttrs);
         lblAttrs['for'] = this.controlId;
-        this.captionControl = HtmlUtils.createElement("label", "noid", lblAttrs);
-        if (CommonUtils.isNullOrEmpty(this.schema.caption)) {
-            this.caption = this.defaultCaptionn;
-        } else {
-            this.caption = this.schema.caption;
-        }
+        this.captionControl = HtmlUtils.createElement("span", "noid", lblAttrs);
+        this.setCaption(this.schema.caption);
     }
 
     setElementControl() {
@@ -617,7 +615,7 @@ export default class BaseControl {
             cls = `${cls} ${bsClass}`;
         }
 
-        let elcls = this.#getClassSchema('control')
+        let elcls = this.getClassSchema('control')
 
         if (!CommonUtils.isNullOrEmpty(elcls)) {
             cls = `${cls} ${elcls}`;

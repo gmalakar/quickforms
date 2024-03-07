@@ -37,10 +37,13 @@ export default class Modal {
             this.#response(this.#caller, which);
         }
     }
-    setModal(caller, title, message, type, callback, messageClass, reset) {
+    setModal(caller, title, message, type, callback, messageClass, reset = false) {
         this.#caller = caller;
         this.#response = callback;
         if (!this.#modalEl || reset) {
+            if (this.#bootstrapModal) {
+                this.#bootstrapModal.dispose();
+            }
             let titleId = 'title-' + this.modalid;
             let btnId = 'btnModalMessage-' + this.modalid;
             let messageId = 'message-' + this.modalid;
@@ -82,7 +85,7 @@ export default class Modal {
 
         if (messageClass && CommonUtils.isString(messageClass)) {
             this.#messageEl.className = messageClass;
-        }else{
+        } else {
             this.#messageEl.className = 'text-success';
         }
         if (type === Modal.YesNo || type === Modal.OkCancel) {
@@ -109,5 +112,5 @@ export default class Modal {
         //return this.modalEl;
     }
     //common static modal window
-    static commonModalWindow = new Modal( Modal.COMMON_MODAL_ID )
+    static commonModalWindow = new Modal(Modal.COMMON_MODAL_ID)
 }
