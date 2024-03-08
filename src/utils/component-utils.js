@@ -30,12 +30,24 @@ export default class ComponentUtils {
                 return 'textarea';
             case 'columns':
                 return 'div';
+            case 'groupbox':
+                return 'fieldset';
             case 'button':
                 return 'button';
             default:
                 return ErrorHandler.throwError(ErrorHandler.errorCode.Component.INVALID_TYPE);
         }
     }
+
+    static getLabelType(type) {
+        switch (type) {
+            case 'groupbox':
+                return 'legend';
+            default:
+                return 'span';
+        }
+    }
+
     static #validToken = new RegExp('^[A-Za-z][A-Za-z0-9_:\.-]*$');
 
     static blankAttribure(attr) {

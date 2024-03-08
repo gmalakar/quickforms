@@ -1,6 +1,6 @@
-import BaseControl from '../base/base-control.js';
+import BaseElement from '../base/base-element.js';
 
-export default class PasswordField extends BaseControl {
+export default class PasswordField extends BaseElement {
     constructor(containingComponent) {
         super(containingComponent, 'Password Field');
         this.buildControl();

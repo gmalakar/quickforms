@@ -421,7 +421,7 @@ export default class PropertiesBar {
                     name: "Component",
                     type: "input",
                     maxlength: 50,
-                    notvisiblefor: 'panel'
+                    notvisiblefor: 'panel;table'
                 },
                 {
                     mappedType: "class",
@@ -429,7 +429,7 @@ export default class PropertiesBar {
                     name: "Caption",
                     type: "input",
                     maxlength: 50,
-                    notvisiblefor: 'panel'
+                    notvisiblefor: 'panel;table'
                 },
                 {
                     mappedType: "class",
@@ -437,7 +437,7 @@ export default class PropertiesBar {
                     name: "Element",
                     type: "input",
                     maxlength: 50,
-                    notvisiblefor: 'panel'
+                    notvisiblefor: 'panel;table'
                 },
                 {
                     mappedType: "class",
@@ -478,6 +478,30 @@ export default class PropertiesBar {
                     type: "input",
                     maxlength: 50,
                     visiblefor: 'panel'
+                },
+                {
+                    mappedType: "class",
+                    mappedProp: "table",
+                    name: "Table",
+                    type: "input",
+                    maxlength: 50,
+                    visiblefor: 'table'
+                },
+                {
+                    mappedType: "class",
+                    mappedProp: "row",
+                    name: "Row",
+                    type: "input",
+                    maxlength: 50,
+                    visiblefor: 'table'
+                },
+                {
+                    mappedType: "class",
+                    mappedProp: "column",
+                    name: "Column",
+                    type: "input",
+                    maxlength: 50,
+                    visiblefor: 'table'
                 }
             ]
         },
@@ -508,7 +532,7 @@ export default class PropertiesBar {
                     type: "popup",
                     popupname: 'attributes',
                     readonly: true,
-                    notvisiblefor: 'panel'
+                    notvisiblefor: 'panel;table'
                 },
                 {
                     mappedType: "style",
@@ -517,7 +541,7 @@ export default class PropertiesBar {
                     type: "popup",
                     popupname: 'attributes',
                     readonly: true,
-                    notvisiblefor: 'panel'
+                    notvisiblefor: 'panel;table'
                 },
                 {
                     mappedType: "style",
@@ -526,7 +550,7 @@ export default class PropertiesBar {
                     type: "popup",
                     popupname: 'attributes',
                     readonly: true,
-                    notvisiblefor: 'panel'
+                    notvisiblefor: 'panel;table'
                 },
                 {
                     mappedType: "style",
@@ -573,6 +597,33 @@ export default class PropertiesBar {
                     readonly: true,
                     visiblefor: 'panel'
                 },
+                {
+                    mappedType: "style",
+                    mappedProp: "table",
+                    name: "Table",
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true,
+                    visiblefor: 'table'
+                },
+                {
+                    mappedType: "style",
+                    mappedProp: "row",
+                    name: "Row",
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true,
+                    visiblefor: 'table'
+                },
+                {
+                    mappedType: "style",
+                    mappedProp: "column",
+                    name: "Column",
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true,
+                    visiblefor: 'table'
+                }
             ]
         },
         "attributes": {
@@ -586,7 +637,7 @@ export default class PropertiesBar {
                     type: "popup",
                     popupname: 'attributes',
                     readonly: true,
-                    notvisiblefor: 'panel'
+                    notvisiblefor: 'panel;table'
                 },
                 {
                     mappedType: "attr",
@@ -595,7 +646,7 @@ export default class PropertiesBar {
                     type: "popup",
                     popupname: 'attributes',
                     readonly: true,
-                    notvisiblefor: 'panel'
+                    notvisiblefor: 'panel;table'
                 },
                 {
                     mappedType: "attr",
@@ -604,7 +655,7 @@ export default class PropertiesBar {
                     type: "popup",
                     popupname: 'attributes',
                     readonly: true,
-                    notvisiblefor: 'panel'
+                    notvisiblefor: 'panel;table'
                 },
                 {
                     mappedType: "attr",
@@ -650,6 +701,33 @@ export default class PropertiesBar {
                     popupname: 'attributes',
                     readonly: true,
                     visiblefor: 'panel'
+                },
+                {
+                    mappedType: "attr",
+                    mappedProp: "table",
+                    name: "Table",
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true,
+                    visiblefor: 'table'
+                },
+                {
+                    mappedType: "attr",
+                    mappedProp: "row",
+                    name: "Row",
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true,
+                    visiblefor: 'table'
+                },
+                {
+                    mappedType: "attr",
+                    mappedProp: "column",
+                    name: "Column",
+                    type: "popup",
+                    popupname: 'attributes',
+                    readonly: true,
+                    visiblefor: 'table'
                 }
             ]
         }

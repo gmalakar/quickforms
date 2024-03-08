@@ -23,22 +23,6 @@ export default class FormBuilder {
         })
     }
 
-    static #domReady(fn) {
-        window.onload = function (e) {
-            fn();
-        }
-    }
-
-    #afterLoad() {
-        FormBuilder.#domReady(() => {
-            let selectCtrls = document.getElementsByClassName('slim-select')
-            for (let el of selectCtrls) {
-                new SlimSelect({
-                    select: el.id
-                })
-            }
-        })
-    }
     loadFormInBuilder(schema, callback) {
         this.builder = new Builder(this.buildercontainer);
         this.builder.buildBuilder(schema);

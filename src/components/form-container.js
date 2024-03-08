@@ -2,7 +2,7 @@ import CommonUtils from '../utils/common-utils.js';
 import ErrorHandler from '../utils/error-handler.js';
 import HtmlUtils from '../utils/html-utils.js';
 import Container from './container.js';
-import PanelControl from '../utils/panel-control.js';
+import Panel from '../utils/panel.js';
 
 export default class FormContainer extends Container {
 
@@ -37,7 +37,7 @@ export default class FormContainer extends Container {
         if (!schema.hasOwnProperty('caption')) {
             schema['caption'] = this.name;
         }
-        this.formPanel = new PanelControl(this.#panelId, schema['caption']);
+        this.formPanel = new Panel(this.#panelId, schema['caption']);
         this.formControl = this.formPanel.panel;
 
         this.initForm();

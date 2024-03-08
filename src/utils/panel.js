@@ -1,7 +1,7 @@
 import CommonUtils from './common-utils.js';
 import HtmlUtils from './html-utils.js';
 
-export default class PanelControl {
+export default class Panel {
 
     panel;
     id;

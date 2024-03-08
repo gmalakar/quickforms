@@ -3,7 +3,7 @@ import HtmlUtils from "../utils/html-utils.js";
 import ComponentUtils from "../utils/component-utils.js";
 import BootstrapUtils from "../utils/boostrap-utils.js";
 
-export default class BaseControl {
+export default class BaseElement {
     captionControl;
 
     componentControl;
@@ -61,7 +61,7 @@ export default class BaseControl {
 
 
     constructor(containingComponent, defaultCaption = "Base Element") {
-        if (this.constructor === BaseControl) {
+        if (this.constructor === BaseElement) {
             throw new Error("Abstract classes can't be instantiated.");
         }
         this.containingComponent = containingComponent;
@@ -518,7 +518,7 @@ export default class BaseControl {
         return val;
     }
 
-    #setAttrs(type, attrArr) {
+    setAttrs(type, attrArr) {
         if (attrArr && CommonUtils.isArray(attrArr)) {
             for (let attr of this.#getAttributeObj(type)) {
                 let attrName = attr['name'];
@@ -535,7 +535,7 @@ export default class BaseControl {
         }
     }
 
-    #setStyle(type, styleArr) {
+    setStyle(type, styleArr) {
         if (styleArr && CommonUtils.isArray(styleArr)) {
             let style = HtmlUtils.joinStyles(this.#getAttributeObj(type));
             if (!CommonUtils.isNullOrEmpty(style)) {
@@ -547,7 +547,7 @@ export default class BaseControl {
     setCompControl() {
         let compAttrs = {};
 
-        let cls = BaseControl.#defaultCompClass(this.type);
+        let cls = BaseElement.#defaultCompClass(this.type);
 
         let bsClass = BootstrapUtils.getBSComponentClass(this.type);
 
@@ -566,8 +566,8 @@ export default class BaseControl {
         }
 
         compAttrs.class = cls;
-        this.#setStyle('component', compAttrs);
-        this.#setAttrs('component', compAttrs);
+        this.setStyle('component', compAttrs);
+        this.setAttrs('component', compAttrs);
         compAttrs['tabindex'] = -1;
         compAttrs['draggable'] = true;
         compAttrs['ref'] = this.parentComponent?.name || this.name
@@ -581,7 +581,7 @@ export default class BaseControl {
 
     setLabelControl() {
         let lblAttrs = {};
-        let cls = BaseControl.#defaultCaptionClass(this.type);
+        let cls = BaseElement.#defaultCaptionClass(this.type);
 
         let bsClass = BootstrapUtils.getBSlabelClass(this.type);
 
@@ -597,17 +597,17 @@ export default class BaseControl {
 
         lblAttrs.class = cls;
 
-        this.#setStyle('lable', lblAttrs);
-        this.#setAttrs('lable', lblAttrs);
+        this.setStyle('lable', lblAttrs);
+        this.setAttrs('lable', lblAttrs);
         lblAttrs['for'] = this.controlId;
-        this.captionControl = HtmlUtils.createElement("span", "noid", lblAttrs);
+        this.captionControl = HtmlUtils.createElement(ComponentUtils.getLabelType(this.type), "noid", lblAttrs);
         this.setCaption(this.schema.caption);
     }
 
     setElementControl() {
         let elAttrs = {};
         elAttrs['type'] = this.type;//ComponentUtils.getType(this.type);
-        let cls = BaseControl.#defaultControlClass(this.type);
+        let cls = BaseElement.#defaultControlClass(this.type);
 
         let bsClass = BootstrapUtils.getBSElementClass(this.type);
 
@@ -624,12 +624,12 @@ export default class BaseControl {
         elAttrs.class = cls;
 
         if (CommonUtils.isNullOrEmpty(elAttrs.class)) {
-            elAttrs.class = BaseControl.#defaultControlClass;
+            elAttrs.class = BaseElement.#defaultControlClass;
         }
 
-        this.#setStyle('control', elAttrs);
-        this.#setAttrs('control', elAttrs);
-        this.#setAttrs('data', elAttrs);
+        this.setStyle('control', elAttrs);
+        this.setAttrs('control', elAttrs);
+        this.setAttrs('data', elAttrs);
         elAttrs['type'] = this.type;
         this.elementControl = HtmlUtils.createElement(
             ComponentUtils.getControlType(this.type),
@@ -644,8 +644,6 @@ export default class BaseControl {
 
     setOtherControls() { }
 
-    buildOtherControls() { }
-
     buildControl() {
         this.setCompControl();
 
@@ -654,6 +652,11 @@ export default class BaseControl {
         this.setElementControl();
 
         this.setOtherControls();
+
+        this.setControls();
+    }
+
+    setControls() {
 
         if (this.captionControl) {
             this.componentControl.appendChild(this.captionControl);
@@ -666,8 +669,6 @@ export default class BaseControl {
         if (this.elementControl) {
             this.componentControl.appendChild(this.elementControl);
         }
-
-        this.buildOtherControls();
 
         this.containerControl.appendChild(this.componentControl);
     }

@@ -1,9 +1,9 @@
 import CommonUtils from "../utils/common-utils.js";
-import BaseControl from "../base/base-control.js";
+import BaseElement from "../base/base-element.js";
 import HtmlUtils from "../utils/html-utils.js";
 import Container from "../components/container.js";
 import ErrorHandler from "../utils/error-handler.js";
-export default class Columns extends BaseControl {
+export default class ColumnLayout extends BaseElement {
     defaultColumnClass = "fb-component-column";
     defaultRowClass = "row fb-component-columns";
     #coulmnPrefix = "";

@@ -5,11 +5,13 @@ import TextField from "../elements/textfield.js";
 import PasswordField from "../elements/password.js";
 import NumberField from "../elements/number.js";
 import TextArea from "../elements/textarea.js";
-import Columns from "../elements/columns.js";
+import ColumnLayout from "../elements/column-layout.js";
+import TableLayout from "../elements/table-layout.js";
 import CheckboxField from "../elements/checkbox.js";
 import SelectField from "../elements/select.js";
-import Panel from "../elements/panel.js";
+import PanelLayout from "../elements/panel-layout.js";
 import ButtonField from "../elements/button.js";
+import GroupBox from "../elements/group-box.js";
 import Container from "./container.js";
 export default class Component {
     //public members
@@ -88,13 +90,17 @@ export default class Component {
             case "textarea":
                 return new TextArea(containgComponent);
             case "columns":
-                return new Columns(containgComponent);
+                return new ColumnLayout(containgComponent);
+            case "table":
+                return new TableLayout(containgComponent);
             case "select":
                 return new SelectField(containgComponent);
             case "panel":
-                return new Panel(containgComponent);
+                return new PanelLayout(containgComponent);
             case "button":
                 return new ButtonField(containgComponent);
+            case "groupbox":
+                return new GroupBox(containgComponent);
             default:
                 return ErrorHandler.throwError(
                     ErrorHandler.errorCode.Component.INVALID_TYPE

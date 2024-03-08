@@ -1,6 +1,6 @@
-import BaseControl from '../base/base-control.js';
+import BaseElement from '../base/base-element.js';
 
-export default class ButtonField extends BaseControl {
+export default class ButtonField extends BaseElement {
     constructor(containingComponent) {
         super(containingComponent, 'Button');
         this.buildControl();

@@ -117,3 +117,7 @@ table.table-fit tfoot td {
   margin-left: 0;
   margin-right: 0.5em;
 }
+
+.fb-groupbox-legend {
+  all: revert;
+}

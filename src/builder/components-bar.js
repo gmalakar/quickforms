@@ -152,6 +152,11 @@ export default class ComponentsBar {
                     "iconCls": "bi-layout-three-columns",
                 },
                 {
+                    "type": "groupbox",
+                    "text": "Group Box",
+                    "iconCls": "bi bi-grid-fill",
+                },
+                {
                     "type": "panel",
                     "text": "Panel",
                     "iconCls": "bi bi-window",

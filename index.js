@@ -57,7 +57,8 @@ let formMetaData = {
                     "type": "container",
                     "components": {}
                 }
-            }
+            },
+            "caption": "Columns"
         },
         "textfield2": {
             "name": "textfield2",
@@ -92,7 +93,118 @@ let formMetaData = {
             "name": "panel1",
             "type": "panel",
             "components": {},
-            "caption": "Panel"
+            "caption": "Panel",
+            "ref": "panel1"
+        },
+        "groupbox3": {
+            "name": "groupbox3",
+            "type": "groupbox",
+            "caption": "Group Box",
+            "ref": "groupbox3",
+            "components": {
+                "text1": {
+                    "name": "text1",
+                    "type": "text",
+                    "caption": "Text Field"
+                }
+            }
+        },
+        "table2": {
+            "name": "table2",
+            "type": "table",
+            "caption": "Table",
+            "rows": {
+                "row-table2-0": {
+                    "ref": "table2",
+                    "name": "row-table2-0",
+                    "index": "0",
+                    "columns": {
+                        "col-table2-0": {
+                            "ref": "row-table2-0",
+                            "name": "col-table2-0",
+                            "index": "0",
+                            "type": "container",
+                            "components": {
+                                "text2": {
+                                    "name": "text2",
+                                    "type": "text",
+                                    "caption": "Text Field"
+                                }
+                            }
+                        },
+                        "col-table2-1": {
+                            "ref": "row-table2-0",
+                            "name": "col-table2-1",
+                            "index": "1",
+                            "type": "container",
+                            "components": {}
+                        },
+                        "col-table2-2": {
+                            "ref": "row-table2-0",
+                            "name": "col-table2-2",
+                            "index": "2",
+                            "type": "container",
+                            "components": {}
+                        }
+                    }
+                },
+                "row-table2-1": {
+                    "ref": "table2",
+                    "name": "row-table2-1",
+                    "index": "1",
+                    "columns": {
+                        "col-table2-0": {
+                            "ref": "row-table2-1",
+                            "name": "col-table2-0",
+                            "index": "0",
+                            "type": "container",
+                            "components": {}
+                        },
+                        "col-table2-1": {
+                            "ref": "row-table2-1",
+                            "name": "col-table2-1",
+                            "index": "1",
+                            "type": "container",
+                            "components": {}
+                        },
+                        "col-table2-2": {
+                            "ref": "row-table2-1",
+                            "name": "col-table2-2",
+                            "index": "2",
+                            "type": "container",
+                            "components": {}
+                        }
+                    }
+                },
+                "row-table2-2": {
+                    "ref": "table2",
+                    "name": "row-table2-2",
+                    "index": "2",
+                    "columns": {
+                        "col-table2-0": {
+                            "ref": "row-table2-2",
+                            "name": "col-table2-0",
+                            "index": "0",
+                            "type": "container",
+                            "components": {}
+                        },
+                        "col-table2-1": {
+                            "ref": "row-table2-2",
+                            "name": "col-table2-1",
+                            "index": "1",
+                            "type": "container",
+                            "components": {}
+                        },
+                        "col-table2-2": {
+                            "ref": "row-table2-2",
+                            "name": "col-table2-2",
+                            "index": "2",
+                            "type": "container",
+                            "components": {}
+                        }
+                    }
+                }
+            }
         }
     },
     "caption": "testform",
@@ -101,7 +213,8 @@ let formMetaData = {
         "body": "fb-form-body",
         "title": "fb-form-title mb-0",
         "header": "fb-form-header bg-defaul"
-    }
+    },
+    "ref": "self"
 }
 formMetaData['name'] = 'testform';
 let formBuilder = new FormBuilder('builder-container');

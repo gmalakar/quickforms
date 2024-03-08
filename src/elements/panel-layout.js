@@ -1,8 +1,7 @@
-import BaseControl from "../base/base-control.js";
-import PanelControl from "../utils/panel-control.js";
+import BaseElement from "../base/base-element.js";
+import Panel from "../utils/panel.js";
 import Container from "../components/container.js";
-import CommonUtils from "../utils/common-utils.js";
-export default class Panel extends BaseControl {
+export default class PanelLayout extends BaseElement {
     panel;
     #container;
     constructor(containingComponent) {
@@ -25,7 +24,7 @@ export default class Panel extends BaseControl {
 
     setOtherControls(reset) {
         let parentContainer = this.containingComponent.container;
-        this.panel = new PanelControl(this.name, "Panel")
+        this.panel = new Panel(this.name, "Panel")
         this.panel.setPanelClass(['p-0']);
 
         this.otherControl = this.panel.panel;
