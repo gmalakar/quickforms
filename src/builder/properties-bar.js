@@ -421,7 +421,7 @@ export default class PropertiesBar {
                     name: "Component",
                     type: "input",
                     maxlength: 50,
-                    notvisiblefor: 'panel;table'
+                    notvisiblefor: 'panel;table;columns'
                 },
                 {
                     mappedType: "class",
@@ -429,7 +429,7 @@ export default class PropertiesBar {
                     name: "Caption",
                     type: "input",
                     maxlength: 50,
-                    notvisiblefor: 'panel;table'
+                    notvisiblefor: 'panel;table;columns'
                 },
                 {
                     mappedType: "class",
@@ -437,7 +437,7 @@ export default class PropertiesBar {
                     name: "Element",
                     type: "input",
                     maxlength: 50,
-                    notvisiblefor: 'panel;table'
+                    notvisiblefor: 'panel;table;columns'
                 },
                 {
                     mappedType: "class",
@@ -501,7 +501,7 @@ export default class PropertiesBar {
                     name: "Column",
                     type: "input",
                     maxlength: 50,
-                    visiblefor: 'table'
+                    visiblefor: 'table;columns'
                 }
             ]
         },
@@ -532,7 +532,7 @@ export default class PropertiesBar {
                     type: "popup",
                     popupname: 'attributes',
                     readonly: true,
-                    notvisiblefor: 'panel;table'
+                    notvisiblefor: 'panel;table;columns'
                 },
                 {
                     mappedType: "style",
@@ -541,7 +541,7 @@ export default class PropertiesBar {
                     type: "popup",
                     popupname: 'attributes',
                     readonly: true,
-                    notvisiblefor: 'panel;table'
+                    notvisiblefor: 'panel;table;columns'
                 },
                 {
                     mappedType: "style",
@@ -550,7 +550,7 @@ export default class PropertiesBar {
                     type: "popup",
                     popupname: 'attributes',
                     readonly: true,
-                    notvisiblefor: 'panel;table'
+                    notvisiblefor: 'panel;table;columns'
                 },
                 {
                     mappedType: "style",
@@ -622,7 +622,7 @@ export default class PropertiesBar {
                     type: "popup",
                     popupname: 'attributes',
                     readonly: true,
-                    visiblefor: 'table'
+                    visiblefor: 'table;columns'
                 }
             ]
         },
@@ -637,7 +637,7 @@ export default class PropertiesBar {
                     type: "popup",
                     popupname: 'attributes',
                     readonly: true,
-                    notvisiblefor: 'panel;table'
+                    notvisiblefor: 'panel;table;columns'
                 },
                 {
                     mappedType: "attr",
@@ -646,7 +646,7 @@ export default class PropertiesBar {
                     type: "popup",
                     popupname: 'attributes',
                     readonly: true,
-                    notvisiblefor: 'panel;table'
+                    notvisiblefor: 'panel;table;columns'
                 },
                 {
                     mappedType: "attr",
@@ -655,7 +655,7 @@ export default class PropertiesBar {
                     type: "popup",
                     popupname: 'attributes',
                     readonly: true,
-                    notvisiblefor: 'panel;table'
+                    notvisiblefor: 'panel;table;columns'
                 },
                 {
                     mappedType: "attr",
@@ -727,7 +727,7 @@ export default class PropertiesBar {
                     type: "popup",
                     popupname: 'attributes',
                     readonly: true,
-                    visiblefor: 'table'
+                    visiblefor: 'table;columns'
                 }
             ]
         }

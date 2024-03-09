@@ -156,7 +156,7 @@ export default class BaseElement {
     setComponentPropertyLocal(type, name, val) {
     }
 
-    #getControl(name) {
+    getControl(name) {
         let crtl;
         switch (name) {
             case "label":
@@ -177,7 +177,7 @@ export default class BaseElement {
     #clearAttrs(name) {
         let attrs = this.schema.attributes[name];
         if (attrs) {
-            let crtl = this.#getControl(name);
+            let crtl = this.getControl(name);
 
             if (crtl && CommonUtils.isArray(attrs)) {
                 for (let attr of attrs) {
@@ -233,8 +233,8 @@ export default class BaseElement {
         return val;
     }
 
-    #resetAttrs(name) {
-        let crtl = this.#getControl(name);
+    resetAttrs(name) {
+        let crtl = this.getControl(name);
         let attrs = this.schema?.attributes[name];
         if (crtl && CommonUtils.isArray(attrs)) {
             for (let attr of attrs) {
@@ -278,13 +278,13 @@ export default class BaseElement {
         return val;
     }
 
-    #resetDataAttrs(name) {
+    resetDataAttrs(name) {
         if (this.elementControl) {
             this.elementControl.setAttribute(name, this.schema?.attributes?.data[name]);
         }
     }
 
-    #resetGen(name) {
+    resetGen(name) {
         let val = this.schema[name]
     }
 
@@ -305,8 +305,8 @@ export default class BaseElement {
         }
     }
 
-    #resetStyle(name) {
-        let crtl = this.#getControl(name);
+    resetStyle(name) {
+        let crtl = this.getControl(name);
         if (crtl) {
             let styleArr = this.schema?.styles[name];
             for (let style of styleArr) {
@@ -318,7 +318,7 @@ export default class BaseElement {
     #clearStyle(name) {
         let styles = this.schema.styles[name];
         if (styles) {
-            let crtl = this.#getControl(name);
+            let crtl = this.getControl(name);
             if (crtl && CommonUtils.isArray(styles)) {
                 for (let attr of styles) {
                     crtl.style.removeProperty(attr.name);
@@ -365,11 +365,11 @@ export default class BaseElement {
         return val;
     }
 
-    #resetClass(name) {
-        let crtl = this.#getControl(name);
+    resetClass(name) {
+        let crtl = this.getControl(name);
         if (crtl) {
             let cls = this.getClassSchema(name);
-            if (this.designmode && name === 'conponent') {
+            if (this.designmode && name === 'component') {
                 cls = cls + " fb-design-mode";
             }
             if (cls) {
@@ -443,24 +443,21 @@ export default class BaseElement {
     setPropertyToControl(type, name) {
         switch (type) {
             case "gen":
-                this.#resetGen(name)
+                this.resetGen(name)
                 break;
             case "class":
-                this.#resetClass(name)
+                this.resetClass(name)
                 break;
             case "style":
-                this.#resetStyle(name,)
-                break;
-            case "style":
-                this.#resetStyle(name,)
+                this.resetStyle(name,)
                 break;
             case "attrs":
             case "attribute":
-                this.#resetAttrs(name)
+                this.resetAttrs(name)
                 break;
             case "data":
             case "dataattr":
-                this.#resetDataAttrs(name);
+                this.resetDataAttrs(name);
                 break;
         }
     }
