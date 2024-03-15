@@ -34,12 +34,23 @@ export default class ScriptLoader {
                 link.rel = 'stylesheet';
                 link.type = 'text/css';
                 link.href = csslink;
-                if (cfg.integrity)
+                if (cfg.integrity) {
                     link.integrity = cfg.integrity;
-                if (cfg.crossorigin)
+                }
+                if (cfg.crossorigin) {
                     link.crossOrigin = cfg.crossorigin;
-                if (cfg.referrerpolicy)
+                }
+                else {
+                    link.crossOrigin = 'anonymous';
+                }
+
+                if (cfg.referrerpolicy) {
                     link.referrerpolicy = cfg.referrerpolicy;
+                }
+                else {
+                    link.referrerpolicy = 'no-referrer';
+                }
+
                 link.onload = urlCallback(csslink, 'onload');
                 head.appendChild(link);
             } else {
@@ -101,7 +112,7 @@ export default class ScriptLoader {
         }
         const loadScript = function (cfg) {
             var url = cfg.src;
-            if (cfg.skipbase != null && (cfg.skipbase === true || cfg.skipbase === 'true')) {
+            if (url.startsWith('http') || cfg.skipbase != null && (cfg.skipbase === true || cfg.skipbase === 'true')) {
                 url = url;
             } else {
                 url = ScriptLoader.baseurl + url;
@@ -110,13 +121,32 @@ export default class ScriptLoader {
             var s = document.createElement('script');
             s.setAttribute('type', 'text/javascript');
             s.setAttribute('src', url);
-            if (cfg.integrity)
+            if (cfg.integrity) {
                 s.setAttribute('integrity', cfg.integrity);
-            if (cfg.crossorigin)
+            }
+            if (cfg.crossorigin) {
                 s.setAttribute('crossOrigin', cfg.crossorigin);
-            if (cfg.referrerpolicy)
+            }
+            else {
+                s.setAttribute('crossOrigin', 'anonymous');
+            }
+
+            if (cfg.referrerpolicy) {
                 s.setAttribute('referrerpolicy', cfg.referrerpolicy);
+            }
+            else {
+                s.setAttribute('referrerpolicy', 'no-referrer');
+            }
+
+            if (cfg.charset) {
+                s.setAttribute('charset', cfg.charset);
+            }
+            else {
+                s.setAttribute('charset', 'utf-8');
+            }
+
             s.onload = urlCallback(url, 'onload');
+
             if (cfg.location)
                 cfg.location.appendChild(s);
             else
@@ -158,5 +188,4 @@ export default class ScriptLoader {
             loadScript(script);
         }
     };
-
 }

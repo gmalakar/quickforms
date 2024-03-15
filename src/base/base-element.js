@@ -639,9 +639,12 @@ export default class BaseElement {
         }
     }
 
+    initializeColtol() { }
     setOtherControls() { }
 
     buildControl() {
+        this.initializeColtol();
+
         this.setCompControl();
 
         this.setLabelControl();
@@ -668,6 +671,10 @@ export default class BaseElement {
         }
 
         this.containerControl.appendChild(this.componentControl);
+
+        this.afterBuild();
     }
+
+    afterBuild() { }
 
 }

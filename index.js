@@ -1,5 +1,35 @@
-import FormBuilder from './src/fbuilder.js'
+import EasyFormsBuilder from '../src/easyforms-builder.js'
 
+let formBuilder = new EasyFormsBuilder('builder-container');
+formBuilder.setBootstrapJS('https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js',
+    'sha512-X/YkDZyjTf4wyc2Vy16YGCPHwAY8rZJY+POgokZjQB2mhIRFJCckEGc6YyX9eNsPfn0PzThEuNs+uaomE5CO6A==');
+formBuilder.setBootstrapCss('https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css',
+    'sha512-b2QcS5SsA8tZodcDtGRELiGv5SaKSk1vDHDaQRda0htPYWZ6046lr3kJ5bAAQdpV2mmA/4v0wQF9MyU6/pDIAg==');
+formBuilder.setBootstrapIcons('https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css',
+    'sha512-dPXYcDub/aeb08c63jRq/k6GaKccl256JQy/AnOq7CAnEZ9FzSL9wSbcZkMp4R26vBsMLFYH4kQ67/bbV8XaCQ==');
+formBuilder.setOtherRequiredScripts([{
+    type: 'javascript',
+    src: 'https://cdnjs.cloudflare.com/ajax/libs/slim-select/2.8.2/slimselect.min.js',
+    integrity: 'sha512-epC0GMFGR8PG5QlzmOu8w6EXjvL+1/93qGAmsWiyZWCmkqGdV4lhoLuQJ9Mge6hsC+Wn0+M8eQ+AiW63zPQggw=='
+}, {
+    type: 'css',
+    src: 'https://cdnjs.cloudflare.com/ajax/libs/slim-select/2.8.2/slimselect.min.css',
+    integrity: 'sha512-5nyAgbkuF7NkcIydVHNRVgjpsG2k+bBtP7PHOUMwMb/0vtb4rPdxEf1sqPztb6l6T6wEfisDrzZ+vge2QM6bIg=='
+},
+{
+    type: 'javascript',
+    src: 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js',
+    integrity: 'sha512-8RnEqURPUc5aqFEN04aQEiPlSAdE0jlFS/9iGgUyNtwFnSKCXhmB6ZTNl7LnDtDWKabJIASzXrzD0K+LYexU9g=='
+}, {
+    type: 'javascript',
+    src: 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js',
+    integrity: 'sha512-I6CdJdruzGtvDyvdO4YsiAq+pkWf2efgd1ZUSK2FnM/u2VuRASPC7GowWQrWyjxCZn6CT89s3ddGI+be0Ak9Fg=='
+}, {
+    type: 'css',
+    src: 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css',
+    integrity: 'sha512-uf06llspW44/LZpHzHT6qBOIVODjWtv4MxCricRxkzvopAlSWnTf6hpZTFxuuZcuNE9CBQhqE0Seu1CoRk84nQ=='
+}
+]);
 let formMetaData = {
     "name": "testform",
     "type": "form",
@@ -217,6 +247,5 @@ let formMetaData = {
     "ref": "self"
 }
 formMetaData['name'] = 'testform';
-let formBuilder = new FormBuilder('builder-container');
-
+//formBuilder.startBuilder();
 formBuilder.loadFormInBuilder(formMetaData);

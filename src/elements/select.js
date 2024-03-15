@@ -10,7 +10,7 @@ export default class SelectField extends BaseElement {
         this.buildControl();
     }
 
-    setOtherControls() {
+    afterBuild() {
         if (this.elementControl && !this.slimSelectFilter) {
             let option = { 'Set Options': 'S', 'Set Options2': 'S2' }
             HtmlUtils.populateOptions(this.elementControl, option);
@@ -18,15 +18,6 @@ export default class SelectField extends BaseElement {
                 select: this.elementControl
             })
         }
-    }
 
-    /*     buildOtherControls() {
-            if (this.elementControl && !this.slimSelectFilter) {
-                let option = { 'Set Options': 'S', 'Set Options2': 'S2' }
-                HtmlUtils.populateOptions(this.elementControl, option);
-                this.slimSelectFilter = new SlimSelect({
-                    select: this.elementControl
-                })
-            }
-        } */
+    }
 }

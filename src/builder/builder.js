@@ -50,7 +50,7 @@ export default class Builder {
         return this.#buildertTabPanes[this.#jsonContainerId];
     }
 
-    buildBuilder(formschema) {
+    buildBuilder(formschema, callback) {
         if (CommonUtils.isNullOrUndefined(formschema)) {
             return ErrorHandler.throwError(ErrorHandler.errorCode.Builder.MISSING_FORM_METADATA);
         } else if (CommonUtils.isNullOrEmpty(formschema.name)) {
@@ -63,6 +63,9 @@ export default class Builder {
         }
         if (this.#builderContainer) {
             this.#createBed();
+            if (callback) {
+                callback();
+            }
         } else {
             ErrorHandler.throwError('builder.invalidbuilderel');
         }
@@ -144,13 +147,13 @@ export default class Builder {
 
 
         //components bar
-        let componentBar = this.#createElement('div', this.#sideCompId, { class: `col-xs-3 col-sm-3 col-md-2 p-0 fb-component-bar` });
+        let componentBar = this.#createElement('div', this.#sideCompId, { class: `p-0 fb-component-bar` });
 
         //form design area
-        let formArea = this.#createElement('div', this.#designAreaId, { class: `col-xs-6 col-sm-6 col-md-8  p-0 fb-form-area`, ref: this.#builderId });
+        let formArea = this.#createElement('div', this.#designAreaId, { class: `col  p-0 fb-form-area`, ref: this.#builderId });
 
         //property bar
-        let propertyBar = this.#createElement('div', this.#propertyId, { class: `col-xs-3 col-sm-3 col-md-2  p-0 fb-property-bar`, ref: this.#builderId });
+        let propertyBar = this.#createElement('div', this.#propertyId, { class: `p-0 fb-property-bar`, ref: this.#builderId });
 
         //append components bar
         builder.appendChild(componentBar);

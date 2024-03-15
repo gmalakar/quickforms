@@ -6,6 +6,7 @@ import NameValueEditor from '../editors/name-value-editor.js';
 import TabControl from '../utils/tab-control.js';
 import Modal from '../utils/modal.js';
 import BootstrapUtils from '../utils/boostrap-utils.js';
+import ScriptEditor from '../editors/script-editor.js';
 export default class PropertiesBar {
 
     ref;
@@ -24,6 +25,7 @@ export default class PropertiesBar {
     #selectedComponent;
     searchcontrol;
     slimSelectFilter;
+    scriptcontrol;
 
     constructor(formcontainer, ref) {
         this.#formcontainer = formcontainer;
@@ -240,6 +242,7 @@ export default class PropertiesBar {
                             break;
                     }
                 });
+
                 groupEl.appendChild(editorEl);
                 groupEl.appendChild(btn);
                 break;
@@ -305,6 +308,13 @@ export default class PropertiesBar {
             formAttrs['ref'] = this.ref;
         }
         let formAccordion = HtmlUtils.createElement('div', this.#formAccordID, formAttrs);
+        this.scriptcontrol = HtmlUtils.createIconButton({ class: 'btn btn-primary btn-md m-0 fb-editor-btn', type: 'button' }, { class: 'bi bi-filetype-js' }, `${this.#formAccordID}-script`);
+        this.scriptcontrol.addEventListener("click", (e) => {
+            ScriptEditor.setEditor('Form Script');
+        });
+        //this.scriptcontrol = HtmlUtils.createElement('button', `${this.#formAccordID}-script`, {});
+
+        formAccordion.appendChild(this.scriptcontrol);
 
         if (CommonUtils.isObjcetButNotArray(PropertiesBar.formProperties)) {
             for (let [key, value] of Object.entries(PropertiesBar.formProperties)) {

@@ -14,7 +14,7 @@ export default class NameValueEditor extends BaseEditor {
     constructor(title) {
         NameValueEditor.EDITOR_ID = CommonUtils.ShortGuid();
         let modalMetaData = {
-            id: CommonUtils.COLUMN_EDITOR_ID,
+            id: NameValueEditor.EDITOR_ID,
             title: title,
             footerclass: 'd-flex justify-content-start'
         }

@@ -2,15 +2,23 @@ import HtmlUtils from '../utils/html-utils.js';
 import CommonUtils from '../utils/common-utils.js';
 
 export default class BaseEditor {
-    #modalid;
+    modalid;
     #modalEl;
     #titleEl;
     #footerEl;
     #bootstrapModal;
     #metadata;
-    #modalContainer;
+    modalContainer;
+    modalBody;
     #headerclass = '';
     #footerclass = '';
+    #dialogclass = 'modal-lg';
+    #contentclass = '';
+    #bodyclass = '';
+    #containerclass = '';
+    #containertype = 'div'
+    containerid;
+
     constructor(modalMetada) {
         if (CommonUtils.isNullOrUndefined(modalMetada)) {
             throw new Error('invalid model metadata!');
@@ -23,9 +31,29 @@ export default class BaseEditor {
         this.#metadata = modalMetada;
 
         if (this.#metadata.hasOwnProperty('id')) {
-            this.#modalid = this.#metadata['id'];
+            this.modalid = this.#metadata['id'];
         } else {
-            this.#modalid = CommonUtils.ShortGuid();
+            this.modalid = CommonUtils.ShortGuid();
+        }
+
+        if (this.#metadata.hasOwnProperty('dialogclass')) {
+            this.#dialogclass = this.#metadata['dialogclass'];
+        }
+
+        if (this.#metadata.hasOwnProperty('bodyclass')) {
+            this.#bodyclass = this.#metadata['bodyclass'];
+        }
+
+        if (this.#metadata.hasOwnProperty('contentclass')) {
+            this.#contentclass = this.#metadata['contentclass'];
+        }
+
+        if (this.#metadata.hasOwnProperty('containertype')) {
+            this.#containertype = this.#metadata['containertype'];
+        }
+
+        if (this.#metadata.hasOwnProperty('containerclass')) {
+            this.#containerclass = this.#metadata['containerclass'];
         }
 
         if (this.#metadata.hasOwnProperty('footerclass')) {
@@ -45,6 +73,12 @@ export default class BaseEditor {
 
     }
 
+    containerAdded(containerid) {
+    }
+
+    onHide() {
+    }
+
     setTitle(title) {
         if (this.#titleEl) {
             this.#titleEl.innerHTML = title;
@@ -58,18 +92,32 @@ export default class BaseEditor {
                     this.#footerEl.innerHTML = footer;
                 } else if (HtmlUtils.isHTMLElement(footer)) {
                     this.#footerEl.replaceChildren(footer);
+                } else if (CommonUtils.isArray(footer)) {
+                    HtmlUtils.removeChilds(this.#footerEl);
+                    for (let ctl of footer) {
+                        this.#footerEl.appendChild(ctl);
+                    }
                 }
             }
         }
     }
 
+    getContentHolder() {
+        return this.modalContainer;
+    }
+
+    setModalContainerClasses(classes) {
+        if (this.modalContainer) {
+            HtmlUtils.addClasses(this.modalContainer, classes);
+        }
+    }
     setContent(content) {
         if (!CommonUtils.isNullOrUndefined(content)) {
-            if (this.#modalContainer) {
+            if (this.modalContainer) {
                 if (CommonUtils.isString(content)) {
-                    this.#modalContainer.innerHTML = content;
+                    this.modalContainer.innerHTML = content;
                 } else if (HtmlUtils.isHTMLElement(content)) {
-                    this.#modalContainer.replaceChildren(content);
+                    this.modalContainer.replaceChildren(content);
                 }
             }
         }
@@ -84,25 +132,44 @@ export default class BaseEditor {
         }
     };
 
-    show() {
+    show(callback) {
         if (this.#bootstrapModal) {
             this.#bootstrapModal.show();
+            if (callback) {
+                callback();
+            }
         }
     };
 
+    appendToBody(ctl) {
+        if (!CommonUtils.isNullOrUndefined(ctl)) {
+            if (this.modalBody) {
+                if (CommonUtils.isString(ctl)) {
+                    this.modalBody.innerHTML = ctl;
+                } else if (HtmlUtils.isHTMLElement(ctl)) {
+                    this.modalBody.appendChild(ctl);
+                }
+            }
+        }
+    }
+
     #createModal(reset = false) {
         if (!this.#modalEl || reset) {
-            let titleId = 'title-' + this.#modalid;
-            let btnId = 'btnModalMessage-' + this.#modalid;
-            let footerId = 'footer-' + this.#modalid;
+            let titleId = 'title-' + this.modalid;
+            let btnId = 'btnModalMessage-' + this.modalid;
+            let footerId = 'footer-' + this.modalid;
+            this.containerid = 'container-' + this.modalid;
 
-            let modal = HtmlUtils.createElement('div', this.#modalid, {
+            let modal = HtmlUtils.createElement('div', this.modalid, {
                 class: 'modal fade',
                 role: 'dialog', 'data-bs-backdrop': 'static', 'data-backdrop': 'static', 'data-bs-keyboard': false, 'data-keyboard': false, tabindex: '-1',
                 'aria-labelledby': titleId, 'aria-hidden': true
             });
-            let modalDialog = HtmlUtils.createElement('div', 'noid', { class: `modal-dialog ` });
-            let modalContent = HtmlUtils.createElement('div', 'noid', { class: 'modal-content fb-editor' });
+            let modalDialog = HtmlUtils.createElement('div', 'noid', { class: `modal-dialog ${this.#dialogclass}` });
+            let modalContent = HtmlUtils.createElement('div', 'noid', { class: `modal-content fb-editor ${this.#contentclass}` });
+
+            modalDialog.appendChild(modalContent);
+
             let modalHeader = HtmlUtils.createElement('div', 'noid', { class: `modal-header ${this.#headerclass}` });
             let moldalTitle = HtmlUtils.createElement('h5', titleId, { class: 'modal-title' });
             let moldalClose = HtmlUtils.createElement('button', btnId, { class: 'btn-close', type: 'button', 'data-bs-dismiss': 'modal', 'aria-label': 'Close' });
@@ -110,18 +177,22 @@ export default class BaseEditor {
             modalHeader.appendChild(moldalClose);
             this.#titleEl = moldalTitle;
 
-            let body = HtmlUtils.createElement('div', 'noid', { class: 'modal-body ' });
-            this.#modalContainer = HtmlUtils.createElement('div', 'noid', { class: 'container' });
-            body.appendChild(this.#modalContainer);
+            this.modalBody = HtmlUtils.createElement(this.#containertype, 'noid', { class: `modal-body row ${this.#bodyclass}` });
+            this.modalContainer = HtmlUtils.createElement('div', this.containerid, { class: `modal-container ${this.#containerclass}` });
+            this.modalBody.appendChild(this.modalContainer);
             this.#footerEl = HtmlUtils.createElement('div', footerId, { class: `modal-footer ${this.#footerclass}` });
             modalContent.appendChild(modalHeader);
-            modalContent.appendChild(body);
+            modalContent.appendChild(this.modalBody);
             modalContent.appendChild(this.#footerEl);
-
-            modalDialog.appendChild(modalContent);
             modal.appendChild(modalDialog);
             this.#modalEl = modal;
             this.#bootstrapModal = new bootstrap.Modal(this.#modalEl, {});
+            modal.addEventListener('shown.bs.modal', () => {
+                this.containerAdded(this.containerid)
+            });
+            modal.addEventListener('hide.bs.modal', () => {
+                this.onHide()
+            });
         }
     }
 }

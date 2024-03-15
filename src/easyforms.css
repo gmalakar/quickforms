@@ -18,7 +18,7 @@
   width: auto;
 }
 .fb-editor {
-  width: fit-content;
+  width: auto !important;
 }
 .fb-selected-comp {
   border: dotted thin;
@@ -55,6 +55,7 @@ table.table-fit tfoot td {
   border-radius: 0;
   padding: 0;
   margin: 0;
+  white-space: nowrap;
 }
 .fb-editor-check {
   border: 1;
@@ -120,4 +121,22 @@ table.table-fit tfoot td {
 
 .fb-groupbox-legend {
   all: revert;
+}
+.fb-component-bar {
+  width: 150px;
+}
+.fb-property-bar {
+  width: 250px;
+}
+.fb-form-area {
+  width: 100%;
+}
+
+.script-editor {
+  border: 1;
+}
+
+.script-editor-status {
+  height: 150px;
+  border: 1;
 }

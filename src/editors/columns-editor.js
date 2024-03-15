@@ -14,7 +14,7 @@ export default class ColumnsEditor extends BaseEditor {
     constructor() {
         ColumnsEditor.COLUMN_EDITOR_ID = CommonUtils.ShortGuid();
         let modalMetaData = {
-            id: CommonUtils.COLUMN_EDITOR_ID,
+            id: ColumnsEditor.COLUMN_EDITOR_ID,
             title: 'Columns Properties',
             footerclass: 'd-flex justify-content-start'
         }
