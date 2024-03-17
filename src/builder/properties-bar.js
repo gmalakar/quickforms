@@ -289,6 +289,10 @@ export default class PropertiesBar {
         return tRow;
     }
 
+    saveScript(script) {
+        this.#formcontainer.setFormProperty('general', 'script', btoa(script), null);
+    }
+
     #create() {
         //creat tabobjects
         let tabs = {};
@@ -310,9 +314,10 @@ export default class PropertiesBar {
         let formAccordion = HtmlUtils.createElement('div', this.#formAccordID, formAttrs);
         this.scriptcontrol = HtmlUtils.createIconButton({ class: 'btn btn-primary btn-md m-0 fb-editor-btn', type: 'button' }, { class: 'bi bi-filetype-js' }, `${this.#formAccordID}-script`);
         this.scriptcontrol.addEventListener("click", (e) => {
-            ScriptEditor.setEditor('Form Script');
+            ScriptEditor.setEditor('Form Script', atob(this.#formcontainer.getFormProperty('general', 'script')), (script) => {
+                this.saveScript(script);
+            });
         });
-        //this.scriptcontrol = HtmlUtils.createElement('button', `${this.#formAccordID}-script`, {});
 
         formAccordion.appendChild(this.scriptcontrol);
 

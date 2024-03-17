@@ -144,8 +144,10 @@ export default class ScriptLoader {
             else {
                 s.setAttribute('charset', 'utf-8');
             }
-
-            s.onload = urlCallback(url, 'onload');
+            setTimeout(() => {
+                s.onload = urlCallback(url, 'onload');
+            }, 100);
+            //s.onload = urlCallback(url, 'onload');
 
             if (cfg.location)
                 cfg.location.appendChild(s);

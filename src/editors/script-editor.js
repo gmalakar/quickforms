@@ -11,8 +11,21 @@ export default class ScriptEditor extends BaseEditor {
     reloadBtn;
     runStatus;
     #oldLog = console.log;
+    #onsave;
+    #script = `var easyFormsScript = function () {
+  /*
+  example:
+  const myMethod(param){
+  }
 
-    constructor(title) {
+  invoke:
+   easyFormsScript.myMethod(param);
+   */
+  //dont change the format
+  //add your code below
+}`;
+
+    constructor(title, script, onsave) {
         ScriptEditor.EDITOR_ID = CommonUtils.ShortGuid();
         let modalMetaData = {
             id: ScriptEditor.EDITOR_ID,
@@ -22,16 +35,28 @@ export default class ScriptEditor extends BaseEditor {
             dialogclass: 'modal-xl'
         }
         super(modalMetaData);
+        this.#onsave = onsave;
+        this.setScript(script);
         this.setConsoleLog();
     }
 
+    setScript(script) {
+        if (!CommonUtils.isNullOrEmpty(script)) {
+            this.#script = script;
+        }
+        if (this.#codeMirror) {
+            this.#codeMirror.doc.setValue(this.#script);
+        }
+    }
     evalJS() {
         let script = this.#codeMirror.getValue();
         try {
             eval(script);
             console.log('')
+            return true;
         } catch (error) {
             console.log(error)
+            return false;
         }
     }
 
@@ -57,12 +82,13 @@ export default class ScriptEditor extends BaseEditor {
             this.#codeMirror = CodeMirror(ScriptEditor.#commonModalWindow.getContentHolder(), {
                 lineNumbers: true,
                 tabSize: 2,
-                value: 'console.log("Hello, World");',
-                mode: 'javascript'
+                value: this.#script,
+                mode: 'javascript',
+                closeBrackets: true
             });
 
             this.#codeMirror.focus();
-            this.#codeMirror.refresh();
+            //this.#codeMirror.refresh();
         }
     }
 
@@ -87,9 +113,14 @@ export default class ScriptEditor extends BaseEditor {
             let btn = HtmlUtils.createIconButton({ class: 'btn btn-primary', type: 'button' }, { class: 'bi bi-save' }, `btn-save${ScriptEditor.EDITOR_ID}`);
             btn.textContent = 'Save';
             btn.addEventListener("click", (e) => {
-                ScriptEditor.#commonModalWindow.hide(() => {
-                    //this.#editorEl.value = this.#codeMirror.getValue();
-                });
+                if (this.evalJS()) {
+                    ScriptEditor.#commonModalWindow.hide(() => {
+                        if (this.#onsave) {
+                            this.#onsave(this.#codeMirror.getValue());
+                        }
+                        //this.#editorEl.value = this.#codeMirror.getValue();
+                    });
+                }
             });
             this.reloadBtn = HtmlUtils.createIconButton({ class: 'btn btn-primary', type: 'button' }, { class: 'bi bi-save' }, `btn-save${ScriptEditor.EDITOR_ID}`);
             this.reloadBtn.textContent = 'Run';
@@ -104,9 +135,11 @@ export default class ScriptEditor extends BaseEditor {
         }
     }
 
-    static setEditor(title) {
+    static setEditor(title, script, onsave) {
         if (!ScriptEditor.#commonModalWindow) {
-            ScriptEditor.#commonModalWindow = new ScriptEditor(title);
+            ScriptEditor.#commonModalWindow = new ScriptEditor(title, script, onsave);
+        } else {
+            ScriptEditor.#commonModalWindow.setScript(script);
         }
         setTimeout(() => {
             ScriptEditor.#commonModalWindow.setModal();

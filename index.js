@@ -244,7 +244,8 @@ let formMetaData = {
         "title": "fb-form-title mb-0",
         "header": "fb-form-header bg-defaul"
     },
-    "ref": "self"
+    "ref": "self",
+    "script": "dmFyIGVhc3lGb3Jtc1NjcmlwdCA9IGZ1bmN0aW9uICgpIHsKICAvKgogIGV4YW1wbGU6CiAgY29uc3QgbXlNZXRob2QocGFyYW0pewogIH0KCiAgaW52b2tlOgogICBlYXN5Rm9ybXNTY3JpcHQubXlNZXRob2QocGFyYW0pOwogICAqLwogIC8vZG9udCBjaGFuZ2UgdGhlIGZvcm1hdAogIC8vYWRkIHlvdXIgY29kZSBiZWxvdwogIAogIHZhciB0ZXN0U2NyaXB0ID0gKCk9PnsKICAgIGFsZXJ0KCd0ZXN0Jyk7CiAgfQp9"
 }
 formMetaData['name'] = 'testform';
 //formBuilder.startBuilder();
