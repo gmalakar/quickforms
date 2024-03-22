@@ -22,6 +22,10 @@ formBuilder.setOtherRequiredScripts([{
     integrity: 'sha512-8RnEqURPUc5aqFEN04aQEiPlSAdE0jlFS/9iGgUyNtwFnSKCXhmB6ZTNl7LnDtDWKabJIASzXrzD0K+LYexU9g=='
 }, {
     type: 'javascript',
+    src: 'https://cdnjs.cloudflare.com/ajax/libs/split.js/1.6.5/split.min.js',
+    integrity: 'sha512-lNjb0qWDVvt1zfSiXufaxtlFtenve3BLbvljxuMXuSr0DE0HYp5OhX0u89uwNd6MvlX1bgJ8ulfG4JMGurs8UA=='
+}, {
+    type: 'javascript',
     src: 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js',
     integrity: 'sha512-I6CdJdruzGtvDyvdO4YsiAq+pkWf2efgd1ZUSK2FnM/u2VuRASPC7GowWQrWyjxCZn6CT89s3ddGI+be0Ak9Fg=='
 }, {
@@ -55,7 +59,10 @@ let formMetaData = {
                             "name": "textfield1",
                             "type": "text",
                             "columns": {},
-                            "caption": "Text Field"
+                            "caption": "Text Field",
+                            "eventlisteners": {
+                                "primary": "{\"0\":{\"eventname\":\"click\",\"event\":\"click\",\"type\":\"is\",\"script\":\"alert('here')\"}}"
+                            }
                         }
                     }
                 },
@@ -239,10 +246,10 @@ let formMetaData = {
     },
     "caption": "testform",
     "class": {
-        "form": "fb-form mb-2 border",
-        "body": "fb-form-body",
-        "title": "fb-form-title mb-0",
-        "header": "fb-form-header bg-defaul"
+        "form": "ef-form mb-2 border",
+        "body": "ef-form-body",
+        "title": "ef-form-title mb-0",
+        "header": "ef-form-header bg-defaul"
     },
     "ref": "self",
     "script": "dmFyIGVhc3lGb3Jtc1NjcmlwdCA9IGZ1bmN0aW9uICgpIHsKICAvKgogIGV4YW1wbGU6CiAgY29uc3QgbXlNZXRob2QocGFyYW0pewogIH0KCiAgaW52b2tlOgogICBlYXN5Rm9ybXNTY3JpcHQubXlNZXRob2QocGFyYW0pOwogICAqLwogIC8vZG9udCBjaGFuZ2UgdGhlIGZvcm1hdAogIC8vYWRkIHlvdXIgY29kZSBiZWxvdwogIAogIHZhciB0ZXN0U2NyaXB0ID0gKCk9PnsKICAgIGFsZXJ0KCd0ZXN0Jyk7CiAgfQp9"

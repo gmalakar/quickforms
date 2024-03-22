@@ -5,7 +5,7 @@ export default class Form extends BaseControl {
         super(containingComponent, "From");
 
         if (this.designmode) {
-            this.defaultColumnClass = this.defaultColumnClass + " fb-design-mode";
+            this.defaultColumnClass = this.defaultColumnClass + " ef-design-mode";
         }
         this.buildControl();
     }

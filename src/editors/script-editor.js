@@ -25,7 +25,7 @@ export default class ScriptEditor extends BaseEditor {
   //add your code below
 }`;
 
-    constructor(title, script, onsave) {
+    constructor(title, script, onsave, defaultscript = true) {
         ScriptEditor.EDITOR_ID = CommonUtils.ShortGuid();
         let modalMetaData = {
             id: ScriptEditor.EDITOR_ID,
@@ -36,11 +36,14 @@ export default class ScriptEditor extends BaseEditor {
         }
         super(modalMetaData);
         this.#onsave = onsave;
-        this.setScript(script);
+        this.setScript(script, defaultscript);
         this.setConsoleLog();
     }
 
-    setScript(script) {
+    setScript(script, defaultscript = true) {
+        if (!defaultscript) {
+            this.#script = '';
+        }
         if (!CommonUtils.isNullOrEmpty(script)) {
             this.#script = script;
         }
@@ -135,11 +138,11 @@ export default class ScriptEditor extends BaseEditor {
         }
     }
 
-    static setEditor(title, script, onsave) {
+    static setEditor(title, script, onsave, defaultscript = true) {
         if (!ScriptEditor.#commonModalWindow) {
-            ScriptEditor.#commonModalWindow = new ScriptEditor(title, script, onsave);
+            ScriptEditor.#commonModalWindow = new ScriptEditor(title, script, onsave, defaultscript);
         } else {
-            ScriptEditor.#commonModalWindow.setScript(script);
+            ScriptEditor.#commonModalWindow.setScript(script, defaultscript);
         }
         setTimeout(() => {
             ScriptEditor.#commonModalWindow.setModal();

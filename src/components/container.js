@@ -5,7 +5,7 @@ import Component from "./component.js";
 import Modal from "../utils/modal.js";
 import ErrorHandler from "../utils/error-handler.js";
 export default class Container extends Observable {
-    containerClass = "fb-container h-100";
+    containerClass = "ef-container h-100";
     #containerControl;
     #mutationObserver;
     deagControl;
@@ -26,9 +26,9 @@ export default class Container extends Observable {
     schema;
     name;
 
-    static #clsDesign = "fb-design-mode";
+    static #clsDesign = "ef-design-mode";
 
-    static #clsSelected = "fb-selected-comp";
+    static #clsSelected = "ef-selected-comp";
 
     #compDeleteBtn;
 
@@ -74,7 +74,7 @@ export default class Container extends Observable {
             this.#compDeleteBtn = HtmlUtils.createElement(
                 "button",
                 `delete-component-${this.#guid}`,
-                { class: "btn-close fb-delete-comp-btn" }
+                { class: "btn-close ef-delete-comp-btn" }
             );
 
             this.#dragName = `drag-component-${this.#guid}`;
@@ -193,7 +193,7 @@ export default class Container extends Observable {
                     this.stopdrag = false;
                 };
                 this.dragControl = HtmlUtils.createElement("div", this.#dragName, {
-                    class: "p-2 m-2 fb-drag-drop-indication",
+                    class: "p-2 m-2 ef-drag-drop-indication",
                     "data-noattach": true,
                     "data-position": "0",
                     style: "text-align:center;",

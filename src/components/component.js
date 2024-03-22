@@ -43,7 +43,7 @@ export default class Component {
         let parentComponent;
 
         if (this.containerControl) {
-            parentComponent = HtmlUtils.findAncestor(this.containerControl, 'fb-form-component');
+            parentComponent = HtmlUtils.findAncestor(this.containerControl, 'ef-form-component');
         }
 
         this.parentComponent = parentComponent || this;

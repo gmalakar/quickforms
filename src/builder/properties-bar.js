@@ -7,6 +7,7 @@ import TabControl from '../utils/tab-control.js';
 import Modal from '../utils/modal.js';
 import BootstrapUtils from '../utils/boostrap-utils.js';
 import ScriptEditor from '../editors/script-editor.js';
+import EventsEditor from '../editors/events-editor.js';
 export default class PropertiesBar {
 
     ref;
@@ -26,6 +27,10 @@ export default class PropertiesBar {
     searchcontrol;
     slimSelectFilter;
     scriptcontrol;
+
+    static #selectCrtls = [];
+
+    static #slimSelectCrtls = [];
 
     constructor(formcontainer, ref) {
         this.#formcontainer = formcontainer;
@@ -121,7 +126,7 @@ export default class PropertiesBar {
                 }
             }
             //set the serach control value
-            this.slimSelectFilter.setSelected(currentComponent.name, false)
+            this.slimSelectFilter.setSelected(currentComponent.name, false);
         }
         this.#tab.show(this.#compTabID);
     }
@@ -149,11 +154,11 @@ export default class PropertiesBar {
     }
 
     static #getEditorClass(type) {
-        let cls = 'fb-editor-input';
+        let cls = 'ef-editor-input';
         switch (type) {
             case "checkbox":
             case "radio":
-                cls = 'fb-editor-check';
+                cls = 'ef-editor-check';
                 break;
             default:
                 break;
@@ -165,7 +170,7 @@ export default class PropertiesBar {
         if (CommonUtils.isArray(props)) {
             let propfor = propType === 'form' ? `${caller.#formAccordID}-${key}` : `${caller.#compAcordID}-${key}`;
             let propElements = propType === 'form' ? caller.formPropElements : caller.compPropElements;
-            let propTable = HtmlUtils.createElement('table', 'noid', { class: 'table table-bordered table-sm fb-editor-table' });
+            let propTable = HtmlUtils.createElement('table', 'noid', { class: 'table table-bordered table-sm ef-editor-table' });
             let tBody = HtmlUtils.createElement('tbody', 'noid');
             for (let item of props) {
                 let propItem = PropertiesBar.#createProp(propfor, item, propElements, caller, onPropChanged);
@@ -175,6 +180,7 @@ export default class PropertiesBar {
             container.appendChild(propTable);
         }
     }
+
     static #createProp(propFor, propObjects, propElements, caller, onPropertyChanged) {
         let datatype = 'text'
         if (propObjects.hasOwnProperty('datatype')) {
@@ -192,7 +198,7 @@ export default class PropertiesBar {
         if (propObjects.hasOwnProperty('notvisiblefor')) {
             tRow.setAttribute('notvisiblefor', propObjects['notvisiblefor']);
         }
-        let ltd = HtmlUtils.createElement('th', 'noid', { class: 'fb-editor-label', scope: 'row' });
+        let ltd = HtmlUtils.createElement('th', 'noid', { class: 'ef-editor-label', scope: 'row' });
         ltd.innerHTML = `${propObjects.name}&nbsp;`;
 
         tRow.appendChild(ltd);
@@ -219,10 +225,21 @@ export default class PropertiesBar {
                 break;
             case 'popup':
                 groupEl = HtmlUtils.createElement('div', 'noid', { class: 'input-group' });
-                elAttributes.class = elAttributes.class + ' form-control'
                 elAttributes['maxlength'] = length;
-                editorEl = HtmlUtils.createElement('input', propId, elAttributes);
-                let btn = HtmlUtils.createIconButton({ class: 'btn btn-primary btn-sm m-0 fb-editor-btn', type: 'button' }, { class: 'bi bi-three-dots-vertical' }, `btn-${propId}`);
+                let elType = 'input';
+                let slimSelect = false;
+                let ph = '';
+                if (propObjects.popupname === 'events') {
+                    ph = 'Event';
+                    //elAttributes.class = elAttributes.class + ' form-select';
+                } else {
+                    elAttributes.class = elAttributes.class + ' form-control';
+                }
+                editorEl = HtmlUtils.createElement(elType, propId, elAttributes);
+                if (slimSelect) {
+                    PropertiesBar.#setSlimSelect(propObjects.popupname, ph, editorEl);
+                }
+                let btn = HtmlUtils.createIconButton({ class: 'btn btn-primary btn-sm m-0 ef-editor-btn', type: 'button' }, { class: 'bi bi-three-dots-vertical' }, `btn-${propId}`);
                 //btn.textContent = '...';
                 btn.addEventListener("click", (e) => {
                     switch (propObjects.popupname) {
@@ -237,6 +254,9 @@ export default class PropertiesBar {
                             break;
                         case "panel":
                             NameValueEditor.getEditor(editorEl, 'Styles').show();
+                            break;
+                        case "events":
+                            EventsEditor.getEditor(editorEl, 'Events').show();
                             break;
                         default:
                             break;
@@ -274,7 +294,7 @@ export default class PropertiesBar {
             }
         };
 
-        let vtd = HtmlUtils.createElement('td', 'noid', { class: 'fb-editor-td-edit' });
+        let vtd = HtmlUtils.createElement('td', 'noid', { class: 'ef-editor-td-edit' });
 
         if (groupEl) {
             vtd.appendChild(groupEl);
@@ -293,6 +313,25 @@ export default class PropertiesBar {
         this.#formcontainer.setFormProperty('general', 'script', btoa(script), null);
     }
 
+    static #setSlimSelect(name, placeholder, ctrl) {
+        PropertiesBar.#selectCrtls.push({ name: name, ph: placeholder, el: ctrl });
+    }
+
+    static #makeSlimSelect() {
+        for (let ctrl of PropertiesBar.#selectCrtls) {
+
+            //select slim select
+            if (ctrl) {
+                PropertiesBar.#slimSelectCrtls.push(new SlimSelect({
+                    select: ctrl.el,
+                    settings: {
+                        placeholderText: ctrl.ph,
+                    }
+                }))
+            }
+        }
+    }
+
     #create() {
         //creat tabobjects
         let tabs = {};
@@ -307,12 +346,12 @@ export default class PropertiesBar {
 
         //form accordian      
         let formAttrs = {};
-        formAttrs['class'] = 'accordion accordion-flush p-0';
+        formAttrs['class'] = 'accordion p-0 w-100';
         if (CommonUtils.isString(this.ref)) {
             formAttrs['ref'] = this.ref;
         }
         let formAccordion = HtmlUtils.createElement('div', this.#formAccordID, formAttrs);
-        this.scriptcontrol = HtmlUtils.createIconButton({ class: 'btn btn-primary btn-md m-0 fb-editor-btn', type: 'button' }, { class: 'bi bi-filetype-js' }, `${this.#formAccordID}-script`);
+        this.scriptcontrol = HtmlUtils.createIconButton({ class: 'btn btn-primary btn-md m-0 ef-editor-btn', type: 'button' }, { class: 'bi bi-filetype-js' }, `${this.#formAccordID}-script`);
         this.scriptcontrol.addEventListener("click", (e) => {
             ScriptEditor.setEditor('Form Script', atob(this.#formcontainer.getFormProperty('general', 'script')), (script) => {
                 this.saveScript(script);
@@ -373,6 +412,7 @@ export default class PropertiesBar {
                 }
             })
         }
+        PropertiesBar.#makeSlimSelect();
     }
 
     static componentProperties = {
@@ -744,6 +784,21 @@ export default class PropertiesBar {
                     readonly: true,
                     visiblefor: 'table;columns'
                 }
+            ]
+        },
+        "events": {
+            text: "Events",
+            default: false,
+            props: [
+                {
+                    mappedType: "events",
+                    mappedProp: "primary",
+                    name: "Manage Events",
+                    type: "popup",
+                    popupname: 'events',
+                    readonly: true,
+                    notvisiblefor: 'panel;table;columns'
+                },
             ]
         }
     };

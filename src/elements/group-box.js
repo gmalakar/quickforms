@@ -8,13 +8,13 @@ export default class GroupBox extends BaseElement {
     constructor(containingComponent) {
         super(containingComponent, "Group Box");
         if (this.designmode) {
-            this.defaultColumnClass = this.defaultColumnClass + " fb-design-mode";
+            this.defaultColumnClass = this.defaultColumnClass + " ef-design-mode";
         }
         this.buildControl();
     }
     setLabelControl() {
         let lblAttrs = {};
-        lblAttrs.class = `fb-groupbox-legend ${this.getClassSchema('label')}`;
+        lblAttrs.class = `ef-groupbox-legend ${this.getClassSchema('label')}`;
 
         this.setStyle('lable', lblAttrs);
         this.setAttrs('lable', lblAttrs);
@@ -26,7 +26,7 @@ export default class GroupBox extends BaseElement {
     }
     setOtherControls() {
         let elAttrs = {};
-        elAttrs.class = `border border-1 fb-groupbox ${this.getClassSchema('control')}`;
+        elAttrs.class = `border border-1 ef-groupbox ${this.getClassSchema('control')}`;
 
         this.setStyle('control', elAttrs);
         this.setAttrs('control', elAttrs);
@@ -36,9 +36,9 @@ export default class GroupBox extends BaseElement {
             elAttrs
         );
 
-        for (let [event, fn] of Object.entries(this.eventlisteners)) {
-            this.otherControl.addEventListener(event, fn());
-        }
+        /*         for (let [event, fn] of Object.entries(this.eventlisteners)) {
+                    this.otherControl.addEventListener(event, fn());
+                } */
 
         let parentContainer = this.containingComponent.container;
         this.#container = new Container(this.schema, parentContainer.observer, this.containingComponent, this.designmode);

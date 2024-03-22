@@ -1,5 +1,6 @@
 import HtmlUtils from './html-utils.js';
 import CommonUtils from './common-utils.js';
+import ScriptEditor from '../editors/script-editor.js';
 
 export default class Table {
     metadata;
@@ -16,7 +17,10 @@ export default class Table {
     rowheader = false;
     headerdesc = '#';
     headerprefix = ''
-    #tableCls = 'table';
+    #tablecls = 'ef-table table ';
+    #tdcls = 'ef-table-cell';
+    #trcls = 'ef-table-row';
+    #hdrcls = 'ef-table-header';
     footer = {};
     tablefooter;
     data = {};
@@ -37,7 +41,11 @@ export default class Table {
         }
 
         if (this.metadata.hasOwnProperty('class')) {
-            this.#tableCls = `${this.#tableCls} ${this.metadata['class']}`;
+            this.#tablecls = `${this.#tablecls} ${this.metadata['class']}`;
+        }
+
+        if (this.metadata.hasOwnProperty('headerclass')) {
+            this.#hdrcls = `${this.#hdrcls} ${this.metadata['headerclass']}`;
         }
 
         this.tablename = this.metadata['name'];
@@ -51,6 +59,10 @@ export default class Table {
 
         if (this.column.hasOwnProperty('columns') && CommonUtils.isArray(this.column['columns'])) {
             this.columns = this.column['columns'];
+        }
+
+        if (this.column.hasOwnProperty('class')) {
+            this.#tdcls = `${this.#tdcls} ${this.column['class']}`;
         }
 
         if (this.column.length <= 0) {
@@ -74,12 +86,17 @@ export default class Table {
             this.headerprefix = this.row['prefix'];
         }
 
+        if (this.row.hasOwnProperty('class')) {
+            this.#trcls = `${this.#trcls} ${this.row['class']}`;
+        }
+
         if (this.metadata.hasOwnProperty('footer')) {
             if (!CommonUtils.isObjcetButNotArray(metadata['footer'])) {
                 throw new Error('Invalid footer metadata');
             }
             this.footer = this.metadata['footer'];
         }
+
         if (this.metadata.hasOwnProperty('data')) {
             if (CommonUtils.isObjcetButNotArray(metadata['data'])) {
                 this.data = this.metadata['data'];
@@ -89,7 +106,7 @@ export default class Table {
 
     get table() {
         if (!this.#table) {
-            this.#table = HtmlUtils.createElement('table', this.tablename, { class: this.#tableCls });
+            this.#table = HtmlUtils.createElement('table', this.tablename, { class: this.#tablecls });
             this.createHeader();
             this.createBody();
             this.createFooter();
@@ -337,32 +354,62 @@ export default class Table {
         return this.rows[this.rowName(idx)];
     }
 
+    static #getControlType(type) {
+        switch (type) {
+            case 'text':
+            case 'password':
+            case 'number':
+            case 'checkbox':
+                return 'input';
+            case 'select':
+                return 'select';
+            case 'textarea':
+                return 'textarea';
+            case 'button':
+                return 'button';
+            default:
+                return ErrorHandler.throwError(ErrorHandler.errorCode.Component.INVALID_TYPE);
+        }
+    }
+
+    static #getElementControl(id, type, elAttrs, options) {
+        elAttrs['type'] = type;
+        var el = HtmlUtils.createElement(
+            Table.#getControlType(type),
+            id,
+            elAttrs
+        );
+        if (type === 'select') {
+            HtmlUtils.populateOptions(el, options);
+        }
+        return el;
+    }
+
+    //return object having main ctrl and input control
+    getPopUp(id, col, colAttrs) {
+        throw new Error('Not implemented');
+    }
     createColumn(r, c) {
         let col = this.columns[c];
         let name = this.cellName(r, c);
-        let td = HtmlUtils.createElement('td', name, { 'data-type': col.type, 'cell-type': col.type, ref: 'datagrid-columns', colnum: c });
+        let editName = `${this.editControlName(r, c)}`;
+        let td = HtmlUtils.createElement('td', name, { class: this.#tdcls, 'bind-ctrl': editName, 'data-type': col.type, 'cell-type': col.type, ref: 'datagrid-columns', colnum: c });
         let colAttributes = col.attributes || {};
         let eventName = col.eventName;
         let eventAction = col.eventAction;
-        let editName = `${this.editControlName(r, c)}`;
         colAttributes['ref'] = 'datagrid-columns-edit';
         colAttributes['data-type'] = col.type;
         colAttributes['rownum'] = r;
         colAttributes['colnum'] = c;
+
         if (col.hasOwnProperty('class')) {
             colAttributes['class'] = col.class;
         }
+
         let tdChild;
+        let editCtrl;
+
         switch (col.type) {
-            case "text":
-                tdChild = HtmlUtils.createElement('input', editName, colAttributes);
-                break;
-
-            case 'select':
-                tdChild = HtmlUtils.createElement('select', editName, colAttributes);
-                HtmlUtils.populateOptions(tdChild, col['options']);
-                break;
-
             case "button":
                 let btnName = `${this.btnControlName(r, c)}`;
                 let cls = colAttributes.class;
@@ -385,10 +432,22 @@ export default class Table {
                     }
                 }
                 break;
+            case 'popup':
+                colAttributes['class'] = `${colAttributes['class']} ef-table-control`;
+                let ctrl = this.getPopUp(editName, col, colAttributes);
+                if (ctrl && CommonUtils.isArray(ctrl)) {
+                    tdChild = ctrl[0];
+                    editCtrl = ctrl[1];
+                }
+                break;
             default:
-                tdChild = 'test';
+                colAttributes['class'] = `${colAttributes['class']} ef-table-control`;
+                tdChild = Table.#getElementControl(editName, col.type, colAttributes, col['options']);
+                editCtrl = tdChild;
                 break;
         }
+
+
 
         if (eventName && eventAction) {
             //set delete function
@@ -409,10 +468,12 @@ export default class Table {
             if (col.hasOwnProperty('default')) {
                 dafault = col.default;
             }
-            tdChild.value = this.#getData(r, bindField, dafault);
-            tdChild.addEventListener('change', (e) => {
-                this.#updateData(r, bindField, e.currentTarget.value);
-            });
+            if (editCtrl) {
+                editCtrl.value = this.#getData(r, bindField, dafault);
+                editCtrl.addEventListener('change', (e) => {
+                    this.#updateData(r, bindField, e.currentTarget.value);
+                });
+            }
         }
         this.setCellContent(td, tdChild)
         return td;
@@ -420,9 +481,9 @@ export default class Table {
 
     createRow(r) {
         let rowid = this.rowName(r);
-        let row = HtmlUtils.createElement('tr', this.rowName(r), { ref: 'datagrid-columns-row', rownum: r });
+        let row = HtmlUtils.createElement('tr', this.rowName(r), { class: this.#trcls, ref: 'datagrid-columns-row', rownum: r });
         if (this.rowheader) {
-            let headerCol = HtmlUtils.createElement('th', this.headerRowName(r), { scope: 'row', 'cell-type': 'rowheader' });
+            let headerCol = HtmlUtils.createElement('th', this.headerRowName(r), { class: this.#hdrcls, scope: 'row', 'cell-type': 'rowheader' });
             headerCol.innerHTML = r + 1;
             row.appendChild(headerCol);
         }

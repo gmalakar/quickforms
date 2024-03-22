@@ -26,7 +26,7 @@ export default class ComponentsBar {
 
         let attrs = {};
         attrs['tabindex'] = '0'
-        attrs['class'] = `btn btn-outline-secondary btn-sm`;
+        attrs['class'] = `btn border-0 btn-sm text-start`;
         attrs['data-type'] = datatype;
         attrs['comp-type'] = type;
         attrs['draggable'] = true;
@@ -65,7 +65,7 @@ export default class ComponentsBar {
 
     #create() {
         let compbarAttrs = {};
-        compbarAttrs['class'] = 'accordion';
+        compbarAttrs['class'] = 'accordion w-100';
         if (CommonUtils.isString(this.ref)) {
             compbarAttrs['ref'] = this.ref;
         }
@@ -84,7 +84,7 @@ export default class ComponentsBar {
                             container.appendChild(propItem);
                         }
                     }
-                }));
+                }, 'd-grid p-2'));
             }
         }
     }
@@ -125,7 +125,7 @@ export default class ComponentsBar {
                 },
                 {
                     "type": "select",
-                    "text": "select",
+                    "text": "Select",
                     "iconCls": "bi bi-menu-button-wide",
                     "datatype": "select"
                 },

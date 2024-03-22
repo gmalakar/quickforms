@@ -88,7 +88,7 @@ export default class Builder {
     }
 
     get #builderId() {
-        return this.#makeUniqueId('fb-builder');
+        return this.#makeUniqueId('ef-builder');
     }
 
     get #sideCompId() {
@@ -121,8 +121,6 @@ export default class Builder {
     }
 
     #createBed() {
-
-
         //clear the placeholder
         this.#builderContainer.innerHTML = '';
 
@@ -143,17 +141,17 @@ export default class Builder {
         this.#buildertTabPanes = tabcontrol.tabPanes;
 
         //main builder
-        let builder = this.#createElement('div', this.#builderId, { class: `fb-builder row p-2 g-1` });
+        let builder = this.#createElement('div', this.#builderId, { class: `ef-builder row g-1` });
 
 
         //components bar
-        let componentBar = this.#createElement('div', this.#sideCompId, { class: `p-0 fb-component-bar` });
+        let componentBar = this.#createElement('div', this.#sideCompId, { class: `split ef-comp-bar` });
 
         //form design area
-        let formArea = this.#createElement('div', this.#designAreaId, { class: `col  p-0 fb-form-area`, ref: this.#builderId });
+        let formArea = this.#createElement('div', this.#designAreaId, { class: `col split ef-form-area`, ref: this.#builderId });
 
         //property bar
-        let propertyBar = this.#createElement('div', this.#propertyId, { class: `p-0 fb-property-bar`, ref: this.#builderId });
+        let propertyBar = this.#createElement('div', this.#propertyId, { class: `split ef-property-bar`, ref: this.#builderId });
 
         //append components bar
         builder.appendChild(componentBar);
@@ -166,7 +164,7 @@ export default class Builder {
 
         //add designer
         //add container holder
-        let formContainerHolder = this.#createElement('div', this.#areaId, { class: 'fb-design-area mx-2', ref: this.#designAreaId });
+        let formContainerHolder = this.#createElement('div', this.#areaId, { class: 'w-100 ef-design-area', ref: this.#designAreaId });
 
         //add form container
         this.#theFormContainer = new FormContainer(this.#formschema, new Observer(this, Builder.#listener), true);
@@ -207,7 +205,7 @@ export default class Builder {
 
         //append json schema
 
-        this.#jsonHolder = this.#createElement('pre', this.#jsonSchemaId, { class: `fb-json-holder` });
+        this.#jsonHolder = this.#createElement('pre', this.#jsonSchemaId, { class: `ef-json-holder` });
 
         this.jsonPane.appendChild(this.#jsonHolder);
 
@@ -216,12 +214,23 @@ export default class Builder {
 
     #finalizeBuilder() {
         if (this.builderPane) {
+            this.#addSplitter();
+            //CommonUtils.domReady(this.addSplitter);
             console.log('Valid container');
         } else {
             console.log('Invalid container');
         }
     }
 
+    #addSplitter() {
+        Split([`#${this.#sideCompId}`, `#${this.#designAreaId}`, `#${this.#propertyId}`], {
+            // options here
+            sizes: [8, 77, 15],
+            minSize: [120, 600, 250],
+            maxSize: [250, Infinity, 450],
+            gutterSize: 10,
+        });
+    }
     static #listener(target, event, args) {
         if (target instanceof Builder) {
             switch (event) {

@@ -23,17 +23,17 @@ export default class BaseElement {
     controlId;
 
     static #defaultCompClass(type) {
-        return 'mb-2 fb-form-component';;
+        return 'mb-2 ef-form-component';;
     }
 
     static #defaultCaptionClass(type) {
-        let cls = 'fb-form-label';
+        let cls = 'ef-form-label';
         switch (type) {
             case "checkbox":
-                cls = 'fb-form-label-checkbox';
+                cls = 'ef-form-label-checkbox';
                 break;
             case "radio":
-                cls = 'fb-form-label-radio';
+                cls = 'ef-form-label-radio';
                 break;
             default:
                 break;
@@ -42,16 +42,16 @@ export default class BaseElement {
     }
 
     static #defaultControlClass(type) {
-        let cls = 'fb-form-control';
+        let cls = 'ef-form-control';
         switch (type) {
             case "checkbox":
-                cls = 'fb-form-checkbox';
+                cls = 'ef-form-checkbox';
                 break;
             case "radio":
-                cls = 'fb-form-radio';
+                cls = 'ef-form-radio';
                 break;
             case "button":
-                cls = ' btn-primary fb-form-button';
+                cls = ' btn-primary ef-form-button';
                 break;
             default:
                 break;
@@ -143,10 +143,6 @@ export default class BaseElement {
         //chenge the component name
         this.containingComponent.name = this.name;
         this.containingContainer.changeName(oldName, this.name);
-    }
-
-    get eventlisteners() {
-        return this.schema.eventlisteners || {};
     }
 
     #checkIfUsedByOtherComponent(newname) {
@@ -252,7 +248,6 @@ export default class BaseElement {
     }
 
     setDataAttrSchema(key, value) {
-
         if (!this.schema.hasOwnProperty('attributes')) {
             this.schema['attributes'] = {};
         }
@@ -266,6 +261,35 @@ export default class BaseElement {
         if (!CommonUtils.isNullOrEmpty(value)) {
             this.schema.attributes.data[key] = value;
         }
+    }
+
+    #clearEventListenersSchema(name) {
+        if (this.schema.hasOwnProperty('eventlisteners') &&
+            this.schema.eventlisteners.hasOwnProperty(name)) {
+            delete this.schema.eventlisteners[name];
+        }
+    }
+
+    setEventListenersSchema(key, value) {
+
+        if (!this.schema.hasOwnProperty('eventlisteners')) {
+            this.schema['eventlisteners'] = {};
+        }
+        //delete 
+        this.#clearEventListenersSchema(key);
+
+        if (!CommonUtils.isNullOrEmpty(value)) {
+            this.schema.eventlisteners[key] = value;
+        }
+    }
+
+    getEventListenersSchema(key) {
+        let val = "";
+        if (this.schema.hasOwnProperty('eventlisteners') &&
+            this.schema.eventlisteners.hasOwnProperty(key)) {
+            val = this.schema.eventlisteners[key];
+        }
+        return val;
     }
 
     getDataAttrSchema(key) {
@@ -370,7 +394,7 @@ export default class BaseElement {
         if (crtl) {
             let cls = this.getClassSchema(name);
             if (this.designmode && name === 'component') {
-                cls = cls + " fb-design-mode";
+                cls = cls + " ef-design-mode";
             }
             if (cls) {
                 crtl.class = cls;
@@ -393,6 +417,10 @@ export default class BaseElement {
                 case "data":
                 case "dataattr":
                     this.setDataAttrSchema(name, val);
+                    break;
+                case "event":
+                case "events":
+                    this.setEventListenersSchema(name, val);
                     break;
                 case "class":
                     this.setClassSchema(name, val);
@@ -501,6 +529,10 @@ export default class BaseElement {
             case "dataattr":
                 val = this.getDataAttrSchema(name);
                 break;
+            case "event":
+            case "events":
+                val = this.getEventListenersSchema(name);
+                break;
             default:
                 val = this.schema[name];
                 break;
@@ -559,7 +591,7 @@ export default class BaseElement {
         }
 
         if (this.designmode) {
-            cls = cls + " fb-design-mode";
+            cls = cls + " ef-design-mode";
         }
 
         compAttrs.class = cls;
@@ -633,13 +665,15 @@ export default class BaseElement {
             this.controlId,
             elAttrs
         );
-
-        for (let [event, fn] of Object.entries(this.eventlisteners)) {
-            this.elementControl.addEventListener(event, fn());
+        if (!this.designmode) {
+            for (let [event, fn] of Object.entries(this.getEventListenersSchema())) {
+                this.elementControl.addEventListener(event, fn());
+            }
         }
     }
 
     initializeColtol() { }
+
     setOtherControls() { }
 
     buildControl() {

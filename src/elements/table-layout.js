@@ -4,9 +4,9 @@ import HtmlUtils from "../utils/html-utils.js";
 import Container from "../components/container.js";
 import ErrorHandler from "../utils/error-handler.js";
 export default class TableLayout extends BaseElement {
-    defaultTableClass = "fb-component-table";
-    defaultColumnClass = "fb-component-col";
-    defaultRowClass = "col fb-component-row";
+    defaultTableClass = "ef-component-table";
+    defaultColumnClass = "ef-component-col";
+    defaultRowClass = "col ef-component-row";
     #tablePrefix = "";
     #rowPrefix = "";
     #colPrefix = "";
@@ -30,7 +30,7 @@ export default class TableLayout extends BaseElement {
             this.generateTableRows(3, 3);
         }
         if (this.designmode) {
-            this.defaultColumnClass = this.defaultColumnClass + " fb-design-mode";
+            this.defaultColumnClass = this.defaultColumnClass + " ef-design-mode";
         }
         this.buildControl();
     }

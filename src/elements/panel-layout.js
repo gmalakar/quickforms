@@ -7,7 +7,7 @@ export default class PanelLayout extends BaseElement {
     constructor(containingComponent) {
         super(containingComponent, "Panel");
         if (this.designmode) {
-            this.defaultColumnClass = this.defaultColumnClass + " fb-design-mode";
+            this.defaultColumnClass = this.defaultColumnClass + " ef-design-mode";
         }
         this.buildControl();
     }

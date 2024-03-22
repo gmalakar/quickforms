@@ -18,6 +18,5 @@ export default class SelectField extends BaseElement {
                 select: this.elementControl
             })
         }
-
     }
 }

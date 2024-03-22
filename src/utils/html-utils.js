@@ -90,7 +90,7 @@ export default class HtmlUtils {
                         targetElement.appendChild(opt);
                     }
                 } else {
-                    for (let [text, value] of Object.entries(options)) {
+                    for (let [value, text] of Object.entries(options)) {
                         var opt = document.createElement('option');
                         opt.value = value;
                         opt.innerHTML = text;

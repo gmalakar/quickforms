@@ -52,19 +52,19 @@ export default class FormContainer extends Container {
     initForm() {
         //set default class
         if (!this.#getClassSchema('form')) {
-            this.#setClassSchema('form', 'fb-form mb-2 border');
+            this.#setClassSchema('form', 'ef-form mb-2 border');
         }
 
         if (!this.#getClassSchema('body')) {
-            this.#setClassSchema('body', 'fb-form-body');
+            this.#setClassSchema('body', 'ef-form-body');
         }
 
         if (!this.#getClassSchema('title')) {
-            this.#setClassSchema('title', 'fb-form-title mb-0');
+            this.#setClassSchema('title', 'ef-form-title mb-0');
         }
 
         if (!this.#getClassSchema('header')) {
-            this.#setClassSchema('header', 'fb-form-header bg-defaul');
+            this.#setClassSchema('header', 'ef-form-header bg-defaul');
         }
 
         this.#buildForm();
