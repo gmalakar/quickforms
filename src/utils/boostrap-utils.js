@@ -22,6 +22,7 @@ export default class BootstrapUtils {
                 cls = 'form-check-input align-middle';
                 break;
             case "button":
+            case "submit":
                 cls = 'btn';
                 break;
             default:

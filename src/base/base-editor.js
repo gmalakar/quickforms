@@ -166,7 +166,7 @@ export default class BaseEditor {
                 'aria-labelledby': titleId, 'aria-hidden': true
             });
             let modalDialog = HtmlUtils.createElement('div', 'noid', { class: `modal-dialog ${this.#dialogclass}` });
-            let modalContent = HtmlUtils.createElement('div', 'noid', { class: `modal-content ef-editor ${this.#contentclass}` });
+            let modalContent = HtmlUtils.createElement('div', 'noid', { class: `modal-content qf-editor ${this.#contentclass}` });
 
             modalDialog.appendChild(modalContent);
 

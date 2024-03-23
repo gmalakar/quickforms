@@ -4,9 +4,9 @@ import HtmlUtils from "../utils/html-utils.js";
 import Container from "../components/container.js";
 import ErrorHandler from "../utils/error-handler.js";
 export default class TableLayout extends BaseElement {
-    defaultTableClass = "ef-component-table";
-    defaultColumnClass = "ef-component-col";
-    defaultRowClass = "col ef-component-row";
+    defaultTableClass = "qf-component-table";
+    defaultColumnClass = "qf-component-col";
+    defaultRowClass = "col qf-component-row";
     #tablePrefix = "";
     #rowPrefix = "";
     #colPrefix = "";
@@ -30,7 +30,7 @@ export default class TableLayout extends BaseElement {
             this.generateTableRows(3, 3);
         }
         if (this.designmode) {
-            this.defaultColumnClass = this.defaultColumnClass + " ef-design-mode";
+            this.defaultColumnClass = this.defaultColumnClass + " qf-design-mode";
         }
         this.buildControl();
     }

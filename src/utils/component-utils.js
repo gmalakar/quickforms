@@ -33,6 +33,7 @@ export default class ComponentUtils {
             case 'groupbox':
                 return 'fieldset';
             case 'button':
+            case 'submit':
                 return 'button';
             default:
                 return ErrorHandler.throwError(ErrorHandler.errorCode.Component.INVALID_TYPE);

@@ -4,8 +4,8 @@ import HtmlUtils from "../utils/html-utils.js";
 import Container from "../components/container.js";
 import ErrorHandler from "../utils/error-handler.js";
 export default class ColumnLayout extends BaseElement {
-    defaultColumnClass = "ef-component-column";
-    defaultRowClass = "row ef-component-columns";
+    defaultColumnClass = "qf-component-column";
+    defaultRowClass = "row qf-component-columns";
     #coulmnPrefix = "";
     columns = {};
 
@@ -27,7 +27,7 @@ export default class ColumnLayout extends BaseElement {
             }
         }
         if (this.designmode) {
-            this.defaultColumnClass = this.defaultColumnClass + " ef-design-mode";
+            this.defaultColumnClass = this.defaultColumnClass + " qf-design-mode";
         }
         this.buildControl();
     }

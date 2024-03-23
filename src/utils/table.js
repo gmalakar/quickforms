@@ -17,10 +17,10 @@ export default class Table {
     rowheader = false;
     headerdesc = '#';
     headerprefix = ''
-    #tablecls = 'ef-table table ';
-    #tdcls = 'ef-table-cell';
-    #trcls = 'ef-table-row';
-    #hdrcls = 'ef-table-header';
+    #tablecls = 'qf-table table ';
+    #tdcls = 'qf-table-cell';
+    #trcls = 'qf-table-row';
+    #hdrcls = 'qf-table-header';
     footer = {};
     tablefooter;
     data = {};
@@ -433,7 +433,7 @@ export default class Table {
                 }
                 break;
             case 'popup':
-                colAttributes['class'] = `${colAttributes['class']} ef-table-control`;
+                colAttributes['class'] = `${colAttributes['class']} qf-table-control`;
                 let ctrl = this.getPopUp(editName, col, colAttributes);
                 if (ctrl && CommonUtils.isArray(ctrl)) {
                     tdChild = ctrl[0];
@@ -441,7 +441,7 @@ export default class Table {
                 }
                 break;
             default:
-                colAttributes['class'] = `${colAttributes['class']} ef-table-control`;
+                colAttributes['class'] = `${colAttributes['class']} qf-table-control`;
                 tdChild = Table.#getElementControl(editName, col.type, colAttributes, col['options']);
                 editCtrl = tdChild;
                 break;

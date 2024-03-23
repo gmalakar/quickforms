@@ -30,7 +30,7 @@ export default class Accordion {
 
         let btnAttrs = {};
         let grpItemCls = 'accordion-collapse collapse';
-        let btnCls = 'accordion-button ef-accordian-button';
+        let btnCls = 'accordion-button qf-accordian-button';
         if (def) {
             grpItemCls = grpItemCls + ' show';
         } else {

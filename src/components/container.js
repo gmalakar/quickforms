@@ -5,7 +5,7 @@ import Component from "./component.js";
 import Modal from "../utils/modal.js";
 import ErrorHandler from "../utils/error-handler.js";
 export default class Container extends Observable {
-    containerClass = "ef-container h-100";
+    containerClass = "qf-container h-100";
     #containerControl;
     #mutationObserver;
     deagControl;
@@ -22,13 +22,15 @@ export default class Container extends Observable {
     #hasParentContainer = false;
     stopdrag = false;
     observer;
-    formName;
     schema;
     name;
+    formContainer;
+    customvalidation = false;
+    validationtype = 'feedback';
 
-    static #clsDesign = "ef-design-mode";
+    static #clsDesign = "qf-design-mode";
 
-    static #clsSelected = "ef-selected-comp";
+    static #clsSelected = "qf-selected-comp";
 
     #compDeleteBtn;
 
@@ -66,6 +68,20 @@ export default class Container extends Observable {
 
         this.designmode = designmode;
 
+        if (this.containingContainer === this) {
+            this.formContainer = this;
+        } else {
+            this.formContainer = this.containingContainer.formContainer;
+        }
+
+        if (this.formContainer.schema.hasOwnProperty('customvalidation')) {
+            this.customvalidation = true;
+        }
+
+        if (this.formContainer.schema.hasOwnProperty('vtype')) {
+            this.validationtype = schema['vtype'];
+        }
+
         if (this.designmode) {
             this.observer = observer;
 
@@ -74,7 +90,7 @@ export default class Container extends Observable {
             this.#compDeleteBtn = HtmlUtils.createElement(
                 "button",
                 `delete-component-${this.#guid}`,
-                { class: "btn-close ef-delete-comp-btn" }
+                { class: "btn-close qf-delete-comp-btn" }
             );
 
             this.#dragName = `drag-component-${this.#guid}`;
@@ -95,12 +111,6 @@ export default class Container extends Observable {
         this.containerSchema = this.schema['components'];
 
         this.name = this.schema['name'];
-
-        if (this.containingContainer === this) {
-            this.formName = this.schema['name'];
-        } else {
-            this.formName = this.containingContainer.formName;
-        }
 
         if (this.containingContainer !== this) {
             this.#hasParentContainer = true;
@@ -193,7 +203,7 @@ export default class Container extends Observable {
                     this.stopdrag = false;
                 };
                 this.dragControl = HtmlUtils.createElement("div", this.#dragName, {
-                    class: "p-2 m-2 ef-drag-drop-indication",
+                    class: "p-2 m-2 qf-drag-drop-indication",
                     "data-noattach": true,
                     "data-position": "0",
                     style: "text-align:center;",

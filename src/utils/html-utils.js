@@ -101,6 +101,16 @@ export default class HtmlUtils {
         }
     }
 
+
+    static clearOptions(targetElement) {
+        if (targetElement) {
+            var i, L = targetElement.options.length - 1;
+            for (i = L; i >= 0; i--) {
+                targetElement.remove(i);
+            }
+        }
+    }
+
     static removeClassByPrefix(el, prefix) {
         let regx = new RegExp('\\b' + prefix + '.*?\\b', 'g');
         el.className = el.className.replace(regx, '');
@@ -251,5 +261,4 @@ export default class HtmlUtils {
             }
         }
     }
-
 }

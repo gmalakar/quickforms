@@ -1,9 +1,9 @@
 import FormContainer from './components/form-container.js'
-export default class EasyForms {
+export default class QuickForm {
     constructor() {
     }
 
-    getForm(schema) {
+    createForm(schema) {
         return new FormContainer(schema);
     }
 }

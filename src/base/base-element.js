@@ -10,6 +10,10 @@ export default class BaseElement {
 
     elementControl;
 
+    #vfControl;
+
+    #ivfControl;
+
     containingComponent;
 
     schema = {};
@@ -23,17 +27,17 @@ export default class BaseElement {
     controlId;
 
     static #defaultCompClass(type) {
-        return 'mb-2 ef-form-component';;
+        return 'mb-2 qf-form-component';;
     }
 
     static #defaultCaptionClass(type) {
-        let cls = 'ef-form-label';
+        let cls = 'qf-form-label';
         switch (type) {
             case "checkbox":
-                cls = 'ef-form-label-checkbox';
+                cls = 'qf-form-label-checkbox';
                 break;
             case "radio":
-                cls = 'ef-form-label-radio';
+                cls = 'qf-form-label-radio';
                 break;
             default:
                 break;
@@ -42,16 +46,17 @@ export default class BaseElement {
     }
 
     static #defaultControlClass(type) {
-        let cls = 'ef-form-control';
+        let cls = 'qf-form-control';
         switch (type) {
             case "checkbox":
-                cls = 'ef-form-checkbox';
+                cls = 'qf-form-checkbox';
                 break;
             case "radio":
-                cls = 'ef-form-radio';
+                cls = 'qf-form-radio';
                 break;
             case "button":
-                cls = ' btn-primary ef-form-button';
+            case "submit":
+                cls = ' btn-primary qf-form-button';
                 break;
             default:
                 break;
@@ -71,13 +76,20 @@ export default class BaseElement {
         if (CommonUtils.isNullOrEmpty(this.schema.caption)) {
             this.schema.caption = defaultCaption;
         }
-        this.controlId = `${this.containingContainer.formName}[${this.name}]`;
+        this.#setControlId();
         this.initControl;
     }
 
     initControl() {
     }
 
+    #setControlId() {
+        if (this.designmode) {
+            this.controlId = `${this.name}-${this.containingContainer.formContainer.name}-design`;
+        } else {
+            this.controlId = `${this.name}-${this.containingContainer.formContainer.name}`;
+        }
+    }
     get name() {
         this.schema.name || "";
     }
@@ -126,14 +138,12 @@ export default class BaseElement {
         if (this.componentControl) {
             this.componentControl.name = value;
             this.componentControl.id = value;
-            //set the new ref
-            //this.componentControl.setAttribute("ref", value);
         }
         //chenge the name of the element control
         if (this.elementControl) {
-            value = `${this.containingContainer.formName}[${value}]`;
-            this.elementControl.name = value;
-            this.elementControl.id = value;
+            this.#setControlId();
+            this.elementControl.name = this.controlId;
+            this.elementControl.id = this.controlId;
         }
         //change the for of the label control
         if (this.captionControl && this.elementControl) {
@@ -165,9 +175,14 @@ export default class BaseElement {
                 crtl = this.componentControl;
                 break;
             default:
+                crtl = this.elementControl;
                 break;
         }
         return crtl;
+    }
+
+    resetControl(name) {
+
     }
 
     #clearAttrs(name) {
@@ -197,6 +212,8 @@ export default class BaseElement {
                 attrsArray.push(attr);
             }
             this.schema.attributes[key] = attrsArray;
+        } else if (!CommonUtils.isNullOrUndefined(value)) {
+            this.schema.attributes[key] = value;
         }
     }
 
@@ -236,7 +253,10 @@ export default class BaseElement {
             for (let attr of attrs) {
                 crtl.setAttribute(attr.name, attr.value);
             }
+        } else if (crtl && !CommonUtils.isNullOrUndefined(attrs)) {
+            crtl.setAttribute(name, attrs);
         }
+        this.resetControl(name);
     }
 
     #clearDataAttrs(name) {
@@ -263,33 +283,12 @@ export default class BaseElement {
         }
     }
 
-    #clearEventListenersSchema(name) {
-        if (this.schema.hasOwnProperty('eventlisteners') &&
-            this.schema.eventlisteners.hasOwnProperty(name)) {
-            delete this.schema.eventlisteners[name];
+    getEventListenersSchema() {
+        let events = this.#getPropSchema('events');
+        if (CommonUtils.isJson(events)) {
+            events = CommonUtils.jsonToObject(events);
         }
-    }
-
-    setEventListenersSchema(key, value) {
-
-        if (!this.schema.hasOwnProperty('eventlisteners')) {
-            this.schema['eventlisteners'] = {};
-        }
-        //delete 
-        this.#clearEventListenersSchema(key);
-
-        if (!CommonUtils.isNullOrEmpty(value)) {
-            this.schema.eventlisteners[key] = value;
-        }
-    }
-
-    getEventListenersSchema(key) {
-        let val = "";
-        if (this.schema.hasOwnProperty('eventlisteners') &&
-            this.schema.eventlisteners.hasOwnProperty(key)) {
-            val = this.schema.eventlisteners[key];
-        }
-        return val;
+        return events;
     }
 
     getDataAttrSchema(key) {
@@ -305,6 +304,56 @@ export default class BaseElement {
     resetDataAttrs(name) {
         if (this.elementControl) {
             this.elementControl.setAttribute(name, this.schema?.attributes?.data[name]);
+            this.resetControl(name);
+        }
+    }
+
+    #resetValidation(name, val, reset = true) {
+        if (this.elementControl) {
+            switch (name) {
+                case "required":
+                    if (val) {
+                        this.elementControl.required = true;
+                    } else {
+                        this.elementControl.removeAttribute(name);
+                    }
+                    break;
+                case "invalid-feedback":
+                case "valid-feedback":
+                    let vfid = `${this.controlId}-vf`;
+                    let cls = `valid-${this.containingContainer.formContainer.validationtype}`;
+                    if (name === 'invalid-feedback') {
+                        vfid = `${this.controlId}-ivf`;
+                        cls = `invalid-${this.containingContainer.formContainer.validationtype}`;
+                    }
+                    let vf = HtmlUtils.getElement(vfid);
+                    if (CommonUtils.isNullOrEmpty(val)) {
+                        if (vf) {
+                            vf.remove();
+                        }
+                        if (name === 'invalid-feedback') {
+                            this.#ivfControl = undefined;
+                        } else {
+                            this.#vfControl = undefined;
+                        }
+                        this.elementControl.removeAttribute('aria-describedby');
+                    } else {
+                        if (!vf) {
+                            vf = HtmlUtils.createElement('div', vfid, { class: cls });
+                            if (name === 'invalid-feedback') {
+                                this.#ivfControl = vf;
+                            } else {
+                                this.#vfControl = vf;
+                            }
+                            if (reset) {
+                                this.elementControl.insertAdjacentElement("afterend", vf);
+                            }
+                        }
+                        this.elementControl.setAttribute('aria-describedby', vfid);
+                        vf.innerHTML = val;
+                    }
+                    break;
+            }
         }
     }
 
@@ -326,6 +375,8 @@ export default class BaseElement {
                 styleArr.push(attr);
             }
             this.schema.styles[key] = styleArr;
+        } else if (!CommonUtils.isNullOrUndefined(value)) {
+            this.schema.styles[key] = value;
         }
     }
 
@@ -336,7 +387,10 @@ export default class BaseElement {
             for (let style of styleArr) {
                 crtl.style.setProperty(style.name, style.value);
             }
+        } else if (crtl && CommonUtils.isString(styleArr)) {
+            crtl.style.setProperty(name, styleArr);
         }
+        this.resetControl();
     }
 
     #clearStyle(name) {
@@ -394,7 +448,7 @@ export default class BaseElement {
         if (crtl) {
             let cls = this.getClassSchema(name);
             if (this.designmode && name === 'component') {
-                cls = cls + " ef-design-mode";
+                cls = cls + " qf-design-mode";
             }
             if (cls) {
                 crtl.class = cls;
@@ -418,16 +472,15 @@ export default class BaseElement {
                 case "dataattr":
                     this.setDataAttrSchema(name, val);
                     break;
-                case "event":
-                case "events":
-                    this.setEventListenersSchema(name, val);
-                    break;
                 case "class":
                     this.setClassSchema(name, val);
                     break;
                 case "prop":
                 case "property":
                     this.#setPropSchema(name, val);
+                    break;
+                case "validation":
+                    this.#setValidationPropVal(name, val);
                     break;
                 case "general":
                 case "gen":
@@ -447,6 +500,10 @@ export default class BaseElement {
                         case "caption":
                             this.setCaption(val);
                             break;
+                        case "type":
+                            this.schema[name] = val;
+                            this.elementControl.type = val;
+                            break;
                         default:
                             break;
                     }
@@ -462,13 +519,13 @@ export default class BaseElement {
             }
         } else {
             //raise property changed
-            this.setPropertyToControl(type, name);
+            this.setPropertyToControl(type, name, val);
             this.setComponentPropertyLocal(type, name, val);
             this.containingContainer.propertyChanged(name);
         }
     }
 
-    setPropertyToControl(type, name) {
+    setPropertyToControl(type, name, val) {
         switch (type) {
             case "gen":
                 this.resetGen(name)
@@ -479,13 +536,16 @@ export default class BaseElement {
             case "style":
                 this.resetStyle(name,)
                 break;
-            case "attrs":
+            case "attr":
             case "attribute":
                 this.resetAttrs(name)
                 break;
             case "data":
             case "dataattr":
                 this.resetDataAttrs(name);
+                break;
+            case "validation":
+                this.#resetValidation(name, val);
                 break;
         }
     }
@@ -508,6 +568,39 @@ export default class BaseElement {
         return val;
     }
 
+    #setValidationPropVal(key, value) {
+        if (!this.schema.hasOwnProperty('validation')) {
+            this.schema['validation'] = {};
+        }
+        if (!CommonUtils.isNullOrEmpty(value)) {
+            this.schema.validation[key] = value;
+        } else {
+            delete this.schema.validation[key];
+        }
+        if (Object.keys(this.schema.validation).length <= 0) {
+            delete this.schema.validation;
+        }
+    }
+
+    #getValidationPropVal(key) {
+        let val = "";
+        if (this.schema.hasOwnProperty('validation')) {
+            val = this.schema['validation'][key];
+            if (val === undefined) {
+                val = '';
+            }
+        }
+        return val;
+    }
+
+    #getValidationSchema() {
+        let val = {};
+        if (this.schema.hasOwnProperty('validation')) {
+            val = this.schema['validation'];
+        }
+        return val;
+    }
+
     getComponentProperty(type, name) {
         let val = "";
         switch (type) {
@@ -525,13 +618,12 @@ export default class BaseElement {
             case "property":
                 val = this.#getPropSchema(name);
                 break;
+            case "validation":
+                val = this.#getValidationPropVal(name);
+                break;
             case "data":
             case "dataattr":
                 val = this.getDataAttrSchema(name);
-                break;
-            case "event":
-            case "events":
-                val = this.getEventListenersSchema(name);
                 break;
             default:
                 val = this.schema[name];
@@ -591,7 +683,11 @@ export default class BaseElement {
         }
 
         if (this.designmode) {
-            cls = cls + " ef-design-mode";
+            cls = cls + " qf-design-mode";
+        }
+
+        if (this.containingContainer.formContainer.validationtype === 'tooltip') {
+            cls = cls + " position-relative";
         }
 
         compAttrs.class = cls;
@@ -666,8 +762,16 @@ export default class BaseElement {
             elAttrs
         );
         if (!this.designmode) {
-            for (let [event, fn] of Object.entries(this.getEventListenersSchema())) {
-                this.elementControl.addEventListener(event, fn());
+            for (let [seq, event] of Object.entries(this.getEventListenersSchema())) {
+                if (event && event.event && event.script) {
+                    this.elementControl.addEventListener(event.event, Function(event.script));
+                }
+            }
+        }
+        //set validation
+        for (let [name, val] of Object.entries(this.#getValidationSchema())) {
+            if (name) {
+                this.#resetValidation(name, val, true);
             }
         }
     }
@@ -702,6 +806,12 @@ export default class BaseElement {
 
         if (this.elementControl) {
             this.componentControl.appendChild(this.elementControl);
+            if (this.#vfControl) {
+                this.componentControl.appendChild(this.#vfControl);
+            }
+            if (this.#ivfControl) {
+                this.componentControl.appendChild(this.#ivfControl);
+            }
         }
 
         this.containerControl.appendChild(this.componentControl);

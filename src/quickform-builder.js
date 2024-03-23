@@ -2,8 +2,8 @@ import Builder from './builder/builder.js'
 import FormContainer from './components/form-container.js'
 import ScriptLoader from './utils/script-loader.js'
 import CommonUtils from './utils/common-utils.js'
-import EasyForms from './easyforms.js'
-export default class EasyFormsBuilder extends EasyForms {
+import QuickForm from './quickorm.js'
+export default class QuickFormBuilder extends QuickForm {
     builder;
     buildercontainer;
     #boostrapJS;
@@ -13,7 +13,7 @@ export default class EasyFormsBuilder extends EasyForms {
 
     //define scripts here
     static #localCss = [
-        '/src/easyforms.css'
+        '/src/quickform.css'
     ]
 
     constructor(buildercontainer) {
@@ -22,7 +22,7 @@ export default class EasyFormsBuilder extends EasyForms {
         //this.loadScripts();
     }
     #loadBuilder(callback) {
-        ScriptLoader.loadCss(EasyFormsBuilder.#localCss, () => {
+        ScriptLoader.loadCss(QuickFormBuilder.#localCss, () => {
             this.builder = new Builder(this.buildercontainer);
             if (callback) {
                 callback();
@@ -127,7 +127,7 @@ export default class EasyFormsBuilder extends EasyForms {
         });
     }
 
-    getForm(schema) {
+    createForm(schema) {
         return new FormContainer(schema);
     }
 }

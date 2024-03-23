@@ -1,4 +1,4 @@
-import EasyFormsBuilder from '../src/easyforms-builder.js'
+import EasyFormsBuilder from '../src/quickform-builder.js'
 
 let formBuilder = new EasyFormsBuilder('builder-container');
 formBuilder.setBootstrapJS('https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js',
@@ -60,8 +60,17 @@ let formMetaData = {
                             "type": "text",
                             "columns": {},
                             "caption": "Text Field",
-                            "eventlisteners": {
-                                "primary": "{\"0\":{\"eventname\":\"click\",\"event\":\"click\",\"type\":\"is\",\"script\":\"alert('here')\"}}"
+                            "properties": {
+                                "events": "{\"0\":{\"eventname\":\"event1\",\"event\":\"change\",\"type\":\"is\",\"script\":\"alert('here');\"}}"
+                            },
+                            "attributes": {
+                                "data": {
+                                    "required": true
+                                }
+                            },
+                            "validation": {
+                                "required": true,
+                                "invalid-feedback": "Enter value"
                             }
                         }
                     }
@@ -242,17 +251,25 @@ let formMetaData = {
                     }
                 }
             }
+        },
+        "button3": {
+            "name": "button3",
+            "type": "submit",
+            "caption": "Submit"
         }
     },
     "caption": "testform",
     "class": {
-        "form": "ef-form mb-2 border",
-        "body": "ef-form-body",
-        "title": "ef-form-title mb-0",
-        "header": "ef-form-header bg-defaul"
+        "form": "qf-form mb-2 border",
+        "body": "qf-form-body",
+        "title": "qf-form-title mb-0",
+        "header": "qf-form-header bg-defaul"
     },
     "ref": "self",
-    "script": "dmFyIGVhc3lGb3Jtc1NjcmlwdCA9IGZ1bmN0aW9uICgpIHsKICAvKgogIGV4YW1wbGU6CiAgY29uc3QgbXlNZXRob2QocGFyYW0pewogIH0KCiAgaW52b2tlOgogICBlYXN5Rm9ybXNTY3JpcHQubXlNZXRob2QocGFyYW0pOwogICAqLwogIC8vZG9udCBjaGFuZ2UgdGhlIGZvcm1hdAogIC8vYWRkIHlvdXIgY29kZSBiZWxvdwogIAogIHZhciB0ZXN0U2NyaXB0ID0gKCk9PnsKICAgIGFsZXJ0KCd0ZXN0Jyk7CiAgfQp9"
+    "script": "dmFyIGVhc3lGb3Jtc1NjcmlwdCA9IGZ1bmN0aW9uICgpIHsKICAvKgogIGV4YW1wbGU6CiAgY29uc3QgbXlNZXRob2QocGFyYW0pewogIH0KCiAgaW52b2tlOgogICBlYXN5Rm9ybXNTY3JpcHQubXlNZXRob2QocGFyYW0pOwogICAqLwogIC8vZG9udCBjaGFuZ2UgdGhlIGZvcm1hdAogIC8vYWRkIHlvdXIgY29kZSBiZWxvdwogIAogIHZhciB0ZXN0U2NyaXB0ID0gKCk9PnsKICAgIGFsZXJ0KCd0ZXN0Jyk7CiAgfQp9",
+    "customvalidation": true,
+    "method": "post",
+    "vtype": "tooltip"
 }
 formMetaData['name'] = 'testform';
 //formBuilder.startBuilder();

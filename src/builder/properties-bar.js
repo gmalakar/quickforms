@@ -135,8 +135,9 @@ export default class PropertiesBar {
         if (this.#formcontainer) {
             for (let mappedPorpEl of this.formPropElements) {
                 let val = this.#formcontainer.getFormProperty(mappedPorpEl['mappedType'], mappedPorpEl['mappedProp']);
-                mappedPorpEl['mappedElement'].value = val;
-                mappedPorpEl['mappedElement']['oldvalue'] = val;
+                let el = mappedPorpEl['mappedElement'];
+                HtmlUtils.setElementValue(el, val);
+                el['oldvalue'] = val;
             }
             this.#populateSearchControl();
         }
@@ -154,11 +155,14 @@ export default class PropertiesBar {
     }
 
     static #getEditorClass(type) {
-        let cls = 'ef-editor-input';
+        let cls = 'qf-editor-input';
         switch (type) {
             case "checkbox":
             case "radio":
-                cls = 'ef-editor-check';
+                cls = 'qf-editor-check';
+                break;
+            case "select":
+                cls = 'qf-editor-select';
                 break;
             default:
                 break;
@@ -170,7 +174,7 @@ export default class PropertiesBar {
         if (CommonUtils.isArray(props)) {
             let propfor = propType === 'form' ? `${caller.#formAccordID}-${key}` : `${caller.#compAcordID}-${key}`;
             let propElements = propType === 'form' ? caller.formPropElements : caller.compPropElements;
-            let propTable = HtmlUtils.createElement('table', 'noid', { class: 'table table-bordered table-sm ef-editor-table' });
+            let propTable = HtmlUtils.createElement('table', 'noid', { class: 'table table-bordered table-sm qf-editor-table' });
             let tBody = HtmlUtils.createElement('tbody', 'noid');
             for (let item of props) {
                 let propItem = PropertiesBar.#createProp(propfor, item, propElements, caller, onPropChanged);
@@ -198,7 +202,7 @@ export default class PropertiesBar {
         if (propObjects.hasOwnProperty('notvisiblefor')) {
             tRow.setAttribute('notvisiblefor', propObjects['notvisiblefor']);
         }
-        let ltd = HtmlUtils.createElement('th', 'noid', { class: 'ef-editor-label', scope: 'row' });
+        let ltd = HtmlUtils.createElement('th', 'noid', { class: 'qf-editor-label', scope: 'row' });
         ltd.innerHTML = `${propObjects.name}&nbsp;`;
 
         tRow.appendChild(ltd);
@@ -239,7 +243,7 @@ export default class PropertiesBar {
                 if (slimSelect) {
                     PropertiesBar.#setSlimSelect(propObjects.popupname, ph, editorEl);
                 }
-                let btn = HtmlUtils.createIconButton({ class: 'btn btn-primary btn-sm m-0 ef-editor-btn', type: 'button' }, { class: 'bi bi-three-dots-vertical' }, `btn-${propId}`);
+                let btn = HtmlUtils.createIconButton({ class: 'btn btn-primary btn-sm m-0 qf-editor-btn', type: 'button' }, { class: 'bi bi-three-dots-vertical' }, `btn-${propId}`);
                 //btn.textContent = '...';
                 btn.addEventListener("click", (e) => {
                     switch (propObjects.popupname) {
@@ -294,7 +298,7 @@ export default class PropertiesBar {
             }
         };
 
-        let vtd = HtmlUtils.createElement('td', 'noid', { class: 'ef-editor-td-edit' });
+        let vtd = HtmlUtils.createElement('td', 'noid', { class: 'qf-editor-td-edit' });
 
         if (groupEl) {
             vtd.appendChild(groupEl);
@@ -351,7 +355,7 @@ export default class PropertiesBar {
             formAttrs['ref'] = this.ref;
         }
         let formAccordion = HtmlUtils.createElement('div', this.#formAccordID, formAttrs);
-        this.scriptcontrol = HtmlUtils.createIconButton({ class: 'btn btn-primary btn-md m-0 ef-editor-btn', type: 'button' }, { class: 'bi bi-filetype-js' }, `${this.#formAccordID}-script`);
+        this.scriptcontrol = HtmlUtils.createIconButton({ class: 'btn btn-primary btn-md m-0 qf-editor-btn', type: 'button' }, { class: 'bi bi-filetype-js' }, `${this.#formAccordID}-script`);
         this.scriptcontrol.addEventListener("click", (e) => {
             ScriptEditor.setEditor('Form Script', atob(this.#formcontainer.getFormProperty('general', 'script')), (script) => {
                 this.saveScript(script);
@@ -441,9 +445,29 @@ export default class PropertiesBar {
                     type: "input",
                     attributes: {
                         readonly: true
-                    }
-                }
-            ]
+                    },
+                    notvisiblefor: 'button;submit;'
+                },
+                {
+                    mappedType: "gen",
+                    mappedProp: "type",
+                    name: "Type",
+                    type: "select",
+                    visiblefor: 'button;submit;',
+                    options: {
+                        button: 'Button',
+                        submit: 'Submit'
+                    },
+                },
+                {
+                    mappedType: "attr",
+                    mappedProp: "multiple",
+                    name: "Multiple",
+                    type: "input",
+                    datatype: "checkbox",
+                    default: 'false',
+                    visiblefor: 'select'
+                }]
         },
         "data": {
             text: "Data Source",
@@ -455,14 +479,6 @@ export default class PropertiesBar {
                     name: "Binding",
                     type: "input",
                     maxlength: 30
-                },
-                {
-                    mappedType: "data",
-                    mappedProp: "required",
-                    name: "Required",
-                    type: "input",
-                    datatype: "checkbox",
-                    default: 'false'
                 }
             ]
         },
@@ -791,8 +807,8 @@ export default class PropertiesBar {
             default: false,
             props: [
                 {
-                    mappedType: "events",
-                    mappedProp: "primary",
+                    mappedType: "property",
+                    mappedProp: "events",
                     name: "Manage Events",
                     type: "popup",
                     popupname: 'events',
@@ -800,7 +816,54 @@ export default class PropertiesBar {
                     notvisiblefor: 'panel;table;columns'
                 },
             ]
-        }
+        },
+        "validation": {
+            text: "Validation",
+            default: false,
+            notvisiblefor: 'panel;table;columns;button;',
+            props: [
+                {
+                    mappedType: "validation",
+                    mappedProp: "required",
+                    name: "Required",
+                    type: "input",
+                    datatype: "checkbox",
+                    default: 'false',
+                    notvisiblefor: 'panel;table;columns'
+                },
+                {
+                    mappedType: "validation",
+                    mappedProp: "valid-feedback",
+                    name: "Valid Feedback",
+                    type: "input",
+                    default: 'false',
+                    notvisiblefor: 'panel;table;columns'
+                },
+                {
+                    mappedType: "validation",
+                    mappedProp: "invalid-feedback",
+                    name: "Invalid Feedback",
+                    type: "input",
+                    default: 'false',
+                    notvisiblefor: 'panel;table;columns;'
+                },
+            ]
+        }/* ,
+        "btnprops": {
+            text: "Button Properties",
+            default: false,
+            visiblefor: 'button;',
+            props: [
+                {
+                    mappedType: "attr",
+                    mappedProp: "submit",
+                    name: "Submit",
+                    type: "input",
+                    datatype: "checkbox",
+                    default: 'false'
+                }
+            ]
+        } */
     };
 
     static formProperties = {
@@ -821,6 +884,43 @@ export default class PropertiesBar {
                     name: "Caption",
                     type: "input",
                     maxlength: 50
+                },
+                {
+                    mappedType: "gen",
+                    mappedProp: "action",
+                    name: "Action",
+                    type: "input",
+                    maxlength: 200
+                },
+                {
+                    mappedType: "gen",
+                    mappedProp: "method",
+                    name: "Method",
+                    type: "select",
+                    default: 'post',
+                    options: {
+                        post: 'Post',
+                        get: 'Get'
+                    },
+                },
+                {
+                    mappedType: "gen",
+                    mappedProp: "customvalidation",
+                    name: "Custom Validation",
+                    type: "input",
+                    datatype: "checkbox",
+                    default: 'false'
+                },
+                {
+                    mappedType: "gen",
+                    mappedProp: "vtype",
+                    name: "Validation Type",
+                    type: "select",
+                    default: 'feedback',
+                    options: {
+                        feedback: 'Feedback',
+                        tooltip: 'Tooltip'
+                    }
                 }
             ]
         },

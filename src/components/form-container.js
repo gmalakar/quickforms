@@ -11,12 +11,30 @@ export default class FormContainer extends Container {
     formCaption;
     #guid;
     formPanel;
+    theForm;
 
-    constructor(schema, observer, designmode = false) {
+    constructor(placeholder, schema, observer, designmode = false) {
         schema = schema || {};
 
         if (CommonUtils.isJson(schema)) {
             schema = JSON.parse(schema);
+        }
+
+        if (CommonUtils.isNullOrUndefined(placeholder)) {
+            return ErrorHandler.throwError(
+                ErrorHandler.errorCode.Form.MISSING_PLACEHOLDER
+            );
+        }
+
+        if (!HtmlUtils.isHTMLElement(placeholder)) {
+            placeholder = HtmlUtils.getElement(placeholder)
+        }
+
+        if (!HtmlUtils.isHTMLElement(placeholder)) {
+
+            return ErrorHandler.throwError(
+                ErrorHandler.errorCode.Form.MISSING_PLACEHOLDER
+            );
         }
 
         if (!schema.hasOwnProperty('name')) {
@@ -37,37 +55,96 @@ export default class FormContainer extends Container {
         if (!schema.hasOwnProperty('caption')) {
             schema['caption'] = this.name;
         }
-        this.formPanel = new Panel(this.#panelId, schema['caption']);
-        this.formControl = this.formPanel.panel;
+        let formAttrs = {};
+        if (this.customvalidation) {
+            formAttrs['novalidate'] = '';
 
+            formAttrs['class'] = 'needs-validation';
+        }
+        let method = 'post';
+        if (schema.hasOwnProperty('method')) {
+            method = schema['method'];
+        }
+
+        formAttrs['method'] = method;
+
+        let action = '/';
+        if (schema.hasOwnProperty('action')) {
+            action = schema['action'];
+        }
+
+        formAttrs['action'] = action;
+
+        this.formPanel = new Panel(this.#panelId, schema['caption']);
+
+
+        this.formControl = this.formPanel.panel;
+        let formid = schema.name;
+        if (designmode) {
+            formid = `${formid}-design`;
+        }
+        this.theForm = HtmlUtils.createElement('form', formid, formAttrs);
+        this.theForm.appendChild(this.formControl);
+        placeholder.appendChild(this.theForm);
         this.initForm();
 
     }
+
+    get name() {
+        return this.formSchema['name'];
+    }
+
     resetForm() {
         this.formPanel.resetPanel();
         this.refreshContainer();
         this.initForm();
         console.log('form has reset');
     }
+
+
     initForm() {
         //set default class
         if (!this.#getClassSchema('form')) {
-            this.#setClassSchema('form', 'ef-form mb-2 border');
+            this.#setClassSchema('form', 'qf-form mb-2 border');
         }
 
         if (!this.#getClassSchema('body')) {
-            this.#setClassSchema('body', 'ef-form-body');
+            this.#setClassSchema('body', 'qf-form-body');
         }
 
         if (!this.#getClassSchema('title')) {
-            this.#setClassSchema('title', 'ef-form-title mb-0');
+            this.#setClassSchema('title', 'qf-form-title mb-0');
         }
 
         if (!this.#getClassSchema('header')) {
-            this.#setClassSchema('header', 'ef-form-header bg-defaul');
+            this.#setClassSchema('header', 'qf-form-header bg-defaul');
         }
 
         this.#buildForm();
+        if (this.customvalidation) {
+            FormContainer.#setCustomValidation();
+        }
+    }
+
+    static #setCustomValidation() {
+        (function () {
+            'use strict'
+
+            // Fetch all the forms we want to apply custom Bootstrap validation styles to
+            var forms = document.querySelectorAll('.needs-validation')
+
+            // Loop over them and prevent submission
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                        }
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+        })()
     }
 
     #makeUniqueId(id) {
@@ -422,9 +499,6 @@ export default class FormContainer extends Container {
     #resetGen(name) {
         let val = this.formSchema[name]
         switch (name) {
-            case "name":
-                this.formName = val;
-                break;
             case "caption":
                 this.formPanel.setCaption(val)
                 break;

@@ -8,13 +8,13 @@ export default class GroupBox extends BaseElement {
     constructor(containingComponent) {
         super(containingComponent, "Group Box");
         if (this.designmode) {
-            this.defaultColumnClass = this.defaultColumnClass + " ef-design-mode";
+            this.defaultColumnClass = this.defaultColumnClass + " qf-design-mode";
         }
         this.buildControl();
     }
     setLabelControl() {
         let lblAttrs = {};
-        lblAttrs.class = `ef-groupbox-legend ${this.getClassSchema('label')}`;
+        lblAttrs.class = `qf-groupbox-legend ${this.getClassSchema('label')}`;
 
         this.setStyle('lable', lblAttrs);
         this.setAttrs('lable', lblAttrs);
@@ -26,7 +26,7 @@ export default class GroupBox extends BaseElement {
     }
     setOtherControls() {
         let elAttrs = {};
-        elAttrs.class = `border border-1 ef-groupbox ${this.getClassSchema('control')}`;
+        elAttrs.class = `border border-1 qf-groupbox ${this.getClassSchema('control')}`;
 
         this.setStyle('control', elAttrs);
         this.setAttrs('control', elAttrs);

@@ -43,7 +43,7 @@ export default class Component {
         let parentComponent;
 
         if (this.containerControl) {
-            parentComponent = HtmlUtils.findAncestor(this.containerControl, 'ef-form-component');
+            parentComponent = HtmlUtils.findAncestor(this.containerControl, 'qf-form-component');
         }
 
         this.parentComponent = parentComponent || this;
@@ -98,6 +98,7 @@ export default class Component {
             case "panel":
                 return new PanelLayout(containgComponent);
             case "button":
+            case "submit":
                 return new ButtonField(containgComponent);
             case "groupbox":
                 return new GroupBox(containgComponent);

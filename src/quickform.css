@@ -1,10 +1,10 @@
-.ef-design-mode {
+.qf-design-mode {
   border: 1px;
 }
-.ef-design-area {
+.qf-design-area {
   height: 100%;
 }
-.ef-delete-comp-btn {
+.qf-delete-comp-btn {
   float: right;
   display: flex;
   align-items: center;
@@ -12,15 +12,15 @@
   width: 16px;
   height: 16px;
 }
-.ef-drag-drop-indication {
+.qf-drag-drop-indication {
   background-color: bisque;
   height: auto;
   width: auto;
 }
-.ef-editor {
+.qf-editor {
   width: auto !important;
 }
-.ef-selected-comp {
+.qf-selected-comp {
   border: dotted thin;
 }
 
@@ -28,29 +28,29 @@ table.table-fit {
   table-layout: auto !important;
 }
 
-.ef-json-holder {
+.qf-json-holder {
   height: 100%;
 }
 
-.ef-accordian-button {
+.qf-accordian-button {
   height: 24px;
   padding: 2px;
 }
 
-.ef-editor-input {
+.qf-editor-input {
   border: 0;
   border-radius: 0;
   padding: 0;
   margin: 0;
 }
-.ef-editor-label {
+.qf-editor-label {
   border: 0;
   border-radius: 0;
   padding: 0;
   margin: 0;
   white-space: nowrap;
 }
-.ef-editor-check {
+.qf-editor-check {
   border: 1;
   border-radius: 0;
   border-color: gray;
@@ -60,7 +60,7 @@ table.table-fit {
   margin: 0;
 }
 
-.ef-editor-btn {
+.qf-editor-btn {
   border: 0;
   border-radius: 1;
   height: 2em;
@@ -69,51 +69,51 @@ table.table-fit {
   margin: 0;
 }
 
-.ef-editor-td-label {
+.qf-editor-td-label {
   padding: 0;
   margin: 0;
 }
 
-.ef-editor-td-edit {
+.qf-editor-td-edit {
   padding: 0;
   margin: 0;
   align-items: center;
 }
 
-.ef-form-body {
+.qf-form-body {
   height: 100%;
 }
-.ef-comp-bar {
+.qf-comp-bar {
   padding: 0;
 }
-.ef-builder {
+.qf-builder {
   padding: 2px;
 }
-.ef-form-checkbox {
+.qf-form-checkbox {
   height: 1.5em;
   width: 1.5em;
   padding: 0;
   margin: 0px 0.5em 0 0;
 }
 
-.ef-form-area {
+.qf-form-area {
   padding: 0;
 }
-.ef-property-bar {
+.qf-property-bar {
   padding: 0;
   margin: 0;
 }
-.ef-accordian-button {
+.qf-accordian-button {
   background-color: lightgrey;
   height: 28px;
 }
 
-.ef-accordian-button:focus {
+.qf-accordian-button:focus {
   outline: none;
   box-shadow: none;
 }
 
-.ef-editor-input:focus {
+.qf-editor-input:focus {
   outline: none;
   box-shadow: none;
 }
@@ -124,7 +124,7 @@ table.table-fit {
   margin-right: 0.5em;
 }
 
-.ef-groupbox-legend {
+.qf-groupbox-legend {
   all: revert;
 }
 .script-editor {
@@ -158,18 +158,18 @@ table.table-fit tfoot td {
   width: fit-content !important;
 }
 
-table.ef-table tr td {
+table.qf-table tr td {
   padding: 0px !important;
 }
 
-.ef-table-control {
+.qf-table-control {
   border: 0px !important;
 }
-.ef-table-control:focus {
+.qf-table-control:focus {
   outline: none !important;
   box-shadow: none !important;
 }
 
-.ef-table-cell {
+.qf-table-cell {
   text-align: center;
 }
