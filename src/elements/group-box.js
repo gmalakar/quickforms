@@ -14,10 +14,9 @@ export default class GroupBox extends BaseElement {
     }
     setLabelControl() {
         let lblAttrs = {};
-        lblAttrs.class = `qf-groupbox-legend ${this.getClassSchema('label')}`;
-
-        this.setStyle('lable', lblAttrs);
-        this.setAttrs('lable', lblAttrs);
+        lblAttrs.class = `qf-groupbox-legend ${this.getSchema('class', 'lable')}`;
+        this.setAttrsFromSchema('styles', 'lable', lblAttrs);
+        this.setAttrsFromSchema('otherattributes', 'lable', lblAttrs);
         this.captionControl = HtmlUtils.createElement(ComponentUtils.getLabelType(this.type), "noid", lblAttrs);
         this.setCaption(this.schema.caption);
     }
@@ -26,10 +25,9 @@ export default class GroupBox extends BaseElement {
     }
     setOtherControls() {
         let elAttrs = {};
-        elAttrs.class = `border border-1 qf-groupbox ${this.getClassSchema('control')}`;
-
-        this.setStyle('control', elAttrs);
-        this.setAttrs('control', elAttrs);
+        elAttrs.class = `border border-1 qf-groupbox ${this.getSchema('class', 'control')}`;
+        this.setAttrsFromSchema('styles', 'control', elAttrs);
+        this.setAttrsFromSchema('otherattributes', 'control', elAttrs);
         this.otherControl = HtmlUtils.createElement(
             ComponentUtils.getControlType(this.type),
             'noid',

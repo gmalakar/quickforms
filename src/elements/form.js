@@ -7,7 +7,6 @@ export default class Form extends BaseControl {
         if (this.designmode) {
             this.defaultColumnClass = this.defaultColumnClass + " qf-design-mode";
         }
-        this.buildControl();
     }
     setLabelControl() { }
 

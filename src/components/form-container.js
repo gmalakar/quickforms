@@ -95,6 +95,7 @@ export default class FormContainer extends Container {
     }
 
     resetForm() {
+        HtmlUtils.removeClasses(this.theForm, 'was-validated');
         this.formPanel.resetPanel();
         this.refreshContainer();
         this.initForm();
@@ -122,29 +123,23 @@ export default class FormContainer extends Container {
 
         this.#buildForm();
         if (this.customvalidation) {
-            FormContainer.#setCustomValidation();
+            FormContainer.#setCustomValidation(this.theForm);
         }
     }
 
-    static #setCustomValidation() {
-        (function () {
-            'use strict'
+    static validateForm(form) {
+        return true;
+    }
 
-            // Fetch all the forms we want to apply custom Bootstrap validation styles to
-            var forms = document.querySelectorAll('.needs-validation')
-
-            // Loop over them and prevent submission
-            Array.prototype.slice.call(forms)
-                .forEach(function (form) {
-                    form.addEventListener('submit', function (event) {
-                        if (!form.checkValidity()) {
-                            event.preventDefault()
-                            event.stopPropagation()
-                        }
-                        form.classList.add('was-validated')
-                    }, false)
-                })
-        })()
+    static #setCustomValidation(form) {
+        form.addEventListener('submit', (e) => {
+            if (FormContainer.validateForm(form) || !form.checkValidity()) {
+                e.preventDefault()
+                e.stopPropagation()
+            }
+            HtmlUtils.addClasses(form, 'was-validated');
+        }
+        )
     }
 
     #makeUniqueId(id) {

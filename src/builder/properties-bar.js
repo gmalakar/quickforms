@@ -27,6 +27,7 @@ export default class PropertiesBar {
     searchcontrol;
     slimSelectFilter;
     scriptcontrol;
+    static #propidCounter = 1;
 
     static #selectCrtls = [];
 
@@ -58,7 +59,10 @@ export default class PropertiesBar {
             let oldval = mappedCompProp['mappedElement']['oldvalue'];
             let type = mappedCompProp['mappedType'];
             let prop = mappedCompProp['mappedProp'];
-            target.#selectedComponent.control.setComponentProperty(type, prop, val, (msg) => {
+            let removewhen = mappedCompProp['removewhen'];
+            let subtype = mappedCompProp['subtype'];
+
+            target.#selectedComponent.control.setComponentProperty(type, prop, val, subtype, removewhen, (msg) => {
                 if (!CommonUtils.isNullOrEmpty(msg)) {
                     Modal.commonModalWindow.setModal(target, "Invalid Component", msg, Modal.Ok, function (source, which) {
                         if (e.target) {
@@ -99,7 +103,7 @@ export default class PropertiesBar {
         for (let mappedPorpEl of this.compPropElements) {
             let val = '';
             if (currentComponent) {
-                val = currentComponent.control.getComponentProperty(mappedPorpEl['mappedType'], mappedPorpEl['mappedProp']);
+                val = currentComponent.control.getComponentProperty(mappedPorpEl['mappedType'], mappedPorpEl['mappedProp'], mappedPorpEl['subtype']);
             }
             let el = mappedPorpEl['mappedElement'];
             HtmlUtils.setElementValue(el, val);
@@ -190,7 +194,7 @@ export default class PropertiesBar {
         if (propObjects.hasOwnProperty('datatype')) {
             datatype = propObjects['datatype'];
         }
-        let propId = `${propFor}-prop-${propObjects.mappedProp}`;
+        let propId = `${propFor}-prop-${propObjects.mappedProp}-${PropertiesBar.#propidCounter++}`;
         let mappedType = propObjects['mappedType'];
         let mappedProp = propObjects['mappedProp'];
         let elClass = BootstrapUtils.getBSElementClass(datatype);
@@ -290,7 +294,17 @@ export default class PropertiesBar {
         if (propObjects.hasOwnProperty('readonly')) {
             editorEl.readOnly = true;
         }
-        let mappedCompProp = { mappedType: mappedType, mappedProp: mappedProp, mappedElement: editorEl };
+        let removewhen = false;
+        if (propObjects.hasOwnProperty('removewhen')) {
+            removewhen = propObjects['removewhen'];
+        }
+
+        let subtype = 'none';
+        if (propObjects.hasOwnProperty('subtype')) {
+            subtype = propObjects['subtype'];
+        }
+
+        let mappedCompProp = { mappedType: mappedType, mappedProp: mappedProp, mappedElement: editorEl, removewhen: removewhen, subtype: subtype };
         editorEl.onchange = (e) => {
             let prop = e.currentTarget;
             if (prop && onPropertyChanged) {
@@ -461,13 +475,57 @@ export default class PropertiesBar {
                 },
                 {
                     mappedType: "attr",
+                    mappedProp: "placeholder",
+                    name: "Place Holder",
+                    subtype: "control",
+                    notvisiblefor: 'panel;table;columns',
+                    maxlength: 200
+                },
+                {
+                    mappedType: "attr",
                     mappedProp: "multiple",
+                    subtype: "control",
                     name: "Multiple",
                     type: "input",
                     datatype: "checkbox",
-                    default: 'false',
-                    visiblefor: 'select'
-                }]
+                    default: false,
+                    visiblefor: 'select',
+                    removewhen: false
+                },
+                {
+                    mappedType: "attr",
+                    mappedProp: "rows",
+                    name: "Rows",
+                    type: "input",
+                    subtype: "control",
+                    visiblefor: 'textarea',
+                    default: 3
+                }
+            ]
+        },
+        "behavior": {
+            text: "Behavior",
+            default: true,
+            props: [
+                {
+                    mappedType: "attr",
+                    mappedProp: "readonly",
+                    name: "Read-Only/Disable",
+                    type: "input",
+                    subtype: "control",
+                    datatype: "checkbox",
+                    default: false
+                },
+                {
+                    mappedType: "attr",
+                    mappedProp: "hidden",
+                    name: "Hidden",
+                    subtype: "component",
+                    type: "input",
+                    datatype: "checkbox",
+                    default: false
+                }
+            ]
         },
         "data": {
             text: "Data Source",
@@ -697,12 +755,12 @@ export default class PropertiesBar {
                 }
             ]
         },
-        "attributes": {
+        "otherattributes": {
             text: "Attributes",
             default: false,
             props: [
                 {
-                    mappedType: "attr",
+                    mappedType: "otherattr",
                     mappedProp: "component",
                     name: "Component",
                     type: "popup",
@@ -711,7 +769,7 @@ export default class PropertiesBar {
                     notvisiblefor: 'panel;table;columns'
                 },
                 {
-                    mappedType: "attr",
+                    mappedType: "otherattr",
                     mappedProp: "label",
                     name: "Caption",
                     type: "popup",
@@ -720,7 +778,7 @@ export default class PropertiesBar {
                     notvisiblefor: 'panel;table;columns'
                 },
                 {
-                    mappedType: "attr",
+                    mappedType: "otherattr",
                     mappedProp: "control",
                     name: "Element",
                     type: "popup",
@@ -729,7 +787,7 @@ export default class PropertiesBar {
                     notvisiblefor: 'panel;table;columns'
                 },
                 {
-                    mappedType: "attr",
+                    mappedType: "otherattr",
                     mappedProp: "panel",
                     name: "Panel",
                     type: "popup",
@@ -738,7 +796,7 @@ export default class PropertiesBar {
                     visiblefor: 'panel'
                 },
                 {
-                    mappedType: "attr",
+                    mappedType: "otherattr",
                     mappedProp: "header",
                     name: "Header",
                     type: "popup",
@@ -747,7 +805,7 @@ export default class PropertiesBar {
                     visiblefor: 'panel'
                 },
                 {
-                    mappedType: "attr",
+                    mappedType: "otherattr",
                     mappedProp: "title",
                     name: "Title",
                     type: "popup",
@@ -756,7 +814,7 @@ export default class PropertiesBar {
                     visiblefor: 'panel'
                 },
                 {
-                    mappedType: "attr",
+                    mappedType: "otherattr",
                     mappedProp: "body",
                     name: "Body",
                     type: "popup",
@@ -765,7 +823,7 @@ export default class PropertiesBar {
                     visiblefor: 'panel'
                 },
                 {
-                    mappedType: "attr",
+                    mappedType: "otherattr",
                     mappedProp: "footer",
                     name: "Footer",
                     type: "popup",
@@ -774,7 +832,7 @@ export default class PropertiesBar {
                     visiblefor: 'panel'
                 },
                 {
-                    mappedType: "attr",
+                    mappedType: "otherattr",
                     mappedProp: "table",
                     name: "Table",
                     type: "popup",
@@ -783,7 +841,7 @@ export default class PropertiesBar {
                     visiblefor: 'table'
                 },
                 {
-                    mappedType: "attr",
+                    mappedType: "otherattr",
                     mappedProp: "row",
                     name: "Row",
                     type: "popup",
@@ -792,7 +850,7 @@ export default class PropertiesBar {
                     visiblefor: 'table'
                 },
                 {
-                    mappedType: "attr",
+                    mappedType: "otherattr",
                     mappedProp: "column",
                     name: "Column",
                     type: "popup",

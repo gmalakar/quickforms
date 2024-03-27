@@ -243,61 +243,66 @@ export default class Table {
     }
 
     #resetAfterDelete(rowid) {
-        let nextrowid = Number(rowid) + 1;
-        if (nextrowid <= this.rowCount) {
-            for (let i = nextrowid; i <= this.rowCount + 1; i++) {
-                let oldName = this.rowName(i);
-                let rowToFix = this.rows[oldName];
-                let r = i - 1;
-                if (rowToFix) {
-                    let rowname = this.rowName(r);
-                    this.#updateCtlId(rowToFix, rowname);
-                    rowToFix.setAttribute('rownum', r);
-                    let c = 0;
-                    for (let cell of rowToFix.children) {
-                        let cellType = cell.getAttribute('cell-type');
-                        let newName = this.cellName(r, c);
-                        let newEditName = this.editControlName(r, c);
-                        let newBtnName = this.btnControlName(r, c);
-                        let oldEditName = this.editControlName(i, c);
-                        let oldBtnName = this.btnControlName(i, c);
-                        if (cellType) {
-                            switch (cellType) {
-                                case "rowheader":
-                                    newName = this.headerRowName(r);
-                                    cell.innerHTML = i;
-                                    break;
-                                case "button":
-                                    let btn = document.getElementById(oldBtnName);
-                                    if (btn) {
-                                        this.#updateCtlId(btn, newBtnName);
-                                        btn.setAttribute('rownum', r);
-                                        btn.setAttribute('colnum', c);
-                                    }
-                                    break;
-                                default:
-                                    let edit = document.getElementById(oldEditName);
-                                    if (edit) {
-                                        this.#updateCtlId(edit, newEditName);
-                                        edit.setAttribute('rownum', r);
-                                        edit.setAttribute('colnum', c);
-                                    }
-                                    break;
+        if (this.rowCount === 0) {
+            this.data = {};
+        } else {
+
+            let nextrowid = Number(rowid) + 1;
+            if (nextrowid <= this.rowCount) {
+                for (let i = nextrowid; i <= this.rowCount + 1; i++) {
+                    let oldName = this.rowName(i);
+                    let rowToFix = this.rows[oldName];
+                    let r = i - 1;
+                    if (rowToFix) {
+                        let rowname = this.rowName(r);
+                        this.#updateCtlId(rowToFix, rowname);
+                        rowToFix.setAttribute('rownum', r);
+                        let c = 0;
+                        for (let cell of rowToFix.children) {
+                            let cellType = cell.getAttribute('cell-type');
+                            let newName = this.cellName(r, c);
+                            let newEditName = this.editControlName(r, c);
+                            let newBtnName = this.btnControlName(r, c);
+                            let oldEditName = this.editControlName(i, c);
+                            let oldBtnName = this.btnControlName(i, c);
+                            if (cellType) {
+                                switch (cellType) {
+                                    case "rowheader":
+                                        newName = this.headerRowName(r);
+                                        cell.innerHTML = i;
+                                        break;
+                                    case "button":
+                                        let btn = document.getElementById(oldBtnName);
+                                        if (btn) {
+                                            this.#updateCtlId(btn, newBtnName);
+                                            btn.setAttribute('rownum', r);
+                                            btn.setAttribute('colnum', c);
+                                        }
+                                        break;
+                                    default:
+                                        let edit = document.getElementById(oldEditName);
+                                        if (edit) {
+                                            this.#updateCtlId(edit, newEditName);
+                                            edit.setAttribute('rownum', r);
+                                            edit.setAttribute('colnum', c);
+                                        }
+                                        break;
+                                }
+                            }
+                            this.#updateCtlId(cell, newName);
+                            cell.setAttribute('colnum', c);
+                            if (!cellType || cellType !== 'rowheader') {
+                                c++;
                             }
                         }
-                        this.#updateCtlId(cell, newName);
-                        cell.setAttribute('colnum', c);
-                        if (!cellType || cellType !== 'rowheader') {
-                            c++;
-                        }
+                        delete this.rows[oldName];
+                        this.rows[rowname] = rowToFix;
                     }
-                    delete this.rows[oldName];
-                    this.rows[rowname] = rowToFix;
-                }
-                let datarow = this.data[i];
-                if (datarow) {
-                    delete this.data[i];
-                    this.data[r] = datarow;
+                    let datarow = this.data[i];
+                    if (datarow) {
+                        delete this.data[i];
+                        this.data[r] = datarow;
+                    }
                 }
             }
         }
@@ -415,7 +420,7 @@ export default class Table {
                 let cls = colAttributes.class;
                 let iconclass = colAttributes.iconclass;
                 let btntxt = colAttributes.text;
-                let btnAttr = { rownum: r, colnum: c };
+                let btnAttr = { rownum: r, colnum: c, type: 'button' };
                 if (cls) {
                     btnAttr['class'] = cls;
                 }

@@ -88,9 +88,9 @@ export default class Container extends Observable {
             this.setObserver(observer);
 
             this.#compDeleteBtn = HtmlUtils.createElement(
-                "button",
+                "span",
                 `delete-component-${this.#guid}`,
-                { class: "btn-close qf-delete-comp-btn" }
+                { class: "btn-close qf-delete-comp-btn", type: "button" }
             );
 
             this.#dragName = `drag-component-${this.#guid}`;
@@ -287,6 +287,12 @@ export default class Container extends Observable {
                                     this.control.appendChild(draggedComponent);
                                 }
                             }
+                        }
+                    });
+
+                    attachedControl.componentControl.addEventListener("keydown", (e) => {
+                        if (e.keyCode == '38' || e.keyCode == '40') {
+                            //TODO
                         }
                     });
                 }

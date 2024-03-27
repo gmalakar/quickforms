@@ -64,7 +64,6 @@ export default class BaseElement {
         return cls;
     }
 
-
     constructor(containingComponent, defaultCaption = "Base Element") {
         if (this.constructor === BaseElement) {
             throw new Error("Abstract classes can't be instantiated.");
@@ -76,22 +75,24 @@ export default class BaseElement {
         if (CommonUtils.isNullOrEmpty(this.schema.caption)) {
             this.schema.caption = defaultCaption;
         }
-        this.#setControlId();
+        let caption = this.schema['caption'] || '';
+        if (CommonUtils.isNullOrEmpty(caption)) {
+            this.schema['caption'] = defaultCaption;
+        }
+
+        this.#setControlId(this.schema['name'] || '');
         this.initControl;
     }
 
     initControl() {
     }
 
-    #setControlId() {
+    #setControlId(name) {
         if (this.designmode) {
-            this.controlId = `${this.name}-${this.containingContainer.formContainer.name}-design`;
+            this.controlId = `${name}-${this.containingContainer.formContainer.name}-design`;
         } else {
-            this.controlId = `${this.name}-${this.containingContainer.formContainer.name}`;
+            this.controlId = `${name}-${this.containingContainer.formContainer.name}`;
         }
-    }
-    get name() {
-        this.schema.name || "";
     }
 
     get containingContainer() {
@@ -128,12 +129,12 @@ export default class BaseElement {
     }
 
     get name() {
-        return this.schema.name || null;
+        return this.schema['name'] || '';
     }
 
     set name(value) {
-        let oldName = this.schema.name;
-        this.schema.name = value;
+        let oldName = this.schema['name'];
+        this.schema['name'] = value;
         //change the name of the component
         if (this.componentControl) {
             this.componentControl.name = value;
@@ -182,63 +183,119 @@ export default class BaseElement {
     }
 
     resetControl(name) {
-
     }
 
-    #clearAttrs(name) {
-        let attrs = this.schema.attributes[name];
-        if (attrs) {
-            let crtl = this.getControl(name);
-
-            if (crtl && CommonUtils.isArray(attrs)) {
-                for (let attr of attrs) {
-                    crtl.removeAttribute(attr.name);
+    #clearSchema(type, sybtype, key = undefined) {
+        if (this.schema.hasOwnProperty(type)) {
+            let schema = this.schema[type][sybtype];
+            if (schema) {
+                let ctrl = this.getControl(sybtype);
+                if (ctrl) {
+                    if (!CommonUtils.isNullOrUndefined(key)) {
+                        switch (type) {
+                            case "attributes":
+                            case "otherattributes":
+                                ctrl.removeAttribute(key);
+                                break;
+                            case "styles":
+                                ctrl.style.removeProperty(key);
+                                break;
+                        }
+                    }
+                    else if (CommonUtils.isObjcetButNotArray(schema)) {
+                        for (let attr of Object.keys(schema)) {
+                            switch (type) {
+                                case "attributes":
+                                case "otherattributes":
+                                    ctrl.removeAttribute(attr);
+                                    break;
+                                case "styles":
+                                    ctrl.style.removeProperty(style);
+                                    break;
+                            }
+                        }
+                    }
+                }
+                if (!CommonUtils.isNullOrUndefined(key)) {
+                    if (this.schema[type][sybtype].hasOwnProperty(key)) {
+                        delete this.schema[type][sybtype][key];
+                    }
+                } else {
+                    delete this.schema[type][sybtype];
                 }
             }
-            delete this.schema.attributes[name];
         }
     }
 
-    setAttrSchema(key, value) {
-        if (!this.schema.hasOwnProperty('attributes')) {
-            this.schema['attributes'] = {};
-        }
+    setSchemaBykey(type, subtype, key, value, removedwhen = undefined) {
         //delete 
-        this.#clearAttrs(key);
-        let attrs = JSON.parse(value);
-        if (attrs && Object.keys(attrs).length > 0) {
-            let attrsArray = [];
-            for (let [key, attr] of Object.entries(attrs)) {
-                attrsArray.push(attr);
+        this.#clearSchema(type, subtype, key);
+        if (CommonUtils.isNullOrUndefined(removedwhen) || value !== removedwhen) {
+            let attrs = value;
+            if (!CommonUtils.isNullOrUndefined(key) && !CommonUtils.isNullOrUndefined(value)) {
+                if (!this.schema.hasOwnProperty(type)) {
+                    this.schema[type] = {};
+                }
+                if (!this.schema[type].hasOwnProperty(subtype)) {
+                    this.schema[type][subtype] = {};
+                }
+                this.schema[type][subtype][key] = value;
+            } else if (CommonUtils.isJson(value)) {
+                attrs = JSON.parse(value);
+
+                if (Object.keys(attrs).length > 0) {
+                    if (!this.schema.hasOwnProperty(type)) {
+                        this.schema[type] = {};
+                    }
+                    let attrObj = {};
+                    for (let [key, attr] of Object.entries(attrs)) {
+                        attrObj[attr.name] = attr.value;
+                    }
+                    this.schema[type][subtype] = attrObj;
+                }
+            } else if (CommonUtils.isString(value)) {
+                if (!this.schema.hasOwnProperty(type)) {
+                    this.schema[type] = {};
+                }
+                this.schema[type][subtype] = value;
             }
-            this.schema.attributes[key] = attrsArray;
-        } else if (!CommonUtils.isNullOrUndefined(value)) {
-            this.schema.attributes[key] = value;
         }
     }
 
-    #getAttributeObj(key) {
-        let val = [];
-        if (this.schema.hasOwnProperty('attributes')) {
-            val = this.schema['attributes'][key];
+    setSchema(type, subtype, value, removedwhen = undefined) {
+        this.setSchemaBykey(type, subtype, undefined, value, removedwhen);
+    }
+
+    #getSchemaObj(type, subtype, key = undefined) {
+        let validKey = !CommonUtils.isNullOrUndefined(key);
+        let val = validKey ? '' : {};
+
+        if (this.schema.hasOwnProperty(type) && this.schema[type].hasOwnProperty(subtype)) {
+            val = this.schema[type][subtype];
             if (val === undefined) {
-                val = [];
+                val = validKey ? '' : {};
+            } else if (validKey && val.hasOwnProperty) {
+                val = val[key];
             }
         }
         return val;
     }
 
-    getAttrSchema(key) {
+    getSchema(type, subtype, key = undefined) {
         let val = "";
-        if (this.schema.hasOwnProperty('attributes')) {
-            val = this.schema['attributes'][key];
+        let validKey = !CommonUtils.isNullOrUndefined(key);
+        if (this.schema.hasOwnProperty(type)) {
+            val = this.schema[type][subtype];
+            if (val && validKey) {
+                val = this.schema[type][subtype][key];
+            }
             if (val === undefined) {
                 val = '';
-            } else if (CommonUtils.isArray(val)) {
+            } else if (CommonUtils.isObjcetButNotArray(val)) {
                 let attrs = {};
                 let counter = 0;
-                for (let attr of val) {
-                    attrs[counter++] = attr
+                for (let [key, attr] of Object.entries(val)) {
+                    attrs[counter++] = { name: key, value: attr };
                 }
                 val = JSON.stringify(attrs);
             }
@@ -246,40 +303,63 @@ export default class BaseElement {
         return val;
     }
 
-    resetAttrs(name) {
-        let crtl = this.getControl(name);
-        let attrs = this.schema?.attributes[name];
-        if (crtl && CommonUtils.isArray(attrs)) {
-            for (let attr of attrs) {
-                crtl.setAttribute(attr.name, attr.value);
+    resetSchema(type, subtype, key = undefined) {
+        let crtl = this.getControl(subtype);
+        if (crtl && this.schema.hasOwnProperty(type) && this.schema[type].hasOwnProperty(subtype)) {
+            let attrs = this.schema[type][subtype];
+            if (!CommonUtils.isNullOrUndefined(key)) {
+                attrs = attrs[key];
             }
-        } else if (crtl && !CommonUtils.isNullOrUndefined(attrs)) {
-            crtl.setAttribute(name, attrs);
+            if (attrs && crtl) {
+                if (CommonUtils.isObjcetButNotArray(attrs)) {
+                    for (let [key, val] of Object.entries(attrs)) {
+                        switch (type) {
+                            case "attributes":
+                            case "otherattributes":
+                                crtl.setAttribute(key, val);
+                                break;
+                            case "styles":
+                                crtl.style.setProperty(key, val);
+                                break;
+                        }
+                    }
+                } else if (CommonUtils.isString(attrs)) {
+                    let val = attrs;
+                    switch (type) {
+                        case "attributes":
+                        case "otherattributes":
+                            crtl.setAttribute(key, val);
+                            break;
+                        case "styles":
+                            crtl.style.setProperty(key, val);
+                            break;
+                        case "class":
+                            if (this.designmode && subtype === 'component') {
+                                val = val + " qf-design-mode";
+                            }
+                            if (val) {
+                                crtl.class = val;
+                            }
+                            break;
+                    }
+                }
+            }
         }
-        this.resetControl(name);
+        this.resetControl(subtype);
     }
 
-    #clearDataAttrs(name) {
-        if (this.schema.hasOwnProperty('attributes') &&
-            this.schema.attributes.hasOwnProperty('data') &&
-            this.schema.attributes.data.hasOwnProperty(name)) {
-            delete this.schema.attributes.data[name];
-        }
-    }
-
-    setDataAttrSchema(key, value) {
-        if (!this.schema.hasOwnProperty('attributes')) {
-            this.schema['attributes'] = {};
-        }
-        if (!this.schema.attributes.hasOwnProperty('data')) {
-            this.schema.attributes['data'] = {};
-        }
-
-        //delete 
-        this.#clearDataAttrs(key);
-
-        if (!CommonUtils.isNullOrEmpty(value)) {
-            this.schema.attributes.data[key] = value;
+    setAttrsFromSchema(type, subtype, attrArr) {
+        if (attrArr && CommonUtils.isObjcetButNotArray(attrArr)) {
+            for (let [key, val] of Object.entries(this.#getSchemaObj(type, subtype))) {
+                let set = !ComponentUtils.blankAttribure(key); //set if not blank attr
+                if (!set && val.toString() === 'true') {
+                    val = ''
+                    set = true;
+                }
+                if (set) {
+                    attrArr[key] = val;
+                }
+            }
         }
     }
 
@@ -289,23 +369,6 @@ export default class BaseElement {
             events = CommonUtils.jsonToObject(events);
         }
         return events;
-    }
-
-    getDataAttrSchema(key) {
-        let val = "";
-        if (this.schema.hasOwnProperty('attributes') &&
-            this.schema.attributes.hasOwnProperty('data') &&
-            this.schema.attributes.data.hasOwnProperty(key)) {
-            val = this.schema.attributes.data[key];
-        }
-        return val;
-    }
-
-    resetDataAttrs(name) {
-        if (this.elementControl) {
-            this.elementControl.setAttribute(name, this.schema?.attributes?.data[name]);
-            this.resetControl(name);
-        }
     }
 
     #resetValidation(name, val, reset = true) {
@@ -361,119 +424,28 @@ export default class BaseElement {
         let val = this.schema[name]
     }
 
-    setStyleSchema(key, value) {
-        if (!this.schema.hasOwnProperty('styles')) {
-            this.schema['styles'] = {};
-        }
-        //delete 
-        this.#clearStyle(key);
-
-        let styles = JSON.parse(value);
-        if (styles && Object.keys(styles).length > 0) {
-            let styleArr = [];
-            for (let [key, attr] of Object.entries(styles)) {
-                styleArr.push(attr);
-            }
-            this.schema.styles[key] = styleArr;
-        } else if (!CommonUtils.isNullOrUndefined(value)) {
-            this.schema.styles[key] = value;
-        }
-    }
-
-    resetStyle(name) {
-        let crtl = this.getControl(name);
-        if (crtl) {
-            let styleArr = this.schema?.styles[name];
-            for (let style of styleArr) {
-                crtl.style.setProperty(style.name, style.value);
-            }
-        } else if (crtl && CommonUtils.isString(styleArr)) {
-            crtl.style.setProperty(name, styleArr);
-        }
-        this.resetControl();
-    }
-
-    #clearStyle(name) {
-        let styles = this.schema.styles[name];
-        if (styles) {
-            let crtl = this.getControl(name);
-            if (crtl && CommonUtils.isArray(styles)) {
-                for (let attr of styles) {
-                    crtl.style.removeProperty(attr.name);
-                }
-            }
-            delete this.schema.styles[name];
-        }
-    }
-
-    getStyleSchema(key) {
-        let val = "";
-        if (this.schema.hasOwnProperty('styles')) {
-            val = this.schema['styles'][key];
-            if (val === undefined) {
-                val = '';
-            } else if (CommonUtils.isArray(val)) {
-                let attrs = {};
-                let counter = 0;
-                for (let attr of val) {
-                    attrs[counter++] = attr
-                }
-                val = JSON.stringify(attrs);
-            }
-        }
-        return val;
-    }
-
-    setClassSchema(key, value) {
-        if (!this.schema.hasOwnProperty('class')) {
-            this.schema['class'] = {};
-        }
-        this.schema.class[key] = value;
-        //to do for controls
-    }
-
-    getClassSchema(key) {
-        let val = "";
-        if (this.schema.hasOwnProperty('class')) {
-            val = this.schema['class'][key];
-            if (val === undefined) {
-                val = '';
-            }
-        }
-        return val;
-    }
-
-    resetClass(name) {
-        let crtl = this.getControl(name);
-        if (crtl) {
-            let cls = this.getClassSchema(name);
-            if (this.designmode && name === 'component') {
-                cls = cls + " qf-design-mode";
-            }
-            if (cls) {
-                crtl.class = cls;
-            }
-        }
-    }
-
-    setComponentProperty(type, name, val, invalidProp) {
+    setComponentProperty(type, name, val, subtype, removedwhen, invalidProp) {
         let useLocal = name === 'col-props' && this.type === 'columns';
         let invalidMsg = "";
         if (!useLocal) {
             switch (type) {
                 case "attribute":
                 case "attr":
-                    this.setAttrSchema(name, val);
+                    this.setSchemaBykey('attributes', subtype, name, val, removedwhen);
+                    break;
+                case "otherattribute":
+                case "otherattr":
+                    this.setSchema('otherattributes', name, val, removedwhen);
                     break;
                 case "style":
-                    this.setStyleSchema(name, val);
+                    this.setSchema('styles', name, val);
                     break;
                 case "data":
                 case "dataattr":
-                    this.setDataAttrSchema(name, val);
+                    this.setSchemaBykey('attributes', 'data', name, val);
                     break;
                 case "class":
-                    this.setClassSchema(name, val);
+                    this.setSchema('class', name, val);
                     break;
                 case "prop":
                 case "property":
@@ -519,30 +491,34 @@ export default class BaseElement {
             }
         } else {
             //raise property changed
-            this.setPropertyToControl(type, name, val);
+            this.setPropertyToControl(type, name, val, subtype);
             this.setComponentPropertyLocal(type, name, val);
             this.containingContainer.propertyChanged(name);
         }
     }
 
-    setPropertyToControl(type, name, val) {
+    setPropertyToControl(type, name, val, subtype) {
         switch (type) {
             case "gen":
                 this.resetGen(name)
                 break;
             case "class":
-                this.resetClass(name)
+                this.resetSchema('class', name)
                 break;
             case "style":
-                this.resetStyle(name,)
+                this.resetSchema('styles', name)
                 break;
             case "attr":
             case "attribute":
-                this.resetAttrs(name)
+                this.resetSchema('attributes', subtype, name)
+                break;
+            case "otherattr":
+            case "otherattribute":
+                this.resetSchema('otherattributes', name)
                 break;
             case "data":
             case "dataattr":
-                this.resetDataAttrs(name);
+                this.resetSchema('attributes', 'data', name)
                 break;
             case "validation":
                 this.#resetValidation(name, val);
@@ -601,18 +577,22 @@ export default class BaseElement {
         return val;
     }
 
-    getComponentProperty(type, name) {
+    getComponentProperty(type, name, subtype) {
         let val = "";
         switch (type) {
             case "attribute":
             case "attr":
-                val = this.getAttrSchema(name);
+                val = this.getSchema('attributes', subtype, name);
+                break;
+            case "otherattribute":
+            case "otherattr":
+                val = this.getSchema('otherattributes', name);
                 break;
             case "class":
-                val = this.getClassSchema(name);
+                val = this.getSchema('class', name);
                 break;
             case "style":
-                val = this.getStyleSchema(name);
+                val = this.getSchema('styles', name);
                 break;
             case "prop":
             case "property":
@@ -623,7 +603,7 @@ export default class BaseElement {
                 break;
             case "data":
             case "dataattr":
-                val = this.getDataAttrSchema(name);
+                val = this.getSchema('attributes', 'data', name);
                 break;
             default:
                 val = this.schema[name];
@@ -639,32 +619,6 @@ export default class BaseElement {
         return val;
     }
 
-    setAttrs(type, attrArr) {
-        if (attrArr && CommonUtils.isArray(attrArr)) {
-            for (let attr of this.#getAttributeObj(type)) {
-                let attrName = attr['name'];
-                let attrVal = attr['value'];
-                let set = !ComponentUtils.blankAttribure(attrName); //set if not blank attr
-                if (!set && attrVal === 'true') {
-                    attrVal = ''
-                    set = true;
-                }
-                if (set) {
-                    attrArr[attrName] = attrVal;
-                }
-            }
-        }
-    }
-
-    setStyle(type, styleArr) {
-        if (styleArr && CommonUtils.isArray(styleArr)) {
-            let style = HtmlUtils.joinStyles(this.#getAttributeObj(type));
-            if (!CommonUtils.isNullOrEmpty(style)) {
-                styleArr['style'] = style;
-            }
-        }
-    }
-
     setCompControl() {
         let compAttrs = {};
 
@@ -676,7 +630,7 @@ export default class BaseElement {
             cls = `${cls} ${bsClass}`;
         }
 
-        let compcls = this.getClassSchema('component')
+        let compcls = this.getSchema('class', 'component');
 
         if (!CommonUtils.isNullOrEmpty(compcls)) {
             cls = `${cls} ${compcls}`;
@@ -691,8 +645,9 @@ export default class BaseElement {
         }
 
         compAttrs.class = cls;
-        this.setStyle('component', compAttrs);
-        this.setAttrs('component', compAttrs);
+        this.setAttrsFromSchema('attributes', 'component', compAttrs);
+        this.setAttrsFromSchema('styles', 'component', compAttrs);
+        this.setAttrsFromSchema('otherattributes', 'component', compAttrs);
         compAttrs['tabindex'] = -1;
         compAttrs['draggable'] = true;
         compAttrs['ref'] = this.parentComponent?.name || this.name
@@ -714,16 +669,16 @@ export default class BaseElement {
             cls = `${cls} ${bsClass}`;
         }
 
-        let lblcls = this.getClassSchema('label')
+        let lblcls = this.getSchema('class', 'label');
 
         if (!CommonUtils.isNullOrEmpty(lblcls)) {
             cls = `${cls} ${lblcls}`;
         }
 
         lblAttrs.class = cls;
-
-        this.setStyle('lable', lblAttrs);
-        this.setAttrs('lable', lblAttrs);
+        this.setAttrsFromSchema('attributes', 'lable', lblAttrs);
+        this.setAttrsFromSchema('styles', 'lable', lblAttrs);
+        this.setAttrsFromSchema('othersattributes', 'lable', lblAttrs);
         lblAttrs['for'] = this.controlId;
         this.captionControl = HtmlUtils.createElement(ComponentUtils.getLabelType(this.type), "noid", lblAttrs);
         this.setCaption(this.schema.caption);
@@ -740,7 +695,7 @@ export default class BaseElement {
             cls = `${cls} ${bsClass}`;
         }
 
-        let elcls = this.getClassSchema('control')
+        let elcls = this.getSchema('class', 'control');
 
         if (!CommonUtils.isNullOrEmpty(elcls)) {
             cls = `${cls} ${elcls}`;
@@ -751,10 +706,10 @@ export default class BaseElement {
         if (CommonUtils.isNullOrEmpty(elAttrs.class)) {
             elAttrs.class = BaseElement.#defaultControlClass;
         }
-
-        this.setStyle('control', elAttrs);
-        this.setAttrs('control', elAttrs);
-        this.setAttrs('data', elAttrs);
+        this.setAttrsFromSchema('attributes', 'control', elAttrs);
+        this.setAttrsFromSchema('styles', 'control', elAttrs);
+        this.setAttrsFromSchema('otherattributes', 'control', elAttrs);
+        //this.setCompositeAttrs('data', elAttrs);
         elAttrs['type'] = this.type;
         this.elementControl = HtmlUtils.createElement(
             ComponentUtils.getControlType(this.type),
@@ -776,12 +731,12 @@ export default class BaseElement {
         }
     }
 
-    initializeColtol() { }
+    initializeControl() { }
 
     setOtherControls() { }
 
     buildControl() {
-        this.initializeColtol();
+        this.initializeControl();
 
         this.setCompControl();
 

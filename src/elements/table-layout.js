@@ -59,7 +59,6 @@ export default class TableLayout extends BaseElement {
         return Object.keys(this.rows).length;
     }
 
-
     setLabelControl() { }
 
     setElementControl() { }
@@ -77,14 +76,14 @@ export default class TableLayout extends BaseElement {
             if (!reset) {
                 let tblattr = {};
                 let tcls = this.defaultTableClass;
-                let tblCls = this.getClassSchema('table')
+                let tblCls = this.getSchema('class', 'table')
 
                 if (!CommonUtils.isNullOrEmpty(tblCls)) {
                     tcls = `${tcls} ${tblCls}`;
                 }
                 tblattr.class = tcls;
-                this.setStyle('row', tblattr);
-                this.setAttrs('row', tblattr);
+                this.setAttrsFromSchema('styles', 'table', tblattr);
+                this.setAttrsFromSchema('otherattributes', 'table', tblattr);
                 tblattr['ref'] = this.schema.name;
 
                 this.otherControl = HtmlUtils.createElement("table", this.#tablePrefix, tblattr);
@@ -93,14 +92,14 @@ export default class TableLayout extends BaseElement {
             }
             let rowattr = {};
             let rcls = this.defaultRowClass;
-            let rowCls = this.getClassSchema('row')
+            let rowCls = this.getSchema('class', 'row')
 
             if (!CommonUtils.isNullOrEmpty(rowCls)) {
                 rcls = `${rcls} ${rowCls}`;
             }
             rowattr.class = rcls;
-            this.setStyle('row', rowattr);
-            this.setAttrs('row', rowattr);
+            this.setAttrsFromSchema('styles', 'row', rowattr);
+            this.setAttrsFromSchema('otherattributes', 'row', rowattr);
 
             for (let [rname, rschema] of Object.entries(this.rows || {})) {
                 //create row
@@ -109,14 +108,15 @@ export default class TableLayout extends BaseElement {
                 let row = HtmlUtils.createElement('tr', rname, rowattr);
                 let colattr = {};
                 let cls = this.defaultColumnClass;
-                let colCls = this.getClassSchema('column')
+                let colCls = this.getSchema('class', 'column')
 
                 if (!CommonUtils.isNullOrEmpty(colCls)) {
                     cls = `${cls} ${colCls}`;
                 }
                 colattr.class = cls;
-                this.setStyle('column', colattr);
-                this.setAttrs('column', colattr);
+                this.setAttrsFromSchema('styles', 'column', colattr);
+                this.setAttrsFromSchema('otherattributes', 'column', colattr);
+
                 for (let [cname, cschema] of Object.entries(this.rows[rname].columns || {})) {
                     colattr['ref'] = cschema.ref;
                     colattr['rownum'] = cschema.index;
@@ -126,7 +126,6 @@ export default class TableLayout extends BaseElement {
                     row.appendChild(col);
                 }
                 this.#tablebody.appendChild(row);
-                //this.otherControl.appendChild(column);
             }
         }
     }

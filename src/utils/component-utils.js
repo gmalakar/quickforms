@@ -52,7 +52,7 @@ export default class ComponentUtils {
     static #validToken = new RegExp('^[A-Za-z][A-Za-z0-9_:\.-]*$');
 
     static blankAttribure(attr) {
-        return attr && HtmlUtils.btnAttrs.includes(attr);
+        return attr && ComponentUtils.blankAttrs.includes(attr);
     }
 
     static blankAttrs = ['required', 'readonly', 'disabled'];
