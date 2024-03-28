@@ -26,6 +26,10 @@ export default class BaseElement {
 
     controlId;
 
+    defaultPlacehHolder;
+
+    defaultMask;
+
     static #defaultCompClass(type) {
         return 'mb-2 qf-form-component';;
     }
@@ -81,7 +85,26 @@ export default class BaseElement {
         }
 
         this.#setControlId(this.schema['name'] || '');
+
+        this.initialize();
+
+        this.#setMask();
+
         this.initControl;
+    }
+
+    #setMask() {
+        let ph = this.getSchema('attr', 'control', 'placeholder');
+        if (CommonUtils.isNullOrEmpty(ph) && !CommonUtils.isNullOrEmpty(this.defaultPlacehHolder)) {
+            this.setSchemaBykey('attributes', 'control', 'placeholder', this.defaultPlacehHolder, '');
+        }
+        let pt = this.getSchema('attr', 'control', 'pattern');
+        if (CommonUtils.isNullOrEmpty(pt) && !CommonUtils.isNullOrEmpty(this.defaultMask)) {
+            this.setSchemaBykey('attributes', 'control', 'pattern', this.defaultMask, '');
+        }
+    }
+    initialize() {
+
     }
 
     initControl() {
@@ -377,8 +400,16 @@ export default class BaseElement {
                 case "required":
                     if (val) {
                         this.elementControl.required = true;
+                        this.elementControl.setAttribute('aria-required', 'true');
+                        if (this.captionControl) {
+                            HtmlUtils.addClasses(this.captionControl, 'qf-required');
+                        }
                     } else {
                         this.elementControl.removeAttribute(name);
+                        this.elementControl.removeAttribute('aria-required');
+                        if (this.captionControl) {
+                            HtmlUtils.removeClasses(this.captionControl, 'qf-required');
+                        }
                     }
                     break;
                 case "invalid-feedback":
@@ -676,17 +707,16 @@ export default class BaseElement {
         }
 
         lblAttrs.class = cls;
-        this.setAttrsFromSchema('attributes', 'lable', lblAttrs);
-        this.setAttrsFromSchema('styles', 'lable', lblAttrs);
-        this.setAttrsFromSchema('othersattributes', 'lable', lblAttrs);
+        this.setAttrsFromSchema('attributes', 'label', lblAttrs);
+        this.setAttrsFromSchema('styles', 'label', lblAttrs);
+        this.setAttrsFromSchema('othersattributes', 'label', lblAttrs);
         lblAttrs['for'] = this.controlId;
-        this.captionControl = HtmlUtils.createElement(ComponentUtils.getLabelType(this.type), "noid", lblAttrs);
+        this.captionControl = HtmlUtils.createElement(ComponentUtils.getLabelType(this.type), `lbl-${this.controlId}`, lblAttrs);
         this.setCaption(this.schema.caption);
     }
 
     setElementControl() {
         let elAttrs = {};
-        elAttrs['type'] = this.type;//ComponentUtils.getType(this.type);
         let cls = BaseElement.#defaultControlClass(this.type);
 
         let bsClass = BootstrapUtils.getBSElementClass(this.type);
@@ -706,6 +736,7 @@ export default class BaseElement {
         if (CommonUtils.isNullOrEmpty(elAttrs.class)) {
             elAttrs.class = BaseElement.#defaultControlClass;
         }
+
         this.setAttrsFromSchema('attributes', 'control', elAttrs);
         this.setAttrsFromSchema('styles', 'control', elAttrs);
         this.setAttrsFromSchema('otherattributes', 'control', elAttrs);
@@ -716,6 +747,22 @@ export default class BaseElement {
             this.controlId,
             elAttrs
         );
+
+        if (this.elementControl && !this.elementControl.hasAttribute('autocomplete')) {
+            this.elementControl.setAttribute('autocomplete', 'off');
+        }
+
+        if (this.elementControl && !this.elementControl.hasAttribute('spellcheck')) {
+            this.elementControl.setAttribute('spellcheck', 'true');
+        }
+
+        if (this.elementControl && !this.elementControl.hasAttribute('lang')) {
+            this.elementControl.setAttribute('lang', 'en');
+        }
+        if (this.elementControl && !this.elementControl.hasAttribute('inputmode') && this.schema.hasOwnProperty('inputmode')) {
+            this.elementControl.setAttribute('inputmode', this.schema['inputmode']);
+        }
+
         if (!this.designmode) {
             for (let [seq, event] of Object.entries(this.getEventListenersSchema())) {
                 if (event && event.event && event.script) {
@@ -766,6 +813,9 @@ export default class BaseElement {
             }
             if (this.#ivfControl) {
                 this.componentControl.appendChild(this.#ivfControl);
+            }
+            if (this.captionControl) {
+                this.elementControl.setAttribute('aria-labelledby', this.captionControl.id);
             }
         }
 

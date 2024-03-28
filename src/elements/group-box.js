@@ -10,13 +10,14 @@ export default class GroupBox extends BaseElement {
         if (this.designmode) {
             this.defaultColumnClass = this.defaultColumnClass + " qf-design-mode";
         }
+        this.initControl();
         this.buildControl();
     }
     setLabelControl() {
         let lblAttrs = {};
-        lblAttrs.class = `qf-groupbox-legend ${this.getSchema('class', 'lable')}`;
-        this.setAttrsFromSchema('styles', 'lable', lblAttrs);
-        this.setAttrsFromSchema('otherattributes', 'lable', lblAttrs);
+        lblAttrs.class = `qf-groupbox-legend ${this.getSchema('class', 'label')}`;
+        this.setAttrsFromSchema('styles', 'label', lblAttrs);
+        this.setAttrsFromSchema('otherattributes', 'label', lblAttrs);
         this.captionControl = HtmlUtils.createElement(ComponentUtils.getLabelType(this.type), "noid", lblAttrs);
         this.setCaption(this.schema.caption);
     }

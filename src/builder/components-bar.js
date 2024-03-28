@@ -29,6 +29,7 @@ export default class ComponentsBar {
         attrs['class'] = `btn border-0 btn-sm text-start`;
         attrs['data-type'] = datatype;
         attrs['comp-type'] = type;
+        attrs['inputmode'] = item['inputmode'] || '';
         attrs['draggable'] = true;
 
         if (CommonUtils.isString(componentsBar.ref)) {
@@ -39,8 +40,9 @@ export default class ComponentsBar {
         element.appendChild(icon);
         element.appendChild(document.createTextNode(` ${caption} `));
         element.ondragstart = (e) => {
-            let compType = e.target.attributes['comp-type'].value;
-            HtmlUtils.dataTransferSetData(e, 'add-comp', compType);
+            item['comp-type'] = e.target.attributes['comp-type'].value;
+            //let compType = e.target.attributes['comp-type'].value;
+            HtmlUtils.dataTransferSetData(e, 'add-comp', item);
         };
         element.onclick = (e) => {
             let btn = e.currentTarget;
@@ -139,7 +141,62 @@ export default class ComponentsBar {
         },
         "advanced": {
             text: "Advanced",
-            default: false
+            default: false,
+            btns: [
+                {
+                    "type": "email",
+                    "text": "Email",
+                    "iconCls": "bi bi-at",
+                    "datatype": "email"
+                },
+                {
+                    "type": "url",
+                    "text": "Url",
+                    "iconCls": "bi bi-link",
+                },
+                {
+                    "type": "tel",
+                    "text": "phone",
+                    "datatype": "tel",
+                    "iconCls": "bi bi-phone",
+                    "inputmode": 'decimal'
+                },
+                {
+                    "type": "address",
+                    "text": "Address",
+                    "iconCls": "bi bi-house"
+                },
+                {
+                    "type": "datetime-local",
+                    "text": "Date Time",
+                    "iconCls": "bi bi-calendar"
+                },
+                {
+                    "type": "day",
+                    "text": "Day",
+                    "iconCls": "bi bi-calendar"
+                },
+                {
+                    "type": "time",
+                    "text": "Time",
+                    "iconCls": "bi bi-clock"
+                },
+                {
+                    "type": "currency",
+                    "text": "Currency",
+                    "iconCls": "bi bi-currency-dollar"
+                },
+                {
+                    "type": "survey",
+                    "text": "Survey",
+                    "iconCls": "bi bi-list"
+                },
+                {
+                    "type": "signeture",
+                    "text": "Signature",
+                    "iconCls": "bi bi-pencil"
+                }
+            ]
         },
         "layout": {
             text: "Layout",

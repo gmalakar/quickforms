@@ -32,6 +32,7 @@ export default class TableLayout extends BaseElement {
         if (this.designmode) {
             this.defaultColumnClass = this.defaultColumnClass + " qf-design-mode";
         }
+        this.initControl();
         this.buildControl();
     }
 

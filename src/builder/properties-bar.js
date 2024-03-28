@@ -8,6 +8,7 @@ import Modal from '../utils/modal.js';
 import BootstrapUtils from '../utils/boostrap-utils.js';
 import ScriptEditor from '../editors/script-editor.js';
 import EventsEditor from '../editors/events-editor.js';
+import ComponentUtils from '../utils/component-utils.js';
 export default class PropertiesBar {
 
     ref;
@@ -113,11 +114,17 @@ export default class PropertiesBar {
         if (currentComponent) {
             let visibleforELs = this.compTab.querySelectorAll('[visiblefor]')
             for (let el of visibleforELs) {
-                let allTypes = el.getAttribute('visiblefor').split(';');
-                if (allTypes.includes(currentComponent.type)) {
+                let vfor = el.getAttribute('visiblefor');
+                if (vfor === 'canusemask' && ComponentUtils.canUseMask(currentComponent.type)) {
                     HtmlUtils.show(el);
-                } else {
-                    HtmlUtils.hide(el);
+                }
+                else {
+                    let allTypes = vfor.split(';');
+                    if (allTypes.includes(currentComponent.type)) {
+                        HtmlUtils.show(el);
+                    } else {
+                        HtmlUtils.hide(el);
+                    }
                 }
             }
             let notvisibleforELs = this.compTab.querySelectorAll('[notvisiblefor]')
@@ -475,14 +482,6 @@ export default class PropertiesBar {
                 },
                 {
                     mappedType: "attr",
-                    mappedProp: "placeholder",
-                    name: "Place Holder",
-                    subtype: "control",
-                    notvisiblefor: 'panel;table;columns',
-                    maxlength: 200
-                },
-                {
-                    mappedType: "attr",
                     mappedProp: "multiple",
                     subtype: "control",
                     name: "Multiple",
@@ -505,7 +504,7 @@ export default class PropertiesBar {
         },
         "behavior": {
             text: "Behavior",
-            default: true,
+            default: false,
             props: [
                 {
                     mappedType: "attr",
@@ -524,6 +523,58 @@ export default class PropertiesBar {
                     type: "input",
                     datatype: "checkbox",
                     default: false
+                },
+                {
+                    mappedType: "attr",
+                    mappedProp: "autocomplete",
+                    name: "Auto Complete",
+                    subtype: "control",
+                    type: "select",
+                    options: {
+                        off: 'Off',
+                        on: 'On'
+                    },
+                    notvisiblefor: 'panel;table;columns',
+                    default: 'off',
+                    removewhen: 'off'
+                },
+                {
+                    mappedType: "attr",
+                    mappedProp: "spellcheck",
+                    subtype: "control",
+                    name: "Spell Check",
+                    type: "input",
+                    datatype: "checkbox",
+                    default: true,
+                    notvisiblefor: 'panel;table;columns',
+                    removewhen: true
+                },
+                {
+                    mappedType: "attr",
+                    mappedProp: "hidden",
+                    name: "Hide Label",
+                    subtype: "label",
+                    type: "input",
+                    datatype: "checkbox",
+                    default: false,
+                    removewhen: false,
+                    notvisiblefor: 'panel;table;columns',
+                },
+                {
+                    mappedType: "attr",
+                    mappedProp: "placeholder",
+                    name: "Place Holder",
+                    subtype: "control",
+                    notvisiblefor: 'panel;table;columns',
+                    maxlength: 200
+                },
+                {
+                    mappedType: "attr",
+                    mappedProp: "pattern",
+                    name: "Input Mask",
+                    subtype: "control",
+                    visiblefor: 'canusemask',
+                    maxlength: 20
                 }
             ]
         },

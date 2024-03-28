@@ -29,6 +29,7 @@ export default class ColumnLayout extends BaseElement {
         if (this.designmode) {
             this.defaultColumnClass = this.defaultColumnClass + " fb-design-mode";
         }
+        this.initControl();
         this.buildControl();
     }
 

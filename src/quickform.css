@@ -173,3 +173,7 @@ table.qf-table tr td {
 .qf-table-cell {
   text-align: center;
 }
+.qf-required:after {
+  content: " *";
+  color: red;
+}

@@ -196,7 +196,7 @@ export default class Container extends Observable {
                         let data = HtmlUtils.dataTransferGetData(e);
                         if (data && data.for && data.data) {
                             if (data.for === "add-comp") {
-                                this.addComponent(data.data, true);
+                                this.addComponent(data.data['comp-type'], data.data, true);
                             }
                         }
                     }
@@ -459,7 +459,7 @@ export default class Container extends Observable {
         }
     }
 
-    addComponent(type, setCurrent = false) {
+    addComponent(type, params = null, setCurrent = false) {
         let componentSchema = {};
         if (CommonUtils.isNullOrEmpty(type)) {
             return ErrorHandler.throwError(
@@ -468,6 +468,9 @@ export default class Container extends Observable {
         }
         componentSchema.name = this.#generateName(type);
         componentSchema.type = type;
+        if (!CommonUtils.isNullOrUndefined(params) && params.hasOwnProperty('inputmode')) {
+            componentSchema.inputmode = params['inputmode'];
+        }
         this.tryAddSchema(componentSchema.name, componentSchema);
 
         let newComponent = this.setComponent(componentSchema);

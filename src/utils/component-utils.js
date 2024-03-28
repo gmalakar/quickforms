@@ -4,26 +4,21 @@ export default class ComponentUtils {
     constructor() {
     }
 
-    static getType(type) {
-        switch (type) {
-            case 'text':
-                return 'text';
-            case 'textarea':
-                return 'textarea';
-            case 'columns':
-                return 'columns';
-            default:
-                return ErrorHandler.throwError(ErrorHandler.errorCode.Component.INVALID_TYPE);
-        }
-    }
+    /*     static getType(type) {
+            switch (type) {
+                case 'text':
+                    return 'text';
+                case 'textarea':
+                    return 'textarea';
+                case 'columns':
+                    return 'columns';
+                default:
+                    return ErrorHandler.throwError(ErrorHandler.errorCode.Component.INVALID_TYPE);
+            }
+        } */
 
     static getControlType(type) {
         switch (type) {
-            case 'text':
-            case 'password':
-            case 'number':
-            case 'checkbox':
-                return 'input';
             case 'select':
                 return 'select';
             case 'textarea':
@@ -36,7 +31,19 @@ export default class ComponentUtils {
             case 'submit':
                 return 'button';
             default:
-                return ErrorHandler.throwError(ErrorHandler.errorCode.Component.INVALID_TYPE);
+                return 'input';
+        }
+    }
+
+    static canUseMask(type) {
+        switch (type) {
+            case 'text':
+            case 'email':
+            case 'tel':
+            case 'password':
+                return true;
+            default:
+                return false;
         }
     }
 

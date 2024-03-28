@@ -7,6 +7,7 @@ export default class SelectField extends BaseElement {
     slimSelectFilter;
     constructor(containingComponent) {
         super(containingComponent, 'Select Field');
+        this.initControl();
         this.buildControl();
     }
 

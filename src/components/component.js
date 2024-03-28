@@ -12,6 +12,7 @@ import SelectField from "../elements/select.js";
 import PanelLayout from "../elements/panel-layout.js";
 import ButtonField from "../elements/button.js";
 import GroupBox from "../elements/group-box.js";
+import PhoneNumberField from "../elements/phone-number.js";
 import Container from "./container.js";
 export default class Component {
     //public members
@@ -79,12 +80,12 @@ export default class Component {
 
     static getComponentControl(type, containgComponent) {
         switch (type) {
-            case "text":
-                return new TextField(containgComponent);
             case "number":
                 return new NumberField(containgComponent);
             case "password":
                 return new PasswordField(containgComponent);
+            case "tel":
+                return new PhoneNumberField(containgComponent);
             case "checkbox":
                 return new CheckboxField(containgComponent);
             case "textarea":
@@ -103,9 +104,7 @@ export default class Component {
             case "groupbox":
                 return new GroupBox(containgComponent);
             default:
-                return ErrorHandler.throwError(
-                    ErrorHandler.errorCode.Component.INVALID_TYPE
-                );
+                return new TextField(containgComponent);
         }
     }
 
