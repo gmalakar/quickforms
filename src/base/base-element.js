@@ -30,11 +30,11 @@ export default class BaseElement {
 
     defaultMask;
 
-    static #defaultCompClass(type) {
+    static defaultCompClass(type) {
         return 'mb-2 qf-form-component';;
     }
 
-    static #defaultCaptionClass(type) {
+    static defaultCaptionClass(type) {
         let cls = 'qf-form-label';
         switch (type) {
             case "checkbox":
@@ -49,7 +49,7 @@ export default class BaseElement {
         return cls;
     }
 
-    static #defaultControlClass(type) {
+    static defaultControlClass(type) {
         let cls = 'qf-form-control';
         switch (type) {
             case "checkbox":
@@ -394,23 +394,27 @@ export default class BaseElement {
         return events;
     }
 
-    #resetValidation(name, val, reset = true) {
+    resetRequired(name, val) {
+        if (val) {
+            this.elementControl.required = true;
+            this.elementControl.setAttribute('aria-required', 'true');
+            if (this.captionControl) {
+                HtmlUtils.addClasses(this.captionControl, 'qf-required');
+            }
+        } else {
+            this.elementControl.removeAttribute(name);
+            this.elementControl.removeAttribute('aria-required');
+            if (this.captionControl) {
+                HtmlUtils.removeClasses(this.captionControl, 'qf-required');
+            }
+        }
+    }
+
+    resetValidation(name, val, reset = true) {
         if (this.elementControl) {
             switch (name) {
                 case "required":
-                    if (val) {
-                        this.elementControl.required = true;
-                        this.elementControl.setAttribute('aria-required', 'true');
-                        if (this.captionControl) {
-                            HtmlUtils.addClasses(this.captionControl, 'qf-required');
-                        }
-                    } else {
-                        this.elementControl.removeAttribute(name);
-                        this.elementControl.removeAttribute('aria-required');
-                        if (this.captionControl) {
-                            HtmlUtils.removeClasses(this.captionControl, 'qf-required');
-                        }
-                    }
+                    this.resetRequired(name, val);
                     break;
                 case "invalid-feedback":
                 case "valid-feedback":
@@ -552,7 +556,7 @@ export default class BaseElement {
                 this.resetSchema('attributes', 'data', name)
                 break;
             case "validation":
-                this.#resetValidation(name, val);
+                this.resetValidation(name, val);
                 break;
         }
     }
@@ -600,7 +604,7 @@ export default class BaseElement {
         return val;
     }
 
-    #getValidationSchema() {
+    getValidationSchema() {
         let val = {};
         if (this.schema.hasOwnProperty('validation')) {
             val = this.schema['validation'];
@@ -653,7 +657,7 @@ export default class BaseElement {
     setCompControl() {
         let compAttrs = {};
 
-        let cls = BaseElement.#defaultCompClass(this.type);
+        let cls = BaseElement.defaultCompClass(this.type);
 
         let bsClass = BootstrapUtils.getBSComponentClass(this.type);
 
@@ -692,7 +696,7 @@ export default class BaseElement {
 
     setLabelControl() {
         let lblAttrs = {};
-        let cls = BaseElement.#defaultCaptionClass(this.type);
+        let cls = BaseElement.defaultCaptionClass(this.type);
 
         let bsClass = BootstrapUtils.getBSlabelClass(this.type);
 
@@ -717,7 +721,7 @@ export default class BaseElement {
 
     setElementControl() {
         let elAttrs = {};
-        let cls = BaseElement.#defaultControlClass(this.type);
+        let cls = BaseElement.defaultControlClass(this.type);
 
         let bsClass = BootstrapUtils.getBSElementClass(this.type);
 
@@ -734,7 +738,7 @@ export default class BaseElement {
         elAttrs.class = cls;
 
         if (CommonUtils.isNullOrEmpty(elAttrs.class)) {
-            elAttrs.class = BaseElement.#defaultControlClass;
+            elAttrs.class = BaseElement.defaultControlClass;
         }
 
         this.setAttrsFromSchema('attributes', 'control', elAttrs);
@@ -771,9 +775,9 @@ export default class BaseElement {
             }
         }
         //set validation
-        for (let [name, val] of Object.entries(this.#getValidationSchema())) {
+        for (let [name, val] of Object.entries(this.getValidationSchema())) {
             if (name) {
-                this.#resetValidation(name, val, true);
+                this.resetValidation(name, val, true);
             }
         }
     }
@@ -797,7 +801,6 @@ export default class BaseElement {
     }
 
     setControls() {
-
         if (this.captionControl) {
             this.componentControl.appendChild(this.captionControl);
         }

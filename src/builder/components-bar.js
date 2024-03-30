@@ -185,16 +185,6 @@ export default class ComponentsBar {
                     "type": "currency",
                     "text": "Currency",
                     "iconCls": "bi bi-currency-dollar"
-                },
-                {
-                    "type": "survey",
-                    "text": "Survey",
-                    "iconCls": "bi bi-list"
-                },
-                {
-                    "type": "signeture",
-                    "text": "Signature",
-                    "iconCls": "bi bi-pencil"
                 }
             ]
         },

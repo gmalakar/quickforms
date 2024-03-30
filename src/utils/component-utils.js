@@ -40,6 +40,7 @@ export default class ComponentUtils {
             case 'text':
             case 'email':
             case 'tel':
+            case 'currency':
             case 'password':
                 return true;
             default:

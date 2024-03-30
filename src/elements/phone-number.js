@@ -1,5 +1,4 @@
 import BaseElement from '../base/base-element.js';
-import CommonUtils from '../utils/common-utils.js';
 
 export default class PhoneNumberField extends BaseElement {
     constructor(containingComponent) {

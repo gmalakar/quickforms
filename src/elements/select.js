@@ -1,5 +1,4 @@
 import BaseElement from '../base/base-element.js';
-import CommonUtils from '../utils/common-utils.js';
 import HtmlUtils from '../utils/html-utils.js';
 
 export default class SelectField extends BaseElement {

@@ -13,6 +13,8 @@ import PanelLayout from "../elements/panel-layout.js";
 import ButtonField from "../elements/button.js";
 import GroupBox from "../elements/group-box.js";
 import PhoneNumberField from "../elements/phone-number.js";
+import CurrencyField from "../elements/Currency.js";
+import DayField from "../elements/day.js";
 import Container from "./container.js";
 export default class Component {
     //public members
@@ -80,12 +82,16 @@ export default class Component {
 
     static getComponentControl(type, containgComponent) {
         switch (type) {
+            case "day":
+                return new DayField(containgComponent);
             case "number":
                 return new NumberField(containgComponent);
             case "password":
                 return new PasswordField(containgComponent);
             case "tel":
                 return new PhoneNumberField(containgComponent);
+            case "currency":
+                return new CurrencyField(containgComponent);
             case "checkbox":
                 return new CheckboxField(containgComponent);
             case "textarea":
