@@ -18,6 +18,8 @@ export default class PropertiesBar {
     #tab;
     #formTabID;
     #compTabID;
+    #jsonTabID;
+    #jsonContainerID;
     #compAcordID;
     #formAccordID;
     #tabPanes;
@@ -28,6 +30,8 @@ export default class PropertiesBar {
     searchcontrol;
     slimSelectFilter;
     scriptcontrol;
+    #jsonHolder;
+
     static #propidCounter = 1;
 
     static #selectCrtls = [];
@@ -41,6 +45,8 @@ export default class PropertiesBar {
         this.controlId = `pbar-${this.#guid}`;
         this.#formTabID = `fprop-${this.#guid}`;
         this.#compTabID = `cprop-${this.#guid}`;
+        this.#jsonTabID = `json-${this.#guid}`;
+        this.#jsonContainerID = `json-container-${this.#guid}`;
         this.#compAcordID = `caccord-${this.#guid}`;
         this.#formAccordID = `faccord-${this.#guid}`;
         this.#create();
@@ -52,6 +58,10 @@ export default class PropertiesBar {
 
     get compTab() {
         return this.#tabPanes[this.#compTabID];
+    }
+
+    get jsonTab() {
+        return this.#tabPanes[this.#jsonTabID];
     }
 
     static onCompPropChanged(target, e, mappedCompProp) {
@@ -97,6 +107,10 @@ export default class PropertiesBar {
                 }
             });
         }
+    }
+
+    refreshJsonSchema(json) {
+        this.#jsonHolder.innerHTML = json;
     }
 
     refreshComponent(currentComponent) {
@@ -362,6 +376,7 @@ export default class PropertiesBar {
         let tabs = {};
         tabs[this.#formTabID] = { caption: 'Form', 'paneclass': 'p-1' };
         tabs[this.#compTabID] = { caption: 'Component', 'paneclass': 'p-1' };
+        tabs[this.#jsonTabID] = { caption: 'Json', 'paneclass': 'p-1' };
 
         this.#tab = new TabControl(this.controlId, tabs, this.#formTabID);
         this.tabControl = this.#tab.tabControl;
@@ -423,6 +438,12 @@ export default class PropertiesBar {
         }
 
         this.compTab.appendChild(compAccordian);
+
+        //json tab
+        this.#jsonHolder = HtmlUtils.createElement('pre', this.#jsonContainerID, { class: `qf-json-holder` });
+
+        this.jsonTab.appendChild(this.#jsonHolder);
+
         //select slim select
         if (this.searchcontrol) {
             this.slimSelectFilter = new SlimSelect({

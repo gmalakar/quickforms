@@ -18,7 +18,7 @@ export default class Builder {
     #compBar;
     #currentComponent;
     #formschema = {}
-    #jsonHolder;
+    //#jsonHolder;
     #guid;
     /**
      * Class constructor of Builder.
@@ -46,9 +46,9 @@ export default class Builder {
         return this.#buildertTabPanes[this.#formContainerId];
     }
 
-    get jsonPane() {
-        return this.#buildertTabPanes[this.#jsonContainerId];
-    }
+    /*     get jsonPane() {
+            return this.#buildertTabPanes[this.#jsonContainerId];
+        } */
 
     buildBuilder(formschema, callback) {
         if (CommonUtils.isNullOrUndefined(formschema)) {
@@ -83,9 +83,9 @@ export default class Builder {
         return this.#makeUniqueId('form-container');
     }
 
-    get #jsonContainerId() {
-        return this.#makeUniqueId('json-container');
-    }
+    /*     get #jsonContainerId() {
+            return this.#makeUniqueId('json-container');
+        } */
 
     get #builderId() {
         return this.#makeUniqueId('qf-builder');
@@ -112,9 +112,9 @@ export default class Builder {
         return this.#makeUniqueId('main-tab');
     }
 
-    get #jsonSchemaId() {
-        return this.#makeUniqueId('json-schema');
-    }
+    /*     get #jsonSchemaId() {
+            return this.#makeUniqueId('json-schema');
+        } */
 
     #refreshDisplay() {
         this.#diaplayContainer.resetForm();
@@ -132,7 +132,7 @@ export default class Builder {
                 this.#refreshDisplay();
             }
         };
-        tabs[this.#jsonContainerId] = { caption: 'Json' };
+        //tabs[this.#jsonContainerId] = { caption: 'Json' };
 
         let tabcontrol = new TabControl(this.#mainTabId, tabs, this.#containerId);
         let buildermain = tabcontrol.tabControl;
@@ -205,9 +205,9 @@ export default class Builder {
 
         //append json schema
 
-        this.#jsonHolder = this.#createElement('pre', this.#jsonSchemaId, { class: `qf-json-holder` });
-
-        this.jsonPane.appendChild(this.#jsonHolder);
+        /*         this.#jsonHolder = this.#createElement('pre', this.#jsonSchemaId, { class: `qf-json-holder` });
+        
+                this.jsonPane.appendChild(this.#jsonHolder); */
 
         this.#finalizeBuilder();
     }
@@ -240,8 +240,9 @@ export default class Builder {
                     target.#currentComponent = args;
                     break;
                 case 'schemachanged':
-                    let json = target.#theFormContainer.getJSONSchema();
-                    target.#jsonHolder.innerHTML = target.#theFormContainer.getJSONSchema();
+                    target.#editBar.refreshJsonSchema(target.#theFormContainer.getJSONSchema());
+                    //let json = target.#theFormContainer.getJSONSchema();
+                    //target.#jsonHolder.innerHTML = target.#theFormContainer.getJSONSchema();
                     break;
                 default:
                     break;
